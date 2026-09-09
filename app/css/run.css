@@ -1,0 +1,138 @@
+/* run.css -- the Run tab: the rules you chose, and how it is going.
+ *
+ * Every class is prefixed `rn-`. The SHACKLE itself is not styled here -- it
+ * lives in theme.css, because five tabs render it and a shackle that looks
+ * different in the Bag than in the Factory reads as two different kinds of
+ * unavailable.
+ *
+ * Depth (rim + contact shadow) comes from theme.css's surface family, which
+ * lists .rn-bar, .rn-panel and .rn-tile by name. Do not restate box-shadow
+ * here: this file loads after theme.css, so an equal-specificity rule wins and
+ * silently drops the rim.
+ */
+
+.rn { max-width: 1180px; margin: 0 auto; padding: 14px 16px 40px; }
+
+/* ------------------------------------------------------------------ bar */
+.rn-bar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
+  padding: 10px 14px; margin-bottom: 14px; background: var(--card);
+  border: 1px solid var(--rule); border-radius: 12px; }
+
+/* THE TOGGLE IS THE LOUDEST THING ON THE TAB, and it changes character rather
+   than just colour: off is a quiet outline, on is a filled, chained state. You
+   should never be unsure whether the rules are live. */
+.rn-toggle { display: inline-flex; align-items: center; gap: 7px; font: inherit;
+  font-size: 13px; font-weight: 700; padding: 6px 14px; cursor: pointer;
+  border-radius: 999px; border: 1px solid var(--rule);
+  background: var(--card-3); color: var(--ink-soft); }
+.rn-toggle b { font-size: 14px; line-height: 1; }
+.rn-toggle:hover { border-color: var(--x4); color: var(--x4); }
+.rn-toggle.on { background: var(--x4b); border-color: var(--x4); color: var(--x4); }
+.rn-toggle.on:hover { background: var(--x4b); }
+
+.rn-panes { display: flex; gap: 2px; }
+.rn-pane { font: inherit; font-size: 13px; font-weight: 650; padding: 5px 12px;
+  cursor: pointer; border: 1px solid var(--rule); background: var(--card-3);
+  color: var(--ink-soft); }
+.rn-pane:first-child { border-radius: 7px 0 0 7px; }
+.rn-pane:last-child { border-radius: 0 7px 7px 0; }
+.rn-pane.on { background: var(--fx-go-bg); border-color: var(--fx-go-bg);
+  color: var(--fx-go-ink); }
+.rn-count { margin-left: auto; font-family: var(--mono); font-size: 11.5px;
+  font-weight: 700; padding: 3px 9px; border-radius: 999px;
+  background: var(--x4b); color: var(--x4); border: 1px solid var(--x4); }
+
+.rn-lede { margin: 0 0 14px; max-width: 66ch; font-size: 13.5px; line-height: 1.6;
+  color: var(--ink-soft); }
+
+/* ---------------------------------------------------------------- rules */
+/* THE LADDER READS AS A LADDER: three rungs, left to right, each strictly
+   harder than the last. That is the roguelike-ascension idiom and it makes
+   "harder" a direction rather than a pile of unrelated switches. */
+.rn-ladder { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 10px; margin-bottom: 10px; }
+.rn-rung { display: flex; flex-direction: column; gap: 5px; align-items: flex-start;
+  font: inherit; text-align: left; padding: 13px 15px; cursor: pointer;
+  border: 1px solid var(--rule); border-radius: 12px; background: var(--card);
+  color: var(--ink); }
+.rn-rung:hover { border-color: var(--ember); }
+.rn-rung.on { border-color: var(--x4); background: var(--x4b); }
+.rn-rung b { font-size: 15px; font-weight: 800; }
+.rn-rung.on b { color: var(--x4); }
+.rn-rung span { font-size: 12px; line-height: 1.5; color: var(--ink-soft); }
+.rn-rung i { font-style: normal; font-family: var(--mono); font-size: 10.5px;
+  font-weight: 700; color: var(--ink-faint); }
+.rn-custom { margin: 0 0 18px; font-size: 12px; color: var(--ink-faint); }
+
+.rn-group { margin-bottom: 18px; }
+.rn-group h4 { margin: 0 0 8px; font-size: 12px; letter-spacing: .08em;
+  text-transform: uppercase; color: var(--ink-faint); }
+
+.rn-rule { display: grid; grid-template-columns: auto 1fr; gap: 10px;
+  align-items: start; padding: 10px 13px; margin-bottom: 6px; cursor: pointer;
+  border: 1px solid var(--rule); border-radius: 10px; background: var(--card); }
+.rn-rule:hover { border-color: var(--ink-faint); }
+.rn-rule.on { border-color: var(--x4); }
+.rn-rule input { margin-top: 3px; width: 16px; height: 16px; cursor: pointer;
+  accent-color: var(--x4); }
+.rn-rule b { display: block; font-size: 13.5px; margin-bottom: 2px; }
+.rn-rule.on b { color: var(--x4); }
+.rn-rule span { font-size: 12.5px; line-height: 1.55; color: var(--ink-soft); }
+/* Naming the buttons a rule closes is what turns a promise into a contract. */
+.rn-takes { margin: 6px 0 0; font-size: 11px; color: var(--ink-faint); }
+.rn-takes code { font-family: var(--mono); font-size: 10.5px; padding: 1px 5px;
+  border-radius: 4px; background: var(--x4b); color: var(--x4); }
+
+/* ------------------------------------------------------------------ run */
+.rn-tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 9px; margin-bottom: 14px; }
+.rn-tile { display: flex; flex-direction: column; gap: 1px; padding: 11px 13px;
+  border: 1px solid var(--rule); border-radius: 10px; background: var(--card); }
+.rn-tile b { font-size: 23px; font-weight: 800; line-height: 1.1; color: var(--ember); }
+.rn-tile span { font-size: 11.5px; color: var(--ink-soft); }
+.rn-tile i { font-style: normal; font-size: 10.5px; color: var(--ink-faint); }
+
+.rn-panel { padding: 13px 15px; margin-bottom: 12px; background: var(--card);
+  border: 1px solid var(--rule); border-radius: 12px; }
+.rn-panel.bad { border-color: var(--x4); }
+.rn-panel h4 { margin: 0 0 8px; font-size: 12px; letter-spacing: .08em;
+  text-transform: uppercase; color: var(--ink-faint); display: flex;
+  align-items: baseline; gap: 8px; }
+.rn-panel h4 span { margin-left: auto; font-family: var(--mono); font-size: 11px;
+  letter-spacing: 0; text-transform: none; color: var(--ink-soft); }
+.rn-panel > p { margin: 0 0 6px; font-size: 13px; line-height: 1.55; }
+.rn-hint { font-size: 11.5px; color: var(--ink-faint); }
+.rn-none { font-size: 13px; color: var(--ink-soft); }
+.rn-ok { color: var(--x0); font-size: 12.5px; }
+.rn-over { margin: 6px 0 0; padding-left: 18px; font-size: 13px; color: var(--x4);
+  line-height: 1.6; }
+
+.rn-enc { display: grid; grid-template-columns: 1fr 40px auto auto 24px; gap: 4px 10px;
+  align-items: center; font-size: 12.5px; }
+.rn-earea { color: var(--ink-soft); overflow: hidden; text-overflow: ellipsis;
+  white-space: nowrap; }
+.rn-esp { width: 40px; height: 40px; object-fit: contain; image-rendering: pixelated; }
+.rn-ename { font-weight: 650; }
+.rn-est { font-family: var(--mono); font-size: 10px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .05em; padding: 1px 6px;
+  border-radius: 4px; background: var(--card-2); color: var(--ink-soft); }
+.rn-est.s-caught { background: var(--x0b); color: var(--x0); }
+.rn-est.s-dead { background: var(--x4b); color: var(--x4); }
+.rn-est.s-fled, .rn-est.s-failed { background: var(--x2b); color: var(--x2); }
+.rn-est.s-dupe { background: var(--x1b); color: var(--x1); }
+
+/* The graveyard is a list of names, and the names are the point -- a dex
+   number here would be missing what the log is for. */
+.rn-grave { display: grid; grid-template-columns: 44px 1fr auto auto 24px;
+  gap: 4px 10px; align-items: center; font-size: 12.5px; }
+.rn-gsp { width: 44px; height: 44px; object-fit: contain; image-rendering: pixelated;
+  filter: grayscale(1); opacity: .75; }
+.rn-gname { font-weight: 650; }
+.rn-gname i { font-style: normal; font-weight: 400; color: var(--ink-faint); }
+.rn-glv { font-family: var(--mono); font-size: 11px; color: var(--ink-faint); }
+.rn-gwhere { font-size: 11.5px; color: var(--ink-faint); }
+
+.rn-x { font: inherit; font-size: 14px; line-height: 1; padding: 2px 6px; cursor: pointer;
+  border: 1px solid transparent; border-radius: 5px; background: none;
+  color: var(--ink-faint); }
+.rn-x:hover { border-color: var(--x4); color: var(--x4); }

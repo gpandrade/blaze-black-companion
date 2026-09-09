@@ -1,0 +1,214 @@
+/* teamedit.css -- the battle tab's "Edit this team" control and its dialog.
+ *
+ * Every class is prefixed `te-`, and the one control that lives on the battle
+ * tab's own masthead is `bt-edit` to sit with the other `bt-` restyling.
+ * sheet_template.html's stylesheet is injected app-wide at boot and owns a lot
+ * of short names, so an unprefixed class here would be claimed by it. */
+
+.bt-edit {
+  order: 4;
+  font: inherit;
+  font-size: 12px;
+  line-height: 1;
+  padding: 7px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  border: 1px solid var(--rule);
+  background: var(--card-3);
+  color: var(--ink-soft);
+}
+.bt-edit:hover { border-color: var(--ember); color: var(--ember); }
+.bt-edit:focus-visible { outline: 2px solid var(--ember); outline-offset: 2px; }
+
+/* The overlay covers the viewport, so it is interactive on purpose -- a click
+   on the backdrop dismisses. That is why it is a real element and not a
+   stretched ::before, which would have to be pointer-events: none. */
+.te-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: rgba(4, 7, 12, .68);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 40px 20px;
+  overflow: auto;
+}
+.te-box {
+  width: min(760px, 100%);
+  background: var(--card);
+  border: 1px solid var(--rule);
+  border-radius: 14px;
+  box-shadow: var(--shadow);
+  padding: 20px 22px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.te-narrow { width: min(460px, 100%); }
+
+.te-head h2 { margin: 0; font-size: 19px; font-weight: 750; letter-spacing: -.01em; }
+.te-head h2 b { color: var(--ember); }
+.te-sub { margin: 5px 0 0; font-size: 12.5px; color: var(--ink-faint); line-height: 1.45; }
+
+.te-field { display: flex; flex-direction: column; gap: 4px; }
+.te-sec { display: flex; flex-direction: column; gap: 4px; }
+.te-lab {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+.te-hint { font-size: 11.5px; color: var(--ink-faint); line-height: 1.4; }
+
+.te-in {
+  font: inherit;
+  font-size: 13.5px;
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--rule);
+  background: var(--card-3);
+  color: var(--ink);
+  resize: vertical;
+}
+.te-in:focus-visible { outline: 2px solid var(--ember); outline-offset: 1px; }
+
+.te-cards { display: flex; flex-direction: column; gap: 7px; margin-top: 4px; }
+.te-card {
+  background: var(--card-3);
+  border: 1px solid var(--rule-soft);
+  border-radius: 9px;
+  padding: 8px 9px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.te-cardhead { display: flex; gap: 6px; align-items: center; }
+/* The label is the useful half of a pilot card -- it says what question the
+   sentence answers -- so it gets the mono-caps treatment it will render in. */
+.te-key {
+  flex: 0 0 auto;
+  width: 150px;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+  color: var(--ember);
+}
+.te-val { flex: 1; }
+.te-mini {
+  font: inherit;
+  font-size: 12px;
+  line-height: 1;
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  cursor: pointer;
+  border: 1px solid var(--rule);
+  background: var(--card);
+  color: var(--ink-faint);
+}
+.te-mini:hover:not(:disabled) { border-color: var(--ember); color: var(--ember); }
+/* DISABLED IS A COLOUR, NEVER AN OPACITY -- an opacity over a filled control
+   composites it toward the page and takes the label below threshold. */
+.te-mini:disabled { background: var(--fx-off-bg); color: var(--fx-off-ink);
+  border-color: var(--fx-off-rule); cursor: default; }
+.te-del:hover { border-color: var(--x4); color: var(--x4); }
+.te-mini:last-child { margin-left: 0; }
+.te-cardhead .te-mini:nth-last-child(2) { margin-left: auto; }
+
+.te-empty {
+  margin: 0;
+  font-size: 12px;
+  color: var(--ink-faint);
+  line-height: 1.5;
+  padding: 10px 12px;
+  border: 1px dashed var(--rule);
+  border-radius: 9px;
+}
+
+.te-slots { display: flex; flex-direction: column; gap: 6px; margin-top: 4px; }
+.te-slot { display: flex; gap: 8px; align-items: center; }
+.te-slotname {
+  flex: 0 0 auto;
+  width: 132px;
+  font-size: 12px;
+  font-weight: 650;
+  color: var(--ink-soft);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.te-foot { display: flex; gap: 8px; justify-content: flex-end; margin-top: 4px; }
+.te-btn {
+  font: inherit;
+  font-size: 13px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  border: 1px solid var(--rule);
+  background: var(--card-3);
+  color: var(--ink-soft);
+}
+.te-btn:hover { border-color: var(--ember); color: var(--ink); }
+.te-btn:focus-visible { outline: 2px solid var(--ember); outline-offset: 1px; }
+/* Never --ember + #fff: white on the light-mode ember measures 2.41:1. */
+.te-go {
+  background: var(--fx-go-bg);
+  border-color: var(--fx-go-bg);
+  color: var(--fx-go-ink);
+  font-weight: 650;
+}
+.te-go:hover { background: var(--fx-go-bg-hover); border-color: var(--fx-go-bg-hover);
+  color: var(--fx-go-ink); }
+
+/* ------------------------------------------------- inline in the Builder */
+/* The same fields, embedded under a team's name and tagline instead of in a
+   dialog. Closed by default and quiet, because it is the optional half of the
+   overview -- but opened automatically for a team that already has this
+   writing, so nobody has to discover a click to see their own prose. */
+.tb-adv { grid-column: 1 / -1; margin-top: 2px; }
+.tb-adv > summary {
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 6px 2px;
+  border-radius: 6px;
+  color: var(--ink-faint);
+}
+.tb-adv > summary::-webkit-details-marker { display: none; }
+.tb-adv > summary::before { content: "▸"; font-size: 10px; color: var(--ink-faint); }
+.tb-adv[open] > summary::before { content: "▾"; }
+.tb-adv > summary:hover { color: var(--ink); }
+.tb-adv > summary:focus-visible { outline: 2px solid var(--ember); outline-offset: 1px; }
+.tb-advlab {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+}
+.tb-advsub { font-size: 11.5px; }
+.tb-adv .te-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px 13px 13px;
+  margin-top: 2px;
+  border-radius: 10px;
+  background: var(--card-3);
+  border: 1px solid var(--rule-soft);
+}
+
+/* "Field it" in the battle tab's team header. It commits something, so it gets
+   the measured filled-accent pair rather than --ember + white. */
+.bt-field { font: inherit; font-size: 12px; line-height: 1; padding: 5px 11px;
+  margin-left: 4px; border-radius: 7px; cursor: pointer;
+  border: 1px solid var(--fx-go-bg); background: var(--fx-go-bg);
+  color: var(--fx-go-ink); font-weight: 650; }
+.bt-field:hover { background: var(--fx-go-bg-hover); border-color: var(--fx-go-bg-hover); }
+.bt-field:focus-visible { outline: 2px solid var(--ember); outline-offset: 2px; }

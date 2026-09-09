@@ -1,0 +1,115 @@
+#!/usr/bin/env bash
+# test-all -- every check in the repo, in dependency order.
+#
+# READ-ONLY with respect to the live save. The save corpus is tests/fixture.sav
+# plus the newest file in save_backups/; all write-path checks run in memory.
+set -euo pipefail
+cd "$(dirname "$0")"
+
+# ---------------------------------------------------------------- precondition
+# ALMOST EVERY CHECK BELOW READS THE ROM TABLES, and on a tree where ./setup has
+# not run they used to discover that one at a time, several stages in, as raw
+# tracebacks -- the parser suite died on a StopIteration looking for a species
+# name, and dump_pk5_truth on a FileNotFoundError for state/personal.json. Both
+# were "run ./setup" wearing a stack trace.
+#
+# So: ask once, up front, and say the one useful thing. Individual suites still
+# degrade gracefully on their own (test_parse_save runs 233 of its 297 with the
+# rest announced as skipped), which is what makes them usable standalone while
+# working on the parser -- but test-all as a whole needs the tables and should
+# say so instead of half-running.
+if [ ! -f state/personal.json ]; then
+  echo "test-all: no state/personal.json -- the ROM tables have not been extracted."
+  echo
+  echo "  Almost every check here reads them. Run ./setup first; it pulls the"
+  echo "  tables out of your own ROM and takes a few minutes the first time."
+  echo
+  echo "  Working on the parser alone? python3 tests/test_parse_save.py runs"
+  echo "  without them and names what it had to skip."
+  exit 1
+fi
+
+echo "── python: save parser"
+python3 tests/test_parse_save.py
+
+echo
+echo "── js: PK5 save layer (differential against Python)"
+./test-js
+
+echo
+echo "── js: battle-companion data port (differential against build_sheet.py)"
+python3 tools/verify_blob.py
+
+echo
+echo "── js: Pokémon Factory (model + UI against a stubbed DOM)"
+node tools/verify_factory.mjs
+
+echo
+echo "── js: Team Builder (model + UI against a stubbed DOM)"
+node tools/verify_builder.mjs
+
+echo
+echo "── js: the Team Builder's suggester (premise, power, cost)"
+node tools/verify_suggest.mjs
+
+echo
+echo "── js: the battle tab's team-prose editor"
+node tools/verify_teamedit.mjs
+
+echo
+echo "── js: Bag (setBagItem + UI against a stubbed DOM)"
+node tools/verify_items.mjs
+
+echo
+echo "── js: Pokédex (the ROM tables, and what the hack changed)"
+node tools/verify_dex.mjs
+
+echo
+echo "── js: nuzlocke rules actually close the buttons they name"
+node tools/verify_run.mjs
+
+echo
+echo "── js: the tab rail and the tab dial"
+node tools/verify_nav.mjs
+
+echo
+echo "── js: Professor Hazel — the first run, and the help that stays"
+node tools/verify_tutor.mjs
+
+echo
+echo "── wagara: the pattern tiles repeat, and every tab has a motif"
+python3 tools/verify_patterns.py
+
+echo
+echo "── js: Adventure (area join + UI against a stubbed DOM)"
+node tools/verify_mapedit.mjs
+node tools/verify_adventure.mjs
+
+echo
+echo "── map corrections survive the trip from the browser to another user"
+python3 tools/verify_maproute.py
+
+echo
+echo "── js: the Poké Ball easter egg stays harmless"
+node tools/verify_pokeball.mjs
+
+echo
+echo "── js: app renders a real save end to end"
+node tools/verify_app.mjs
+
+echo
+echo "── rom: NDS graphics decoder (skipped without the ROM or the wiki)"
+set +e
+python3 tools/ncgr.py selftest
+NCGR=$?
+set -e
+if [ "$NCGR" = "1" ]; then
+  echo "  FAILED: the decoder's proven half regressed"
+  exit 1
+elif [ "$NCGR" = "2" ]; then
+  echo "  known gap: tile arrangement is not universal yet — not a regression"
+fi
+
+echo
+echo "── generated sheet (only if it exists)"
+if [ -f state/team_sheet.html ]; then node verify_sheet.js; else echo "  skipped: state/team_sheet.html not built"; fi

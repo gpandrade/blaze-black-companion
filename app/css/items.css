@@ -1,0 +1,127 @@
+/*
+ * items.css -- the Bag tab. Prefixed it- for the usual reason: the battle
+ * companion's stylesheet is global and owns short names.
+ *
+ * Filled accents reuse --fx-go-* from factory.css, the measured pair
+ * (7.08:1 light, 7.35:1 dark). --ember plus white is 2.41:1 in dark and must
+ * not come back.
+ */
+
+.it { max-width: 1180px; margin: 0 auto; padding: 18px 22px 60px; }
+.it-spacer { flex: 1; }
+
+.it-btn { font: inherit; font-size: 12.5px; padding: 5px 11px; border-radius: 7px;
+  cursor: pointer; border: 1px solid var(--rule); background: var(--card-3); color: var(--ink); }
+.it-btn:hover:not(:disabled) { border-color: var(--ember); color: var(--ember); }
+.it-btn:disabled { background: var(--fx-off-bg); border-color: var(--fx-off-rule);
+  color: var(--fx-off-ink); cursor: not-allowed; opacity: 1; }
+.it-btn.primary { background: var(--fx-go-bg); border-color: var(--fx-go-bg);
+  color: var(--fx-go-ink); font-weight: 650; }
+.it-btn.primary:hover:not(:disabled) { background: var(--fx-go-bg-hover); border-color: var(--fx-go-bg-hover); }
+.it-btn.danger { background: var(--x4b); border-color: var(--x4); color: var(--x4); font-weight: 650; }
+.it-btn.danger:hover { background: var(--x4); color: var(--fx-on-x4); }
+/* The one button in a pocket that CREATES rather than acts on what is there,
+   so it reads as an empty slot waiting to be filled. */
+.it-add { border-style: dashed; }
+.it-add:hover:not(:disabled) { border-style: solid; }
+.it-filter.on { background: var(--ember-soft); border-color: var(--ember); color: var(--ember);
+  font-weight: 650; }
+
+.it-bar { display: flex; gap: 12px; align-items: center; flex-wrap: wrap;
+  padding: 10px 14px; margin-bottom: 14px; background: var(--card);
+  border: 1px solid var(--rule); border-radius: 12px; box-shadow: var(--shadow); }
+.it-bar h2 { margin: 0; font-size: 15px; }
+.it-dirty { font-size: 12px; color: var(--x2); background: var(--x2b);
+  padding: 3px 9px; border-radius: 999px; font-weight: 600; }
+/* The Install / Download pair moved to the shell bar -- one working copy,
+   one pair of buttons. Its styling lives in app/index.html. */
+
+
+/* --------------------------------------------------------------- layout */
+.it-main { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 16px;
+  align-items: start; }
+@media (max-width: 1000px) { .it-main { grid-template-columns: 1fr; } }
+
+/* The game's own five pockets, in the game's own order. */
+.it-pockets { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 10px; }
+.it-pocket { display: flex; gap: 7px; align-items: center; font: inherit; font-size: 12.5px;
+  padding: 5px 12px; border-radius: 999px; cursor: pointer;
+  border: 1px solid var(--rule); background: var(--card-3); color: var(--ink-soft); }
+.it-pocket:hover { border-color: var(--ember); color: var(--ember); }
+.it-pocket[aria-current="true"] { background: var(--fx-go-bg); border-color: var(--fx-go-bg);
+  color: var(--fx-go-ink); font-weight: 650; }
+.it-pocket i { font-style: normal; font-size: 10.5px; opacity: .75; }
+
+.it-controls { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 10px; }
+.it-search { flex: 1; min-width: 160px; font: inherit; font-size: 13px; padding: 6px 10px;
+  border: 1px solid var(--rule); border-radius: 8px; background: var(--card-3); color: var(--ink); }
+.it-search:focus { outline: 2px solid var(--ember); outline-offset: -1px; }
+.it-sort { font: inherit; font-size: 12.5px; padding: 5px 8px; border: 1px solid var(--rule);
+  border-radius: 7px; background: var(--card-3); color: var(--ink); cursor: pointer; }
+.it-count { font-size: 11.5px; color: var(--ink-faint); }
+
+/* ----------------------------------------------------------------- list */
+.it-list { display: flex; flex-direction: column; gap: 4px; background: var(--card);
+  border: 1px solid var(--rule); border-radius: 12px; box-shadow: var(--shadow);
+  padding: 8px; }
+/* No max-height / overflow-y. A ~600px scroll region inside a page that also
+   scrolls means two scrollbars for one list, and it left the page mostly
+   empty below while the list was clipped. The page scrolls; the list does not. */
+.it-list > * { flex: none; }          /* a flex column shrinks before it scrolls */
+.it-row { display: flex; gap: 10px; align-items: center; width: 100%; text-align: left;
+  font: inherit; padding: 6px 9px; border-radius: 8px; cursor: pointer;
+  border: 1px solid transparent; background: none; color: var(--ink); }
+.it-row:hover { background: var(--card-2); }
+.it-row.on, .it-row[aria-current="true"] { background: var(--ember-soft); border-color: var(--ember); }
+.it-row img { width: 30px; height: 30px; flex: none; image-rendering: -webkit-optimize-contrast; }
+.it-noicon { width: 30px; height: 30px; flex: none; display: flex; align-items: center;
+  justify-content: center; border-radius: 6px; background: var(--card-2);
+  font-size: 10px; font-weight: 700; color: var(--ink-soft); text-transform: uppercase; }
+.it-rowbody { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+.it-name { font-size: 13.5px; font-weight: 600; }
+.it-sub { font-size: 11px; color: var(--ink-faint); overflow: hidden;
+  text-overflow: ellipsis; white-space: nowrap; }
+.it-qty { font-family: var(--mono); font-size: 12.5px; font-weight: 700; flex: none;
+  color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+.it-empty { text-align: center; color: var(--ink-faint); font-size: 13px; padding: 22px 8px; margin: 0; }
+
+/* --------------------------------------------------------------- detail */
+.it-detail { background: var(--card); border: 1px solid var(--rule); border-radius: 12px;
+  box-shadow: var(--shadow); padding: 14px; position: sticky; top: 64px; }
+.it-hero { display: flex; gap: 11px; align-items: center; margin-bottom: 10px; }
+.it-hero img { width: 48px; height: 48px; }
+.it-detail h3 { margin: 0; font-size: 17px; letter-spacing: -.01em; }
+.it-detail .it-sub { font-size: 11.5px; white-space: normal; }
+.it-desc { margin: 0 0 10px; font-size: 12.5px; line-height: 1.55; color: var(--ink-soft); }
+.it-kv { display: grid; grid-template-columns: 82px 1fr; gap: 3px 8px; font-size: 12px; margin: 0 0 12px; }
+.it-kv dt { color: var(--ink-faint); }
+.it-kv dd { margin: 0; }
+.it-qtyrow { display: flex; gap: 5px; align-items: center; flex-wrap: wrap; }
+.it-num { width: 68px; font: inherit; font-size: 13px; padding: 5px 7px;
+  border: 1px solid var(--rule); border-radius: 6px; background: var(--card-3); color: var(--ink); }
+.it-acts { display: flex; gap: 6px; margin-top: 10px; }
+.it-hint, .it-note { font-size: 11.5px; line-height: 1.5; color: var(--ink-soft); }
+.it-note { background: var(--x2b); color: var(--x2); border-radius: 8px; padding: 8px 10px;
+  margin: 10px 0 0; }
+
+/* ---------------------------------------------------------------- modal */
+.it-modal { position: fixed; inset: 0; z-index: 200; background: rgba(10,14,20,.55);
+  display: flex; align-items: flex-start; justify-content: center; padding: 5vh 16px; overflow-y: auto; }
+.it-sheet { background: var(--card); border: 1px solid var(--rule); border-radius: 14px;
+  box-shadow: 0 20px 60px rgba(0,0,0,.35); width: min(540px, 100%); padding: 20px 22px 18px;
+  display: flex; flex-direction: column; gap: 10px; }
+.it-sheet h3 { margin: 0; font-size: 18px; }
+.it-addlist { display: flex; flex-direction: column; gap: 3px; max-height: 52vh; overflow-y: auto; }
+.it-addlist > * { flex: none; }
+.it-foot { display: flex; gap: 8px; border-top: 1px solid var(--rule-soft); padding-top: 12px; }
+
+/* The one thing worth noticing about this pocket, rather than a count you can
+   already see by looking. */
+.it-summary { margin: 0 0 10px; font-size: 11.5px; padding: 6px 10px; border-radius: 8px;
+  background: var(--card-3); border: 1px solid var(--rule-soft); color: var(--ink-soft); }
+
+/* The party as party icons, not as a list of names. 32x32 is the size the
+   game itself uses when a Pokemon is an identifier rather than the subject. */
+.it-icons { display: flex; flex-wrap: wrap; gap: 2px; align-items: center; }
+.it-icons img { width: 32px; height: 24px; image-rendering: pixelated; }
+.it-iconname { font-size: 11px; color: var(--ink-faint); padding: 0 3px; }

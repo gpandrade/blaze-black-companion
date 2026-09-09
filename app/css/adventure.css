@@ -1,0 +1,618 @@
+/* adventure.css -- where you are and what is there. Prefixed ad-. */
+
+.ad { max-width: 1180px; margin: 0 auto; padding: 18px 22px 60px;
+  display: flex; flex-direction: column; gap: 14px; }
+.ad-spacer { flex: 1; }
+.ad-btn { font: inherit; font-size: 12.5px; padding: 5px 11px; border-radius: 7px;
+  cursor: pointer; border: 1px solid var(--rule); background: var(--card-3); color: var(--ink); }
+.ad-btn:hover:not(:disabled) { border-color: var(--ember); color: var(--ember); }
+/* Disabled is a COLOUR here, not a fade. An opacity composites the whole
+   button toward the page and took "Notes on" -- the ACTIVE state of a toggle
+   -- to 2.35:1. See the note in factory.css. */
+.ad-btn:disabled { background: var(--fx-off-bg); border-color: var(--fx-off-rule);
+  color: var(--fx-off-ink); cursor: not-allowed; opacity: 1; }
+.ad-btn.on { background: var(--ember-soft); border-color: var(--ember); color: var(--ember); }
+
+.ad-bar { display: flex; gap: 12px; align-items: center; flex-wrap: wrap;
+  padding: 12px 15px; margin-bottom: 14px; background: var(--card);
+  border: 1px solid var(--rule); border-radius: 12px; box-shadow: var(--shadow); }
+.ad-here { display: flex; flex-direction: column; gap: 1px; }
+.ad-label { font-size: 9.5px; font-weight: 800; letter-spacing: .09em;
+  text-transform: uppercase; color: var(--ink-faint); }
+.ad-here b { font-size: 21px; letter-spacing: -.015em; }
+.ad-tile { font-family: var(--mono); font-size: 10.5px; color: var(--ink-faint); }
+.ad-pick { font: inherit; font-size: 12.5px; padding: 6px 9px; border: 1px solid var(--rule);
+  border-radius: 7px; background: var(--card-3); color: var(--ink); cursor: pointer;
+  max-width: 260px; }
+
+.ad-panels { display: flex; flex-direction: column; gap: 14px; }
+.ad-panel { padding: 14px 16px; background: var(--card); border: 1px solid var(--rule);
+  border-radius: 12px; box-shadow: var(--shadow); }
+.ad-panel h3 { margin: 0 0 10px; font-size: 13.5px; display: flex; gap: 9px;
+  align-items: baseline; flex-wrap: wrap; }
+.ad-panel h3 span { font-size: 11.5px; font-weight: 400; color: var(--ink-faint); }
+.ad-empty { text-align: center; color: var(--ink-faint); font-size: 13px; padding: 20px 8px; margin: 0; }
+.ad-hint { margin: 10px 0 0; font-size: 11.5px; line-height: 1.5; color: var(--ink-faint); }
+.ad-tools { display: flex; gap: 6px; margin-top: 10px; }
+
+/* ---------------------------------------------------------- encounters */
+.ad-method { display: flex; gap: 9px; align-items: baseline; flex-wrap: wrap;
+  margin: 12px 0 6px; font-size: 12.5px; font-weight: 700; }
+.ad-method:first-child { margin-top: 0; }
+.ad-method i { font-style: normal; font-size: 10.5px; font-weight: 400; color: var(--ink-faint); }
+/* DIM THE SPRITES, NEVER THE TEXT. A blanket opacity here put the encounter
+   percentages at 2.01:1 and the "needs Surf" marker at 2.48:1 -- and those
+   markers exist precisely to be read. */
+.ad-method.gated img { opacity: .6; }
+.ad-gate { font-size: 9.5px; font-weight: 800; letter-spacing: .05em; text-transform: uppercase;
+  padding: 2px 7px; border-radius: 999px; background: var(--card-3); color: var(--ink-faint); }
+.ad-warn { font-size: 9.5px; font-weight: 800; letter-spacing: .05em; text-transform: uppercase;
+  padding: 2px 7px; border-radius: 999px; background: var(--x2b); color: var(--x2); cursor: help; }
+
+.ad-mons { display: grid; grid-template-columns: repeat(auto-fill, minmax(112px, 1fr)); gap: 6px; }
+.ad-mon { display: flex; flex-direction: column; align-items: center; gap: 0;
+  padding: 5px 3px 6px; border-radius: 9px; border: 1px solid var(--rule-soft);
+  background: var(--card-3); }
+/* What is NEW here is the question you actually have walking onto a route, so
+   the ones you already own recede rather than competing.
+
+   That recession used to be `opacity: .45` on the whole card, which is wrong
+   twice over: it took the name and the encounter rate to 3.97:1 and 2.01:1,
+   and on a complete Pokédex -- 649/649 here -- EVERY row is "caught", so the
+   entire tab was permanently dimmed and nothing ever stood out anyway. The
+   sprite carries the recession now; the text stays readable. */
+.ad-mon.caught { background: var(--card-3); border-color: var(--rule-soft); }
+.ad-mon.caught img { opacity: .62; }
+.ad-mon.caught .ad-mname { color: var(--ink-faint); font-weight: 500; }
+.ad-mon.new { border-color: var(--x0); background: var(--x0b); }
+.ad-mon img { width: 72px; height: 72px; }
+.ad-mname { font-size: 10px; font-weight: 600; max-width: 100%; overflow: hidden;
+  text-overflow: ellipsis; white-space: nowrap; }
+.ad-pct { font-family: var(--mono); font-size: 9.5px; color: var(--ink-faint); }
+
+/* --------------------------------------------------------------- items */
+.ad-items { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 6px; }
+.ad-item { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap;
+  padding: 7px 10px; border-radius: 8px; background: var(--card-3);
+  border: 1px solid var(--rule-soft); }
+.ad-item.owned { color: var(--ink-faint); }
+.ad-item.owned img { opacity: .6; }
+.ad-iname { font-size: 13px; font-weight: 650; }
+.ad-was { font-size: 10.5px; color: var(--ink-faint); cursor: help; }
+.ad-have { font-size: 9.5px; font-weight: 800; letter-spacing: .05em; text-transform: uppercase;
+  padding: 1px 6px; border-radius: 999px; background: var(--x0b); color: var(--x0); }
+
+/* -------------------------------------------------------------- farming */
+.ad-farm { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 6px; }
+.ad-farmrow { display: flex; gap: 8px; align-items: center; padding: 5px 9px;
+  border-radius: 8px; background: var(--card-3); border: 1px solid var(--rule-soft); }
+.ad-farmrow img { width: 38px; height: 38px; flex: none; }
+.ad-fitem { font-size: 12.5px; font-weight: 650; }
+.ad-fsub { font-size: 10.5px; color: var(--ink-faint); }
+.ad-farmrow > span:not(.ad-fitem) { flex: 1; text-align: right; }
+
+/* ------------------------------------------------------------ the map */
+/* The game's own artwork with pins on it. Markers are positioned as PERCENT,
+   so they track the image at any width. */
+.ad-map { position: relative; line-height: 0; border-radius: 10px; overflow: hidden;
+  border: 1px solid var(--rule); }
+.ad-mapimg { width: 100%; height: auto; display: block; }
+/* The marker layer sits on top of the route lines and covered the whole map,
+   so it swallowed every click before the SVG underneath ever saw one -- which
+   is why route lines were not clickable. Only the markers themselves take
+   pointer events; the layer is transparent to them. */
+.ad-markers { position: absolute; inset: 0; pointer-events: none; }
+.ad-pin { pointer-events: auto; }
+
+/* ------------------------------------------------------- routes as lines */
+/* preserveAspectRatio="none" so a 0..1000 viewBox stretches to the image's
+   real aspect ratio, exactly as the percent-positioned markers do.
+   vector-effect keeps the stroke a constant screen width through that. */
+.ad-links { position: absolute; inset: 0; }
+.ad-links svg { width: 100%; height: 100%; display: block; overflow: visible; }
+.ad-link { cursor: pointer; }
+.ad-link .ad-hit { fill: none; stroke: transparent; stroke-width: 18;
+  vector-effect: non-scaling-stroke; }
+/* A CASED LINE, and the CASING is what does the work.
+ *
+ * This artwork is not a quiet background: it is high-chroma green and blue
+ * with large WHITE regions -- cloud all round the border, snow on both
+ * mountain ranges. A translucent white line over a translucent dark halo was
+ * tuned for the green and disappeared completely over the white, which is
+ * most of the frame's edge and both mountains.
+ *
+ * The fix is not "brighter". It is the standard cartographic answer: an
+ * opaque light core inside a near-opaque dark casing. The casing separates
+ * the road from ANY ground -- it is the only element that reads over cloud --
+ * and the core reads against the casing everywhere. That buys legibility
+ * without buying weight: a dark hairline is quieter on the eye than a wider
+ * or brighter white one would have to be to survive the same ground. */
+.ad-link .ad-under { fill: none; stroke: rgba(8,12,18,.88); stroke-width: 8.5;
+  stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke;
+  pointer-events: none; }
+.ad-link .ad-line { fill: none; stroke: #fff; stroke-width: 3.6;
+  stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke;
+  pointer-events: none; }
+/* Adjacency you cannot walk through gets a dashed, quieter line than a real
+   route, so the map does not imply there is something there to visit. */
+/* Adjacency keeps its casing too -- it was the least visible thing on the map
+   and is still meant to be the quietest. Quieter is carried by the dash and
+   the narrower core, not by fading both into the artwork. */
+.ad-link.plain .ad-line { stroke: rgba(255,255,255,.85); stroke-width: 2.6;
+  stroke-dasharray: 5 6; }
+.ad-link.plain .ad-under { stroke: rgba(8,12,18,.72); stroke-width: 6.5; }
+.ad-link.plain .ad-hit { stroke-width: 12; }
+
+/* Raised alongside the baseline. The gap between "a road" and "the road you
+   are pointing at" is what makes hover mean anything, and leaving these where
+   they were would have closed it. */
+.ad-link.hot .ad-line, .ad-link.shown .ad-line { stroke: var(--ember); stroke-width: 5.5; }
+.ad-link.hot .ad-under, .ad-link.shown .ad-under { stroke: rgba(8,12,18,1); stroke-width: 11; }
+.ad-link.here .ad-line { stroke: var(--ember); stroke-width: 6; }
+.ad-link.here .ad-under { stroke: #fff; stroke-width: 12; }
+
+/* Route badges: their own layer, so they are not stretched by the SVG.
+ *
+ * They must NOT look like place labels. A dark pill with white text is what a
+ * city label is, so a route wearing one reads as another settlement. A
+ * numbered route gets a round shield -- the road-sign idiom, instantly not a
+ * town -- and a named one a squared plate, both in a paler slate than any
+ * label uses.
+ */
+.ad-routetags { position: absolute; inset: 0; pointer-events: none; }
+.ad-routetag { position: absolute; transform: translate(-50%, -50%); pointer-events: auto;
+  font-family: var(--mono); font-weight: 800; cursor: pointer; line-height: 1;
+  display: flex; align-items: center; justify-content: center;
+  background: #E9EEF4; color: #10161f;
+  border: 2px solid rgba(8,12,18,1);
+  box-shadow: 0 0 0 1.2px rgba(255,255,255,.6), 0 1px 6px rgba(0,0,0,.7);
+  white-space: nowrap; }
+.ad-routetag.ad-num { width: 23px; height: 23px; border-radius: 50%; font-size: 11.5px;
+  padding: 0; }
+.ad-routetag.ad-named { border-radius: 4px; font-size: 9.5px; padding: 2.5px 6px;
+  letter-spacing: .01em; font-weight: 700; }
+
+/* Highlight state. --ember plus white is 2.41:1 in dark mode -- the same trap
+   the buttons hit -- so this uses the measured pair from factory.css. */
+.ad-routetag:hover, .ad-routetag.hot {
+  background: var(--fx-go-bg); color: var(--fx-go-ink);
+  border-color: var(--fx-go-ink); z-index: 4;
+  box-shadow: 0 0 0 2px rgba(255,255,255,.5), 0 2px 5px rgba(0,0,0,.55); }
+.ad-routetag.shown { background: var(--s2); color: #fff; border-color: #fff; }
+.ad-routetag.here { background: var(--fx-go-bg); color: var(--fx-go-ink);
+  border-color: #fff; z-index: 5;
+  box-shadow: 0 0 0 3px rgba(184,65,15,.45), 0 1px 4px rgba(0,0,0,.6); }
+
+/* ------------------------------------------------------------- markers */
+/* Three weights. Forty identical dots is unreadable however nice each dot is,
+   and the region has an obvious hierarchy already: gym towns, small towns,
+   and everything you pass through. */
+.ad-pin { position: absolute; transform: translate(-50%, -50%); display: flex;
+  flex-direction: column; align-items: center; padding: 0; cursor: pointer;
+  border: 0; background: none; font: inherit; line-height: 1; }
+/* Same problem, same answer. The old marker was a white dot with a dark ring
+   and a WHITE glow outside it -- three light layers over snow and cloud, so a
+   pin on Twist Mountain or anywhere near the border was a faint grey circle.
+   The outer ring is dark now, so every marker carries a dark boundary
+   whatever it sits on, and the thin white ring stays between the two to keep
+   it legible over dark green as well. */
+.ad-pindot { border-radius: 50%; background: #fff;
+  border: 2.5px solid rgba(8,12,18,1);
+  box-shadow: 0 0 0 1.6px rgba(255,255,255,.8), 0 0 0 3px rgba(8,12,18,.62),
+              0 1px 7px rgba(0,0,0,.7); }
+.ad-pinlab { position: absolute; white-space: nowrap; font-size: 10.5px; font-weight: 700;
+  padding: 1px 6px; border-radius: 5px; opacity: 0; background: rgba(10,15,22,.9);
+  color: #fff; pointer-events: none; box-shadow: 0 1px 4px rgba(0,0,0,.5);
+  transition: opacity .12s; }
+
+/* Cities are biggest. Their labels are opt-out rather than always-on: nine
+   permanent labels still collide on a map this dense, so "Show city names"
+   turns them off without losing the here/hover/selected three. */
+.ad-pin.k-city .ad-pindot { width: 18px; height: 18px; border-width: 3.5px; }
+.ad-pin.k-city .ad-pinlab { top: 21px; font-size: 10.5px; padding: 1px 5px;
+  background: rgba(10,15,22,.72); font-weight: 650; }
+.ad-map.citynames .ad-pin.k-city .ad-pinlab,
+.ad-map.citynames .ad-pin.k-town .ad-pinlab { opacity: 1; }
+/* "Misc." is everything that is neither a city nor a route: towns, gates,
+   forests, towers. Off by default -- 41 permanent labels is what made the
+   first version of this map unreadable. */
+.ad-map.miscnames .ad-pin.k-landmark .ad-pinlab { opacity: 1; }
+/* towns: medium, label on hover */
+.ad-pin.k-town .ad-pindot { width: 14px; height: 14px; }
+.ad-pin.k-town .ad-pinlab { top: 17px; }
+/* landmarks: small, muted, and square so they read as "not a settlement" */
+/* Landmarks stay the quietest of the three, but they were quiet twice over --
+   a translucent fill AND a translucent parent -- which put them under the
+   artwork rather than beside it. The fill is solid now and the hierarchy is
+   carried by size and shape, which is what was meant to carry it. */
+.ad-pin.k-landmark .ad-pindot { width: 12px; height: 12px; border-radius: 2.5px;
+  background: #EEF4FA; border-width: 2.5px; }
+.ad-pin.k-landmark .ad-pinlab { top: 15px; font-size: 10px; }
+/* Full opacity. A landmark was quiet TWICE -- small AND faded -- which put it
+   under the artwork instead of beside it. Size and the squared-off shape carry
+   the hierarchy on their own; that is what they were chosen to do. */
+.ad-pin.k-landmark { opacity: 1; }
+
+.ad-pin:hover { z-index: 9; opacity: 1; }
+.ad-pin:hover .ad-pinlab { opacity: 1; }
+.ad-pin:hover .ad-pindot { background: var(--ember); border-color: #fff;
+  box-shadow: 0 0 0 3px rgba(184,65,15,.55), 0 2px 6px rgba(0,0,0,.7); }
+
+/* Where you ARE and where you are LOOKING must never be confusable: one is a
+   fact out of the save, the other is just browsing. */
+.ad-pin.here { z-index: 12; opacity: 1; }
+.ad-pin.here .ad-pindot { width: 22px !important; height: 22px !important;
+  border-radius: 50% !important; background: var(--ember); border: 4px solid #fff;
+  box-shadow: 0 0 0 3px rgba(184,65,15,.6), 0 0 20px 6px rgba(184,65,15,.45),
+              0 2px 8px rgba(0,0,0,.7); animation: ad-pulse 2.4s ease-in-out infinite; }
+.ad-pin.here .ad-pinlab { opacity: 1; background: var(--ember); font-size: 12px;
+  top: 21px; }
+@keyframes ad-pulse {
+  0%, 100% { box-shadow: 0 0 0 3px rgba(184,65,15,.6), 0 0 20px 6px rgba(184,65,15,.45), 0 2px 8px rgba(0,0,0,.7); }
+  50%      { box-shadow: 0 0 0 6px rgba(184,65,15,.3), 0 0 28px 9px rgba(184,65,15,.3), 0 2px 8px rgba(0,0,0,.7); }
+}
+@media (prefers-reduced-motion: reduce) { .ad-pin.here .ad-pindot { animation: none; } }
+
+.ad-pin.shown { z-index: 11; opacity: 1; }
+.ad-pin.shown .ad-pindot { background: #fff; border: 3px solid var(--s2);
+  box-shadow: 0 0 0 3px rgba(91,87,196,.5), 0 2px 6px rgba(0,0,0,.6); }
+.ad-pin.shown .ad-pinlab { opacity: 1; background: var(--s2); }
+
+
+/* --------------------------------------------------------- trainers */
+.ad-verdict { margin: 0 0 6px; font-size: 13px; color: var(--ink-soft); }
+.ad-verdict b { color: var(--ink); font-size: 15px; }
+.ad-gap { margin: 0 0 8px; font-size: 12px; padding: 5px 9px; border-radius: 7px;
+  display: flex; align-items: center; gap: 8px; }
+.ad-gap.behind { background: var(--x4); color: var(--fx-on-x4); }
+.ad-gap.level { background: var(--card-3); color: var(--ink-soft); }
+.ad-gap.ahead { background: var(--x0b); color: var(--x0); }
+.ad-trainers { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 4px; margin-top: 8px; }
+.ad-trow { display: flex; align-items: center; gap: 8px; padding: 5px 9px; border-radius: 7px;
+  background: var(--card-3); border: 1px solid var(--rule-soft); }
+.ad-trow > div { display: flex; flex-direction: column; min-width: 0; }
+.ad-tname { font-size: 12.5px; font-weight: 600; }
+.ad-tsub { font-size: 10.5px; color: var(--ink-faint); }
+
+/* --------------------------------------------------- trainer portraits */
+/* The trainer's own art, out of the ROM. It sits on the same recessed plinth
+   the Pokémon sprites use elsewhere, so a person and a Pokémon read as the
+   same kind of object rather than one floating and one seated. The image is
+   bottom-aligned because the sprites are drawn standing on a floor line and
+   centring them leaves a taller trainer hovering. */
+.ad-face { flex: 0 0 auto; display: flex; align-items: flex-end; justify-content: center;
+  width: 42px; height: 42px; border-radius: 7px; overflow: hidden;
+  background: var(--card-2); border: 1px solid var(--rule-soft); }
+.ad-face img { width: 40px; height: 40px; object-fit: contain; object-position: bottom;
+  image-rendering: pixelated; }
+.ad-bosshead .ad-face { width: 80px; height: 80px; border-radius: 9px; }
+.ad-bosshead .ad-face img { width: 78px; height: 78px; }
+.ad-boss { margin-top: 12px; padding: 10px 12px; border-radius: 10px;
+  background: var(--card-3); border: 1px solid var(--rule); }
+/* TOP-ALIGNED, NOT CENTRED. The portrait tags the top-left corner of the card;
+   centring the text against it left the name floating at the picture's middle
+   and lining up with nothing. */
+.ad-bosshead { display: flex; gap: 11px; align-items: flex-start; margin-bottom: 8px; }
+/* Two stacked lines beside the portrait. One wrapping row put the name and
+   every chip on a single baseline against a 64px picture, which is what read
+   as "the portrait sits weirdly relative to the text". */
+.ad-bossid { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.ad-bossline { display: flex; gap: 7px; align-items: center; flex-wrap: wrap; min-width: 0; }
+.ad-bosshead b { font-size: 14.5px; }
+.ad-kind { font-size: 9.5px; font-weight: 800; letter-spacing: .05em; text-transform: uppercase;
+  padding: 2px 7px; border-radius: 999px; background: var(--setter-bg); color: var(--setter); }
+.ad-ttype { font-size: 9.5px; font-weight: 800; letter-spacing: .05em; text-transform: uppercase;
+  padding: 2px 7px; border-radius: 999px; background: var(--card-2); color: var(--ink-soft); }
+.ad-boss .ad-mons { margin-top: 8px; }
+
+.ad-btn.primary { background: var(--fx-go-bg); border-color: var(--fx-go-bg);
+  color: var(--fx-go-ink); font-weight: 650; }
+.ad-btn.primary:hover:not(:disabled) { background: var(--fx-go-bg-hover);
+  border-color: var(--fx-go-bg-hover); color: var(--fx-go-ink); }
+
+/* Collapsing the map: it is the biggest thing on the tab and not always what
+   you came for. */
+.ad-fold { font: inherit; font-size: 13px; line-height: 1; padding: 2px 6px; margin-right: 2px;
+  border-radius: 5px; cursor: pointer; border: 1px solid var(--rule);
+  background: var(--card-3); color: var(--ink-soft); }
+.ad-fold:hover { border-color: var(--ember); color: var(--ember); }
+.ad-mapwrap.folded { padding-bottom: 12px; }
+.ad-mapwrap.folded h3 { margin-bottom: 0; }
+
+/* ------------------------------------------------ opponent sprite strip */
+/* Up front rather than behind the reveal: you are about to fight these, and
+   the levels and movesets -- the actual planning material -- still wait. */
+/* SIX COLUMNS, ALWAYS -- not a wrapping flex row. Flex sized every sprite the
+   same but left them hugging the left of a card they never filled, and a
+   four-Pokémon card and a six-Pokémon card gave no visual sense of scale
+   against each other. A fixed grid fills the card AND makes one Pokémon in
+   one card exactly the size of one Pokémon in the next. */
+/* A boss card's roster: SIX EQUAL COLUMNS that fill the card.
+   This is the one place where stretching is right. The cells are real cards
+   with a name and a level in them, not bare sprites, so a 1fr column is
+   content and not padding -- and a four-Pokemon fight filling the same width
+   as a six-Pokemon one is what stops the shorter rosters reading as scraps
+   clustered against the left edge. */
+.ad-oppmons { grid-template-columns: repeat(6, 1fr); }
+@media (max-width: 900px) { .ad-oppmons { grid-template-columns: repeat(3, 1fr); } }
+
+/* ---------------------------------------------------- story progress */
+/* One segment per documented fight, in game order. Gyms are taller because
+   they are the milestones people measure themselves against. */
+.ad-track { display: flex; gap: 2px; align-items: flex-end; height: 30px; margin-bottom: 10px; }
+.ad-seg { flex: 1; min-width: 4px; height: 16px; border: 0; border-radius: 3px;
+  cursor: pointer; padding: 0; background: var(--card-2); transition: height .12s; }
+.ad-seg.k-gym { height: 28px; }
+.ad-seg.k-champion, .ad-seg.k-e4 { height: 24px; }
+.ad-seg.s-done { background: var(--x0); }
+.ad-seg.s-next { background: var(--ember); box-shadow: 0 0 0 2px rgba(184,65,15,.35); }
+.ad-seg.s-todo { background: var(--bartrack); }
+.ad-seg:hover { outline: 2px solid var(--ember); outline-offset: 1px; }
+
+/* EVERY MAJOR FIGHT AS A FACE -- the closest honest thing to a badge case
+   while badges stay unreadable from the save. Which kinds you see is a
+   filter, because "the story" is not only the gyms.
+
+   PROGRESS ADDS SIGNAL, IT DOES NOT REMOVE IT. Desaturating the fights you
+   have not reached means that at 0 of 9 the whole row is grey and the feature
+   looks broken -- the same mistake .ad-mon.caught made, where every row was
+   "caught" and the entire tab read as permanently dimmed. So a fight you have
+   not had is simply the artwork, and clearing one MARKS it. */
+.ad-progfilter { display: flex; flex-wrap: wrap; gap: 5px; margin: 10px 0 8px; }
+.ad-chip { font: inherit; font-size: 11px; line-height: 1; padding: 5px 10px;
+  border-radius: 999px; cursor: pointer; border: 1px solid var(--rule);
+  background: var(--card-3); color: var(--ink-soft); }
+.ad-chip:hover { border-color: var(--ember); color: var(--ink); }
+.ad-chip:focus-visible { outline: 2px solid var(--ember); outline-offset: 1px; }
+.ad-chip.on { background: var(--fx-go-bg); border-color: var(--fx-go-bg);
+  color: var(--fx-go-ink); font-weight: 650; }
+
+.ad-gymrow { display: flex; flex-wrap: wrap; gap: 7px; margin: 4px 0 10px; }
+/* The tile is a container, not a button: opening the fight and ticking it off
+   are separate controls, so the commonest action (go look at it) is never the
+   one that changes your recorded progress. */
+.ad-gym { position: relative; border-radius: 10px;
+  background: var(--card-3); border: 1px solid var(--rule-soft); }
+.ad-gymopen { display: flex; flex-direction: column; align-items: center; gap: 3px;
+  padding: 7px 7px 5px; cursor: pointer; font: inherit; color: inherit;
+  background: none; border: 0; border-radius: 10px; }
+.ad-gym:hover { border-color: var(--ember); }
+.ad-gymopen:focus-visible { outline: 2px solid var(--ember); outline-offset: 1px; }
+.ad-gymname { font-size: 10.5px; font-weight: 650; color: var(--ink-soft);
+  max-width: 86px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ad-gym .ad-face { width: 78px; height: 78px; border-radius: 8px; }
+.ad-gym .ad-face img { width: 76px; height: 76px; }
+.ad-gym.s-done { border-color: var(--x0); background: var(--x0b); }
+.ad-gym.s-done .ad-gymname { color: var(--x0); }
+.ad-gym.s-next { border-color: var(--ember); border-width: 2px; }
+.ad-gym.s-next .ad-gymname { color: var(--ember); }
+
+.ad-gymtick { position: absolute; top: 4px; right: 4px; width: 20px; height: 20px;
+  border-radius: 6px; cursor: pointer; font: inherit; font-size: 12px; line-height: 1;
+  display: flex; align-items: center; justify-content: center;
+  border: 1px solid var(--rule); background: var(--card); color: var(--ink-faint); }
+.ad-gymtick:hover { border-color: var(--x0); color: var(--x0); }
+.ad-gymtick:focus-visible { outline: 2px solid var(--ember); outline-offset: 1px; }
+.ad-gymtick[aria-pressed="true"] { background: var(--x0); border-color: var(--x0);
+  color: var(--fx-on-x0); font-weight: 800; }
+
+/* NEXT UP is the headline of the panel, not a footnote under it. As a
+   one-line strip at the bottom it read as an afterthought; it carries the
+   single most actionable fact on the tab, so it gets a real card, a big
+   portrait and its own way into the fight. */
+.ad-next { display: flex; align-items: center; gap: 12px; margin: 2px 0 12px;
+  padding: 10px 12px; border-radius: 11px;
+  background: var(--card-3); border: 1px solid var(--rule); }
+.ad-next.g-behind { border-color: var(--x4); background: var(--x4b); }
+.ad-next.g-ahead { border-color: var(--x0); background: var(--x0b); }
+.ad-next .ad-face { width: 72px; height: 72px; border-radius: 9px; }
+.ad-next .ad-face img { width: 70px; height: 70px; }
+.ad-next .ad-btn { margin-left: auto; flex: 0 0 auto; }
+.ad-nextid { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.ad-nextlab { font-family: var(--mono); font-size: 9.5px; letter-spacing: .14em;
+  text-transform: uppercase; color: var(--ink-faint); }
+.ad-nextid b { font-size: 16px; font-weight: 750; letter-spacing: -.01em; }
+/* The gap verdict is the one coloured thing here, and it names its own state
+   in words -- colour never carries it alone. */
+.ad-nextgap { font-size: 11.5px; font-weight: 650; }
+.ad-nextgap.g-behind { color: var(--x4); }
+.ad-nextgap.g-ahead { color: var(--x0); }
+.ad-nextgap.g-level { color: var(--ink-soft); }
+
+
+/* Route badges are opt-out like city names, and still appear on hover either
+   way. Numbered routes get a compact pill; named ones keep their full name,
+   because "Skyarrow" alone read as a stray word rather than a label. */
+/* Badges are opt-out like city names, and still surface on hover either way. */
+.ad-routetag { opacity: 0; transition: opacity .12s; }
+.ad-routetags.show .ad-routetag { opacity: 1; }
+.ad-routetag:hover, .ad-routetag.hot, .ad-routetag.here, .ad-routetag.shown { opacity: 1; }
+
+/* Calibration is a different KIND of control from the display toggles -- it
+   changes the data everyone gets, not what this browser shows -- so it gets
+   its own strip rather than sitting among them. */
+/* Collapsed to a single line until it is actually being used. Most people
+   will never touch it, and a permanent explanatory paragraph for a feature
+   nobody uses is space taken from the map. */
+.ad-cal { margin-top: 10px; padding: 5px 10px; border-radius: 9px;
+  background: var(--card-3); border: 1px solid var(--rule-soft); }
+.ad-cal.on { border-color: var(--ember); background: var(--ember-soft); padding: 10px 12px; }
+.ad-cal .ad-btn { padding: 3px 9px; font-size: 11.5px; }
+.ad-calhead { display: flex; gap: 9px; align-items: center; flex-wrap: wrap; }
+.ad-callabel { font-size: 10px; font-weight: 800; letter-spacing: .08em;
+  text-transform: uppercase; color: var(--ink-faint); }
+.ad-cal.on .ad-callabel { color: var(--ember); }
+.ad-calcount { font-size: 10.5px; font-weight: 700; padding: 1px 7px; border-radius: 999px;
+  background: var(--x2b); color: var(--x2); }
+.ad-cal .ad-hint { margin-top: 7px; }
+
+.ad-progress.folded { padding-bottom: 12px; }
+.ad-progress.folded h3 { margin-bottom: 0; }
+
+/* Hiding calibration entirely. The way back is a sentence under the map --
+   hiding something with no route back is just losing it. */
+.ad-x { font: inherit; font-size: 15px; line-height: 1; padding: 0 6px; border: 0;
+  background: none; cursor: pointer; color: var(--ink-faint); border-radius: 5px; }
+.ad-x:hover { color: var(--x4); background: var(--x4b); }
+.ad-link-btn { font: inherit; font-size: inherit; padding: 0; border: 0; background: none;
+  color: var(--ember); text-decoration: underline; cursor: pointer; }
+.ad-link-btn:hover { text-decoration: none; }
+
+
+/* ===================================================================== */
+/* The map editor. It only appears in edit mode, where the map is the only
+   other thing on the tab -- the markers were hard to place because the
+   encounter tables, trainers and progress bar were all competing for room. */
+
+.ad-mapwrap.editing .ad-map{max-height:none;}
+.ad-map.editing{cursor:crosshair;}
+.ad-map.editing .ad-mapimg{user-select:none;-webkit-user-drag:none;}
+/* Every label on, because you cannot place what you cannot identify. */
+.ad-map.editing .ad-pinlab,
+.ad-map.editing .ad-routetag{opacity:1;}
+/* NOTE: no rule here gives a full-map LAYER pointer events. .ad-markers,
+   .ad-notes and .ad-handles all cover the whole map with inset:0, so any one
+   of them set to auto swallows every click meant for anything beneath it --
+   including the bare image, which is what placing a marker and dropping a note
+   both need. The children (.ad-pin, .ad-note, .ad-handle) carry auto instead. */
+.ad-map.editing .ad-pin{cursor:grab;}
+.ad-map.editing .ad-pin:active{cursor:grabbing;}
+.ad-map.connecting .ad-pin{cursor:cell;}
+.ad-pin.sel .ad-pindot,
+.ad-pin.from .ad-pindot{outline:2px solid var(--fx-go-bg);outline-offset:2px;}
+.ad-link.sel .ad-line{stroke:var(--fx-go-bg);stroke-width:4;}
+
+/* Under the map, where it reads better -- but stuck to the BOTTOM of the
+   viewport, so the tools and the instructions are on screen while you work
+   instead of below a map whose height is uncapped in edit mode. */
+.ad-editor{display:flex;flex-direction:column;gap:8px;position:sticky;bottom:0;z-index:40;
+  border:1px solid var(--ember);border-left-width:4px;background:var(--card);
+  box-shadow:0 -2px 14px rgba(0,0,0,.16);}
+.ad-etools .ad-btn{font-size:.82rem;padding:5px 12px;}
+.ad-howto{margin:0;font-size:.82rem;color:var(--ink-soft);}
+.ad-etools{display:flex;flex-wrap:wrap;gap:6px;align-items:center;}
+.ad-elabel{font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--ember);margin-right:2px;}
+.ad-spacer{flex:1;}
+.ad-btn.sm{font-size:.72rem;padding:3px 8px;}
+.ad-btn.danger{color:var(--x4);border-color:var(--x4);}
+.ad-btn.danger:hover{background:var(--x4b);}
+.ad-btn.go{background:var(--fx-go-bg);color:var(--fx-go-ink);border-color:var(--fx-go-bg);
+  font-weight:600;}
+.ad-btn.go:hover{filter:none;background:var(--fx-go-ink);color:var(--fx-go-bg);}
+.ad-btn[disabled]{cursor:default;}
+
+.ad-esel{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:8px 10px;
+  border:1px solid var(--rule);border-radius:6px;background:var(--card-3,transparent);}
+.ad-esel b{margin-right:4px;}
+.ad-esel-in{flex:1;min-width:14rem;font:inherit;font-size:.82rem;padding:4px 7px;
+  border:1px solid var(--rule);border-radius:4px;background:transparent;color:var(--ink);}
+.ad-esel-sel{font:inherit;font-size:.75rem;padding:3px 6px;border:1px solid var(--rule);
+  border-radius:4px;background:transparent;color:var(--ink);max-width:14rem;}
+
+.ad-tray{display:flex;flex-wrap:wrap;gap:5px;align-items:center;}
+.ad-traysplit{margin-top:4px;}
+.ad-trayroutes{display:flex;flex-wrap:wrap;gap:4px;width:100%;}
+.ad-traychip{font-size:10.5px;padding:2px 7px;border-radius:999px;
+  background:var(--card-3);color:var(--ink-faint);border:1px dashed var(--rule);}
+
+/* Bend handles: only for the road you are editing, so the map is not covered
+   in dots you did not ask for. */
+.ad-handles{position:absolute;inset:0;pointer-events:none;}
+.ad-handle{position:absolute;transform:translate(-50%,-50%);width:13px;height:13px;
+  border-radius:50%;border:2px solid var(--fx-go-bg);background:var(--fx-go-ink);
+  padding:0;cursor:grab;pointer-events:auto;}
+.ad-handle:active{cursor:grabbing;}
+
+/* Your notes. They show while browsing too -- the point of marking the map is
+   seeing the mark later, not only while you are placing it. */
+.ad-notes{position:absolute;inset:0;pointer-events:none;}
+/* Hidden while browsing if you say so -- but never while editing, where you
+   are looking at them on purpose. */
+.ad-map.nonotes:not(.editing) .ad-notes{display:none;}
+/* What is still outstanding after "Save to repo". Louder than a plain hint,
+   because it is an instruction rather than a description, and quieter than a
+   warning, because nothing has gone wrong. */
+/* The one encounter you are allowed here. Only rendered when the nuzlocke is
+   on, so a player who is not nuzlocking never sees this panel at all. */
+.ad-nuzhas { margin: 0 0 8px; font-size: 13px; line-height: 1.55; }
+.ad-nuzhas b { color: var(--x0); }
+
+.ad-saved { margin-top: 8px; padding: 7px 10px; border-radius: 7px;
+  background: var(--x0b); color: var(--x0); border: 1px solid var(--x0); }
+.ad-saved code { font-family: var(--mono); font-size: .92em;
+  background: var(--card); padding: .06em .34em; border-radius: 4px; }
+.ad-note{position:absolute;transform:translate(-50%,-100%);display:flex;align-items:center;
+  gap:4px;padding:2px 6px;border-radius:11px;border:1px solid var(--ember);
+  background:var(--ember-soft,var(--card));color:var(--ember);font-size:.68rem;
+  font-weight:600;cursor:pointer;pointer-events:auto;max-width:11rem;}
+.ad-note.sel{outline:2px solid var(--fx-go-bg);outline-offset:1px;}
+.ad-notedot{font-size:.7rem;}
+.ad-notelab{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+
+/* A SPUR reads as a branch, not a road. Shorter, thinner and dashed: it says
+   "this opens off here" rather than "you walk from A to B". */
+.ad-link.spur .ad-line { stroke-dasharray: 4 4; stroke-width: 2.2; opacity: .9; }
+
+/* ------------------------------------------------------- the trainer card */
+/* The game's own card, as far as the save actually tells us. The unknown row
+   is styled as unknown -- a placeholder that looks like data is worse than no
+   card at all. */
+.ad-card { display: flex; gap: 14px; align-items: flex-start; }
+.ad-cardface { flex: 0 0 auto; width: 92px; height: 92px; padding: 0; cursor: pointer;
+  border-radius: 10px; overflow: hidden; display: flex; align-items: flex-end;
+  justify-content: center; background: var(--card-3); border: 1px solid var(--rule); }
+.ad-cardface:hover { border-color: var(--ember); }
+.ad-cardface:focus-visible { outline: 2px solid var(--ember); outline-offset: 2px; }
+.ad-cardface img { width: 90px; height: 90px; object-fit: contain; object-position: bottom;
+  image-rendering: pixelated; }
+.ad-cardkv { display: grid; grid-template-columns: auto 1fr; gap: 4px 14px;
+  margin: 0; min-width: 0; flex: 1; }
+.ad-cardkv dt { font-family: var(--mono); font-size: 9.5px; letter-spacing: .12em;
+  text-transform: uppercase; color: var(--ink-faint); align-self: start; padding-top: 4px; }
+.ad-cardkv dd { margin: 0; font-size: 13.5px; font-weight: 600; min-width: 0; }
+.ad-cardkv dd.ad-unknown { font-weight: 400; }
+.ad-badgewrap { display: flex; flex-direction: column; gap: 4px; }
+/* Dashed and empty: it reads as a slot waiting to be filled, which is exactly
+   what it is, and never as an earned badge. */
+/* THE GAME'S OWN BADGES, extracted from the ROM. They are wildly different
+   shapes -- a lightning bolt, a feather, three stacked gems -- so each is
+   cropped to its own ink and sized by HEIGHT with the width left to follow.
+   Forcing them into equal square boxes is what makes a row of mixed-aspect
+   sprites look wrong; a shared baseline is what makes it look deliberate.
+
+   Unearned is greyscale plus dimmed, NOT hidden: seeing the shape of what is
+   next is the whole reason to show eight rather than a count. Greyscale is
+   safe here where a hue-rotate would not be -- it claims nothing about colour,
+   it removes it. */
+.ad-badges { display: grid; grid-template-columns: repeat(8, 1fr); gap: 8px;
+  max-width: 430px; align-items: end; }
+@media (max-width: 560px) { .ad-badges { grid-template-columns: repeat(4, 1fr); } }
+.ad-badge { display: flex; flex-direction: column; align-items: center; gap: 4px;
+  min-width: 0; }
+.ad-badgeimg { height: 34px; width: auto; max-width: 100%; display: block;
+  image-rendering: pixelated; filter: grayscale(1) brightness(.75); opacity: .45; }
+.ad-badge u { text-decoration: none; font-size: 8.5px; font-weight: 700;
+  letter-spacing: .02em; text-transform: uppercase; color: var(--ink-faint);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+.ad-badge.on .ad-badgeimg { filter: none; opacity: 1;
+  /* A soft glow so an earned badge lifts off the card without a border box,
+     which would fight the badge's own outline. */
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,.45)); }
+.ad-badge.on u { color: var(--ink); }
+/* The one you are working towards: named in the accent, art still grey,
+   because you have not got it. */
+.ad-badge.next .ad-badgeimg { opacity: .7; }
+.ad-badge.next u { color: var(--ember); }
+
+/* The trainer card is a foldable panel like the map and the progress spine,
+   and it needs the same breathing room as its neighbours -- it sits between
+   "worth farming here" and story progress and was running into both. */
+
+.ad-cardpanel.folded { padding-bottom: 12px; }
+.ad-cardpanel.folded h3 { margin-bottom: 0; }
+.ad-cardpanel h3 { display: flex; align-items: baseline; gap: 8px; margin: 0 0 10px; }
+
+/* A portrait we could not read is marked as a choice, not presented as fact. */
+.ad-cardface.guess { border-style: dashed; }

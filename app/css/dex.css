@@ -1,0 +1,332 @@
+/* dex.css -- the Pokédex tab.
+ *
+ * DEPTH IS THEME.CSS'S JOB, NOT THIS FILE'S. The rim and contact shadow come
+ * from the shared surface block, which lists .dx-bar, .dx-list, .dx-head,
+ * .dx-block, .dx-tile and .dx-blist by name. Re-declaring `box-shadow` here
+ * would silently drop the rim -- dex.css loads last, so an equal-specificity
+ * rule wins and `var(--shadow)` alone replaces `var(--shadow), var(--rim)`.
+ *
+ * Every class is prefixed `dx-`. sheet_template.html's stylesheet is injected
+ * app-wide at boot and owns bare `.num`, `.sp`, `.nm`, `.card`, `.meta`, so an
+ * unprefixed class here is silently repainted by a rule in another file. That
+ * has bitten this project three times.
+ *
+ * Colour rules that apply throughout: never `--ember` with a hardcoded #fff
+ * (2.41:1 in dark mode), and disabled/quiet is a COLOUR, never an opacity over
+ * a filled accent. See notes/design-system.md.
+ */
+
+.dx { max-width: 1180px; margin: 0 auto; padding: 14px 16px 40px; }
+
+/* ------------------------------------------------------------------ bar */
+/* A CARD, like every other tab's toolbar.
+   It was a bare flex container -- no padding, no background, no border -- so
+   its controls sat directly on the page ground with the wagara texture showing
+   through between them, which reads as buttons half-hidden under something
+   rather than as a toolbar. Every other tab (.fx-bar, .it-bar, .tb-bar,
+   .ad-bar) is a card and is registered in theme.css's toolbar family; this was
+   in neither. `verify_app.mjs` now asserts a tab's toolbar cannot be forgotten
+   like that again. */
+.dx-bar { display: flex; gap: 8px; align-items: center; flex-wrap: wrap;
+  padding: 10px 14px; margin-bottom: 14px; background: var(--card);
+  border: 1px solid var(--rule); border-radius: 12px; }
+.dx-modes { display: flex; gap: 2px; }
+/* The count rides IN the button. It is the fact that makes the mode worth
+   opening -- 610 of 649 -- and putting it in a tooltip means nobody reads it. */
+.dx-mode { font: inherit; font-size: 13px; font-weight: 650; padding: 5px 12px;
+  cursor: pointer; border: 1px solid var(--rule); background: var(--card-3);
+  color: var(--ink-soft); display: inline-flex; align-items: baseline; gap: 6px; }
+.dx-mode i { font-style: normal; font-family: var(--mono); font-size: 10.5px;
+  font-weight: 700; padding: 1px 5px; border-radius: 999px;
+  background: var(--card-2); color: var(--ink-faint); }
+.dx-mode.on i { background: var(--fx-go-ink); color: var(--fx-go-bg); }
+.dx-mode:first-child { border-radius: 7px 0 0 7px; }
+.dx-mode:last-child { border-radius: 0 7px 7px 0; }
+.dx-mode.on { background: var(--fx-go-bg); border-color: var(--fx-go-bg);
+  color: var(--fx-go-ink); }
+.dx-search { font: inherit; font-size: 13px; padding: 5px 10px; flex: 1 1 200px;
+  min-width: 140px; border: 1px solid var(--rule); border-radius: 7px;
+  background: var(--card); color: var(--ink); }
+.dx-sel { font: inherit; font-size: 13px; padding: 5px 8px; border-radius: 7px;
+  border: 1px solid var(--rule); background: var(--card); color: var(--ink); }
+.dx-chip { font: inherit; font-size: 12.5px; padding: 5px 11px; cursor: pointer;
+  border: 1px solid var(--rule); border-radius: 999px; background: var(--card-3);
+  color: var(--ink-soft); }
+.dx-chip.on { background: var(--fx-go-bg); border-color: var(--fx-go-bg);
+  color: var(--fx-go-ink); font-weight: 650; }
+
+/* --------------------------------------------------------------- layout */
+/* List left, detail right -- the same shape the Bag uses, because it is the
+   same job: pick one of many, read everything about it. */
+.dx-main { display: grid; grid-template-columns: minmax(340px, 430px) 1fr; gap: 16px;
+  align-items: start; }
+@media (max-width: 860px) { .dx-main { grid-template-columns: 1fr; } }
+
+.dx-listwrap { position: sticky; top: 84px; }
+.dx-list { max-height: calc(100vh - 130px); overflow-y: auto; padding-right: 4px;
+  border: 1px solid var(--rule); border-radius: 10px; background: var(--card);; }
+@media (max-width: 860px) {
+  .dx-listwrap { position: static; }
+  .dx-list { max-height: 46vh; }
+}
+.dx-count { margin: 0; padding: 7px 10px; font-size: 11.5px; color: var(--ink-faint);
+  border-bottom: 1px solid var(--rule); display: flex; align-items: center;
+  justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.dx-legend { display: inline-flex; align-items: center; gap: 5px; }
+
+/* THE SPRITE IS THE THING YOU SCAN BY, so it gets the room. It shipped at
+   32px -- smaller than the text beside it -- which meant reading NAMES to
+   find a Pokémon in a list of 649, the exact job the sprite exists to save
+   you from. 48 was still too small. The art is 96px native, so 64 is a clean
+   half-pixel-perfect downscale and is the size at which a silhouette is
+   actually recognisable. */
+.dx-row { display: grid; width: 100%; align-items: center; gap: 8px;
+  grid-template-columns: 30px 64px 1fr auto 38px 8px 22px;
+  font: inherit; font-size: 13.5px; text-align: left; padding: 1px 8px; cursor: pointer;
+  border: 0; border-bottom: 1px solid var(--rule); background: none; color: var(--ink); }
+.dx-row:hover { background: var(--card-2); }
+.dx-row.on { background: var(--ember-soft); box-shadow: inset 3px 0 0 var(--ember); }
+.dx-num { font-family: var(--mono); font-size: 10.5px; color: var(--ink-faint); }
+.dx-sp { width: 64px; height: 64px; object-fit: contain; image-rendering: pixelated;
+  display: block; }
+.dx-rname { font-weight: 600; overflow: hidden; text-overflow: ellipsis;
+  white-space: nowrap; }
+.dx-rtypes { display: flex; gap: 3px; }
+.dx-rbst { font-family: var(--mono); font-size: 11px; color: var(--ink-soft);
+  text-align: right; }
+/* A changed species gets a dot, not a word: the list is 649 long and a badge
+   per row would be the loudest thing on screen. */
+.dx-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--s2); }
+.dx-own { font-family: var(--mono); font-size: 10.5px; font-weight: 700;
+  color: var(--x0); text-align: right; }
+
+/* Type pills. The names are the ROM's own lowercase ids; the palette is the
+   one the battle sheet already uses, inherited rather than restated. */
+.dx-t { font-size: 9.5px; font-weight: 700; letter-spacing: .04em; padding: 1.5px 5px;
+  border-radius: 3px; text-transform: uppercase; white-space: nowrap;
+  background: var(--card-2); color: var(--ink-soft); }
+
+/* -------------------------------------------------------------- detail */
+.dx-detail { min-width: 0; display: flex; flex-direction: column; gap: 12px; }
+.dx-empty { margin: 0; padding: 28px 20px; text-align: center; font-size: 13.5px;
+  line-height: 1.6; color: var(--ink-soft); background: var(--card);
+  border: 1px solid var(--rule); border-radius: 10px;; }
+
+.dx-head { display: grid; grid-template-columns: auto 1fr auto; gap: 14px;
+  align-items: center; padding: 12px 14px; background: var(--card);
+  border: 1px solid var(--rule); border-radius: 10px;; }
+@media (max-width: 760px) { .dx-head { grid-template-columns: auto 1fr; } }
+.dx-art { width: 200px; height: 200px; display: flex; align-items: center;
+  justify-content: center; border-radius: 10px; background: var(--card-3);
+  box-shadow: var(--rim); }
+/* 192 is 96 doubled -- an exact 2x of the native art, so `pixelated` gives
+   clean square pixels rather than the soft edges any other multiple produces. */
+.dx-art img { width: 192px; height: 192px; object-fit: contain;
+  image-rendering: pixelated; }
+.dx-hmeta h3 { margin: 0 0 5px; font-size: 20px; display: flex; align-items: baseline;
+  gap: 8px; }
+.dx-hnum { font-family: var(--mono); font-size: 12px; font-weight: 600;
+  color: var(--ink-faint); }
+.dx-htypes { display: flex; gap: 4px; margin-bottom: 5px; }
+.dx-hchanged { margin: 0; font-size: 12px; color: var(--s2); font-weight: 600; }
+.dx-hown { margin: 3px 0 0; font-size: 12px; color: var(--x0); }
+.dx-hown.dim { color: var(--ink-faint); }
+.dx-go { font: inherit; font-size: 12.5px; font-weight: 650; padding: 7px 13px;
+  cursor: pointer; border-radius: 7px; border: 1px solid var(--fx-go-bg);
+  background: var(--fx-go-bg); color: var(--fx-go-ink); white-space: nowrap; }
+.dx-go:hover { background: var(--fx-go-bg-hover); border-color: var(--fx-go-bg-hover); }
+
+.dx-block { padding: 12px 14px; background: var(--card); border: 1px solid var(--rule);
+  border-radius: 10px;; }
+.dx-block h4 { margin: 0 0 9px; font-size: 12px; letter-spacing: .08em;
+  text-transform: uppercase; color: var(--ink-faint); display: flex;
+  align-items: baseline; gap: 8px; }
+.dx-sub, .dx-bst { font-family: var(--mono); font-size: 11px; letter-spacing: 0;
+  text-transform: none; color: var(--ink-soft); margin-left: auto; }
+.dx-bst i { font-style: normal; font-weight: 700; }
+.dx-bst i.up, .dx-bdelta.up { color: var(--x0); }
+.dx-bst i.down, .dx-bdelta.down { color: var(--x4); }
+.dx-none { margin: 0; font-size: 13px; color: var(--ink-soft); }
+
+/* ---- stats */
+.dx-stats { display: grid; grid-template-columns: 34px 62px 1fr; gap: 4px 9px;
+  align-items: center; }
+.dx-sk { font-size: 11px; font-weight: 700; color: var(--ink-faint); }
+.dx-sv { font-family: var(--mono); font-size: 12.5px; }
+.dx-sv i { font-style: normal; font-size: 10px; }
+.dx-sv i.up { color: var(--x0); }
+.dx-sv i.down { color: var(--x4); }
+/* `.dx-sbar`, NOT `.dx-bar`. The stat bar and the toolbar were both called
+   `.dx-bar`, so the toolbar inherited `height: 8px; overflow: hidden` from
+   this rule and clipped its own controls to an 8-pixel strip -- which is what
+   "there are buttons at the top being covered" was. Exactly the standing
+   trap: never define one simple selector twice in a stylesheet with
+   conflicting values. It hid until the toolbar gained a background, because
+   until then the two rules set disjoint properties and the collision was
+   invisible to both the eye and the duplicate check. */
+.dx-sbar { height: 8px; border-radius: 4px; background: var(--card-2); overflow: hidden; }
+.dx-sbar i { display: block; height: 100%; background: var(--s1); border-radius: 4px; }
+.dx-sbar.up i { background: var(--x0); }
+.dx-sbar.down i { background: var(--x4); }
+
+/* ---- abilities */
+.dx-abils { margin: 0; padding: 0; list-style: none; display: flex;
+  flex-direction: column; gap: 6px; }
+.dx-abils li { font-size: 13px; line-height: 1.5; }
+.dx-abils b { margin-right: 6px; }
+.dx-abils em { font-style: normal; font-size: 9.5px; font-weight: 700;
+  letter-spacing: .06em; text-transform: uppercase; padding: 1px 5px;
+  /* --s1/--s2 are series accents and have no measured tint pair; --x1b/--x1 is
+     the neutral one that does. A hidden ability is a fact, not a status, so
+     grey is the right weight anyway. */
+  border-radius: 3px; background: var(--x1b); color: var(--x1); margin-right: 6px; }
+.dx-abils span { color: var(--ink-soft); }
+.dx-was { margin: 8px 0 0; font-size: 11.5px; color: var(--ink-faint); }
+
+/* ---- what changed */
+.dx-changed { border-color: var(--s2);
+  box-shadow: var(--shadow), var(--rim), inset 3px 0 0 var(--s2); }
+/* Three columns, auto-placed in the order the JS appends them: what, was,
+   now. The arrow belongs to the NEW value rather than sitting in a column of
+   its own -- a fourth column held nothing, and an absolutely-positioned
+   ::after inside a grid has no positioned ancestor to be absolute to, so it
+   escaped to the viewport. */
+.dx-ctable { display: grid; grid-template-columns: 1fr auto auto;
+  gap: 3px 10px; align-items: baseline; font-size: 12.5px; }
+.dx-cw { color: var(--ink-soft); }
+.dx-co { font-family: var(--mono); color: var(--ink-faint); text-decoration: line-through; }
+.dx-cn { font-family: var(--mono); font-weight: 700; }
+.dx-cn::before { content: "→"; margin-right: 8px; font-weight: 400;
+  color: var(--ink-faint); }
+.dx-gain, .dx-lose { margin: 9px 0 0; font-size: 12.5px; line-height: 1.55; }
+.dx-gain { color: var(--x0); }
+.dx-lose { color: var(--x4); }
+.dx-gain b, .dx-lose b { color: inherit; }
+
+/* ---- evolution */
+.dx-evos { margin: 0; padding: 0; list-style: none; display: flex;
+  flex-direction: column; gap: 7px; font-size: 13px; }
+.dx-dispute { margin: 4px 0 0; padding: 6px 9px; font-size: 11.5px; line-height: 1.5;
+  border-radius: 6px; background: var(--x2b); color: var(--x2); }
+
+/* ---- where */
+.dx-where { margin: 0; padding: 0 0 0 2px; list-style: none; font-size: 12.5px;
+  line-height: 1.6; }
+.dx-where b { font-weight: 650; }
+.dx-suspect { font-style: normal; color: var(--x2); font-size: 11px; }
+
+/* ---- moves */
+.dx-moves { display: grid; grid-template-columns: 34px 1fr auto 34px 34px;
+  gap: 2px 9px; align-items: center; font-size: 12.5px; }
+.dx-mlv { font-family: var(--mono); font-size: 11px; color: var(--ink-faint);
+  text-align: right; }
+.dx-mn { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dx-mn i { font-style: normal; font-size: 8.5px; font-weight: 800; letter-spacing: .06em;
+  text-transform: uppercase; padding: 1px 4px; border-radius: 3px; margin-left: 6px;
+  background: var(--x0b); color: var(--x0); }
+.dx-mp { font-family: var(--mono); font-size: 11px; color: var(--ink-soft);
+  text-align: right; }
+
+/* ---- TMs */
+.dx-tms { display: flex; flex-wrap: wrap; gap: 4px; }
+.dx-tm { font-family: var(--mono); font-size: 10.5px; font-weight: 700;
+  padding: 2px 6px; border-radius: 4px; background: var(--card-2);
+  color: var(--ink-soft); }
+.dx-tm i { font-style: normal; font-family: var(--sans); font-weight: 500;
+  margin-left: 5px; color: var(--ink-faint); }
+.dx-tm.new { background: var(--x0b); color: var(--x0); }
+.dx-tm.new i { color: var(--x0); }
+
+/* ---- held + facts */
+.dx-held { margin: 0; padding: 0; list-style: none; font-size: 12.5px; line-height: 1.7; }
+.dx-facts { display: grid; grid-template-columns: auto 1fr; gap: 3px 12px;
+  font-size: 12.5px; }
+.dx-fk { color: var(--ink-faint); }
+.dx-fv { font-weight: 600; }
+
+/* ------------------------------------------------------- what changed, all */
+.dx-changes { display: flex; flex-direction: column; gap: 14px; }
+.dx-lede { margin: 0; max-width: 62ch; font-size: 13.5px; line-height: 1.6;
+  color: var(--ink-soft); }
+.dx-changes h4 { margin: 6px 0 0; font-size: 12px; letter-spacing: .08em;
+  text-transform: uppercase; color: var(--ink-faint); }
+/* A PROPORTION, not a tile you can press. See changesView() for why these
+   stopped being buttons: eight controls that all led to one destination.
+   The bar carries the finding -- almost everything moved -- before the label
+   has been read. */
+.dx-props { display: grid; grid-template-columns: auto 1fr auto auto;
+  gap: 5px 12px; align-items: center; padding: 13px 15px;
+  background: var(--card); border: 1px solid var(--rule); border-radius: 12px; }
+.dx-plab { font-size: 12.5px; color: var(--ink-soft); white-space: nowrap; }
+.dx-pbar { height: 9px; border-radius: 5px; background: var(--card-2); overflow: hidden;
+  min-width: 60px; }
+.dx-pbar i { display: block; height: 100%; border-radius: 5px; background: var(--ember); }
+.dx-pnum { font-family: var(--mono); font-size: 11px; color: var(--ink-faint);
+  text-align: right; white-space: nowrap; }
+.dx-ppct { font-family: var(--mono); font-size: 12px; font-weight: 700;
+  color: var(--ember); text-align: right; min-width: 34px; }
+
+.dx-blist { display: flex; flex-direction: column; border: 1px solid var(--rule);
+  border-radius: 10px; overflow: hidden; background: var(--card);; }
+.dx-brow { display: grid; grid-template-columns: 64px 1fr auto 52px; gap: 9px;
+  align-items: center; font: inherit; font-size: 13px; text-align: left;
+  padding: 3px 10px; cursor: pointer; border: 0;
+  border-bottom: 1px solid var(--rule); background: none; color: var(--ink); }
+.dx-brow:hover { background: var(--card-2); }
+.dx-bnum { font-family: var(--mono); font-size: 11px; color: var(--ink-faint); }
+.dx-bdelta { font-family: var(--mono); font-size: 12px; font-weight: 700;
+  text-align: right; }
+
+.dx-retypes { margin: 0; padding: 0; list-style: none; font-size: 12.5px;
+  line-height: 1.8; columns: 2; }
+@media (max-width: 700px) { .dx-retypes { columns: 1; } }
+.dx-link { font: inherit; font-size: inherit; font-weight: 650; padding: 0; border: 0;
+  background: none; color: var(--ember); cursor: pointer;
+  text-decoration: underline dotted; text-underline-offset: 2px; }
+.dx-link:hover { text-decoration-style: solid; }
+
+.dx-mchange { display: grid; grid-template-columns: auto 1fr; gap: 2px 14px;
+  font-size: 12.5px; align-items: baseline; }
+.dx-mchange > span:nth-child(even) { font-family: var(--mono); font-size: 11.5px;
+  color: var(--ink-soft); }
+
+
+/* ---- move-first search --------------------------------------------------- */
+/* "Which of mine can learn Trick Room" is a question the game cannot answer
+   and the wiki answers 649 pages at a time. The banner exists because without
+   it a move search looks like a name search that matched a surprising set,
+   and the column showing "L37" where the stat total usually sits has nothing
+   explaining it. */
+.dx-movehit { display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  padding: 8px 10px; border-bottom: 1px solid var(--rule);
+  background: var(--ember-soft); }
+.dx-movehit b { font-size: 13.5px; color: var(--ember); }
+.dx-mvmeta { font-size: 11px; color: var(--ink-soft); }
+.dx-how { font-family: var(--mono); font-size: 10.5px; font-weight: 700;
+  text-align: right; white-space: nowrap; }
+/* A level and a Machine are different answers -- one you get by playing, one
+   costs you a TM you may not own. */
+.dx-how.level { color: var(--x0); }
+.dx-how.tm { color: var(--s2); }
+
+/* A move with no level-up or TM learner. Reads as an ANSWER, not an empty
+   list -- see the comment at its only use site in tabs/dex.js. */
+.dx-nolearn {
+  margin: 10px 0 0;
+  padding: 10px 12px;
+  border: 1px solid var(--rule);
+  border-left: 3px solid var(--ember);
+  border-radius: 6px;
+  background: var(--card-3);
+  color: var(--ink-soft);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+/* THE MOVE SEARCH ADVERTISING ITSELF. Reuses `.dx-chip` on purpose -- a second
+   chip shape would read as a different kind of control. See moveHint() in
+   tabs/dex.js for why it exists at all. */
+.dx-hint { display: flex; flex-wrap: wrap; align-items: center; gap: 7px;
+  margin: 0 0 10px; padding: 9px 11px; border: 1px dashed var(--rule);
+  border-radius: 8px; background: var(--card-3); }
+.dx-hintlab { font-size: 12.5px; color: var(--ink-soft); font-weight: 600; }

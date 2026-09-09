@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Blaze Black Companion</title>
+<!--
+  The companion shell.
+
+  It owns three things and nothing else: the design tokens, the tab bar, and
+  the loaded save. Every tool is a module under app/js/tabs/ that gets handed
+  a decoded save and renders into the panel below.
+
+  Served by ./serve -- ES modules and fetch() both refuse to work over file://.
+-->
+<script>
+  /* THEME, APPLIED BEFORE THE FIRST PAINT.
+     This has to run ahead of the stylesheets: setting data-theme from app.js
+     after boot means the page paints in the OS theme and then flips, which is
+     the flash everyone recognises and nobody wants. Three states, and the
+     default is genuinely "follow the OS" -- the absence of the attribute --
+     rather than a guess baked in at build time.
+       (no attribute)      follow the system
+       data-theme="dark"   Blaze Black
+       data-theme="light"  Volt White
+     The CSS in sheet_template.html, theme.css and factory.css all guard their
+     dark blocks as :root:not([data-theme="light"]), so all three work. */
+  try {
+    var t = localStorage.getItem('blazeblack.theme');
+    if (t === 'dark' || t === 'light') document.documentElement.setAttribute('data-theme', t);
+  } catch (e) { /* private mode: fall back to the system preference */ }
+</script>
+<link rel="stylesheet" href="./css/theme.css">
+<link rel="stylesheet" href="./css/factory.css">
+<link rel="stylesheet" href="./css/builder.css">
+<link rel="stylesheet" href="./css/items.css">
+<link rel="stylesheet" href="./css/pick.css">
+<link rel="stylesheet" href="./css/adventure.css">
+<link rel="stylesheet" href="./css/teamedit.css">
+<link rel="stylesheet" href="./css/dex.css">
+<link rel="stylesheet" href="./css/run.css">
+<link rel="stylesheet" href="./css/specform.css">
+<link rel="stylesheet" href="./css/nav.css">
+<link rel="stylesheet" href="./css/tutor.css">
+<style>
+  /* The design tokens come from sheet_template.html, injected at boot so the
+     whole app shares one visual system instead of the battle tab bringing its
+     own. Fallbacks here keep the shell legible if that fetch ever fails. */
+  html { color-scheme: light dark; }
+  body { margin: 0; background: var(--ground, #EFF3F7); color: var(--ink, #101720);
+         font-family: var(--sans, system-ui, sans-serif); }
+
+  /* The bar is the app's one loud surface: the key-fret band that reads as
+     circuit traces, closed with a neon hairline. Everything below it stays
+     quiet so the numbers keep the attention. */
+  .sh-bar { position: sticky; top: 0; z-index: 60; overflow: hidden;
+            background: var(--card, #fff); border-bottom: 1px solid var(--rule, #D3DBE4);
+            box-shadow: var(--shadow, 0 1px 2px rgba(0,0,0,.06)); }
+  .sh-bar::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0;
+            height: 1px; pointer-events: none; background: var(--neon-line); opacity: .85; }
+  /* TWO ROWS, ALWAYS. One row could not hold the brand, five tabs AND the save
+     controls, so the tabs were given `overflow-x: auto` -- which meant Bag sat
+     off the end of a scroller nobody would think to scroll. Navigation you
+     cannot see is navigation you do not have.
+     Two fixed rows also means nothing reflows when state changes, which is
+     what produced the scroller in the first place. */
+  .sh-in { max-width: 1300px; margin: 0 auto; padding: .45rem 1.1rem;
+           display: flex; gap: .8rem; align-items: center; flex-wrap: nowrap; }
+  .sh-navrow { padding-top: 0; padding-bottom: .42rem; }
+  /* THE MASTHEAD IS THE THEME BUTTON.
+     It was a static wordmark, and the theme control sat at the far right
+     saying "Blaze Black" — so the words appeared twice in one bar, and the
+     control dangled. One thing now: the wordmark carries a sun/moon glyph and
+     cycling the theme is what clicking it does.
+     It says "companion" because this is a companion TO the hack, not the hack
+     itself, and a bare wordmark reads like a claim on someone else's game. */
+  .sh-brand { display: inline-flex; align-items: baseline; gap: .42rem; flex: 0 0 auto;
+              font: inherit; padding: .3rem .5rem .3rem .42rem; cursor: pointer;
+              border: 1px solid transparent; border-radius: 8px; background: none;
+              white-space: nowrap; }
+  .sh-brand:hover { border-color: var(--rule, #D3DBE4); background: var(--card-3, #F6F9FC); }
+  .sh-glyph { font-size: .84rem; line-height: 1; color: var(--ember, #B8410F);
+              position: relative; top: .06rem; }
+  .sh-word { font-weight: 800; font-size: .8rem; letter-spacing: .1em;
+             text-transform: uppercase; color: var(--ember, #B8410F); }
+  .sh-word i { font-style: normal; font-weight: 600; letter-spacing: .06em;
+               color: var(--ink-soft, #465464); }
+  /* It is a ROM hack, and the app is built entirely around that fact, so the
+     patch it targets belongs in the masthead rather than in a footnote. */
+  .sh-patch { font-family: var(--mono, monospace); font-size: .56rem; font-weight: 700;
+              letter-spacing: .12em; color: var(--ink-faint, #647180); }
+  /* WHICH STARTER YOU PICKED -- the second fork, and the one that used to be a
+     Python constant. It sits beside the patch label because both are one-time
+     statements of fact about your run, and it wears the same dotted underline
+     the version name does because, unlike the patch label, it is a control. */
+  .sh-starter { margin-left: .5rem; }
+  /* Whether a nuzlocke is live, visible from every tab. It is a LINK to the
+     Run tab, not a toggle: turning one on is a decision with a rule set behind
+     it, and a one-click switch beside the theme control is what you hit by
+     accident. Off, it is as quiet as the patch label; on, it is the loudest
+     thing in the bar, which is the point. */
+  .sh-nuz { margin-left: .55rem; font-family: var(--mono, monospace); font-size: .56rem;
+            font-weight: 700; letter-spacing: .12em; cursor: pointer;
+            padding: .2rem .45rem; border-radius: 999px;
+            border: 1px solid var(--rule, #D3DBE4); background: none;
+            color: var(--ink-faint, #647180); white-space: nowrap; }
+  .sh-nuz:hover { border-color: var(--ember, #B8410F); color: var(--ember, #B8410F); }
+  .sh-nuz.on { background: var(--x4b); border-color: var(--x4); color: var(--x4); }
+  .sh-starter .sh-name { color: var(--ink-soft, #465464); font-weight: 800; }
+  /* The masthead no longer competes with the tabs for one row, so its extras
+     survive much further down. */
+  @media (max-width: 720px) { .sh-patch { display: none; } }
+  /* THE TAB RAIL AND THE DIAL LIVE IN app/css/nav.css.
+     They were seven pills defined right here, and the rules had to move out
+     rather than be overridden: this inline <style> loads AFTER every <link>
+     above, so anything left here would silently beat the stylesheet on a tie
+     and the rail would render as pills wearing a plate's markup. */
+  /* nowrap and flex:none: the save controls are the one part of this bar that
+     must never reflow. They used to sit on a second line the moment there
+     were staged edits. */
+  /* Row one is brand on the left, save controls hard right. */
+  /* Which cartridge, beside the wordmark it renames. Small and quiet: most
+     people set it once, and it is a statement of fact about your game rather
+     than a control you operate. */
+  /* The NAME is the version control -- the two words that change when you
+     switch. A dotted underline is the "this is editable" idiom without a
+     button's weight, and it keeps the wordmark reading as a wordmark. */
+  .sh-name { cursor: pointer; border-radius: 3px;
+             text-decoration: underline dotted currentColor 1px;
+             text-underline-offset: 3px; }
+  .sh-name:hover { text-decoration-style: solid; }
+  .sh-brand:focus-visible .sh-name, .sh-name:focus-visible {
+             outline: 2px solid var(--ember, #B8410F); outline-offset: 2px; }
+  .sh-save { display: flex; gap: .45rem; align-items: center; font-size: .76rem;
+             color: var(--ink-faint, #647180); flex: 0 0 auto; flex-wrap: nowrap;
+             margin-left: auto; }
+  .sh-btn { font: inherit; font-size: .78rem; padding: .3rem .7rem; cursor: pointer;
+            border: 1px solid var(--rule, #D3DBE4); border-radius: 6px;
+            background: var(--card-3, #F6F9FC); color: var(--ink, #101720); }
+  .sh-btn:hover { border-color: var(--ember, #B8410F); color: var(--ember, #B8410F); }
+  .sh-dot { width: .5rem; height: .5rem; border-radius: 50%; background: var(--x1, #75828F); }
+
+  /* The way out of the app, rendered once. Uses the measured --fx-go-* /
+     --fx-off-* pair from factory.css: never --ember plus white, and never an
+     opacity on top of a filled accent -- both collapse in dark mode. */
+  .sh-actions { display: flex; gap: .4rem; align-items: center; margin-left: .35rem;
+               flex-wrap: nowrap; }
+  /* The state indicator is back, and compact: a neon dot and a count. The old
+     one spelled out "unsaved edits", which made the bar ~110px wider exactly
+     when it changed state — the one moment you least want controls to move. */
+  /* A pill, not a floating dot. At dot-plus-number it read as something stuck
+     on beside the buttons rather than one of them; it now carries the same
+     shape and padding as everything else in this bar. Still ~50px, against
+     the ~110px the spelled-out "unsaved edits" cost. */
+  .sh-staged { display: inline-flex; align-items: center; gap: .34rem; flex: 0 0 auto;
+               font-family: var(--mono, monospace); font-size: .72rem; font-weight: 700;
+               letter-spacing: .04em; white-space: nowrap; line-height: 1;
+               padding: .3rem .55rem .3rem .48rem; border-radius: 999px;
+               background: var(--x2b, #FAE2D2); color: var(--x2, #B84F14);
+               border: 1px solid var(--x2, #B84F14); }
+  .sh-staged::before { content: ""; width: .48rem; height: .48rem; border-radius: 50%;
+               flex: none; background: var(--neon-1); }
+  .sh-actions.is-staged .sh-go { box-shadow: 0 0 0 1px var(--neon-1); }
+  .sh-go { display: flex; flex-direction: column; align-items: flex-start; gap: 0;
+           font: inherit; line-height: 1.15; padding: .28rem .7rem; cursor: pointer;
+           border: 1px solid var(--rule, #D3DBE4); border-radius: 7px;
+           background: var(--card-3, #F6F9FC); color: var(--ink, #101720); }
+  .sh-go-main { font-size: .76rem; font-weight: 700; }
+  .sh-go-sub { font-size: .58rem; letter-spacing: .05em; text-transform: uppercase;
+               font-weight: 700; color: var(--ink-faint, #647180); }
+  .sh-install { background: var(--fx-go-bg); border-color: var(--fx-go-bg);
+                color: var(--fx-go-ink); }
+  .sh-install .sh-go-sub { color: var(--fx-go-sub); }
+  .sh-install:hover:not(:disabled) { background: var(--fx-go-bg-hover);
+                border-color: var(--fx-go-bg-hover); }
+  /* Only ever worn when Download is the ONLY way out — see saveActions(). */
+  .sh-download { border-color: var(--ember, #B8410F); color: var(--ember, #B8410F); }
+  .sh-download:hover:not(:disabled) { background: var(--ember-soft, #FBE8DE); }
+  /* Beside Install, Download joins the quiet row: the same chip as "Reload
+     save" and "Choose file…", which is what it is — a second route, not a
+     second decision. Disabled is a COLOUR here too, never an opacity. */
+  .sh-dl:disabled { background: var(--fx-off-bg); border-color: var(--fx-off-rule);
+             color: var(--fx-off-ink); cursor: not-allowed; }
+  .sh-go:disabled { background: var(--fx-off-bg); border-color: var(--fx-off-rule);
+                color: var(--fx-off-ink); cursor: not-allowed; opacity: 1; }
+  .sh-go:disabled .sh-go-sub { color: var(--fx-off-ink); }
+
+
+  .sh-dot.ok { background: var(--x0, #157054); }
+  .sh-dot.bad { background: var(--x4, #98181A); }
+
+  #shell-panel { min-height: 60vh; }
+  .sh-msg { max-width: 46rem; margin: 4rem auto; padding: 2rem 1.5rem; text-align: center;
+            background: var(--card, #fff); border: 1px solid var(--rule, #D3DBE4);
+            border-radius: 12px; box-shadow: var(--shadow, none); }
+  .sh-msg h2 { margin: 0 0 .6rem; font-size: 1.05rem; }
+  .sh-msg p { margin: .45rem 0; color: var(--ink-soft, #465464); font-size: .9rem; line-height: 1.55; }
+  .sh-msg code { font-family: var(--mono, monospace); font-size: .85em;
+                 background: var(--card-2, #E6ECF3); padding: .1em .35em; border-radius: 4px; }
+  .sh-drop { margin-top: 1.25rem; padding: 2rem 1rem; border: 1px dashed var(--rule, #D3DBE4);
+             border-radius: 10px; cursor: pointer; color: var(--ink-faint, #75828F); }
+  .sh-drop.over { border-style: solid; border-color: var(--ember, #B8410F);
+                  background: var(--ember-soft, #FBE8DE); }
+  .sh-err { color: var(--x4, #98181A); }
+  .sh-warn { max-width: 1180px; margin: .75rem auto 0; padding: .55rem .9rem;
+             font-size: .8rem; border-radius: 8px;
+             background: var(--x2b, #FAE2D2); color: var(--x2, #B84F14); }
+  .sh-note { max-width: 1180px; margin: .75rem auto 0; padding: .55rem .9rem;
+             font-size: .8rem; border-radius: 8px;
+             background: var(--x0b, #D2ECE2); color: var(--x0, #157054); }
+</style>
+</head>
+<body>
+  <div class="sh-bar wg wg-sayagata" style="--wg-a: var(--pat-bar-a)">
+    <div class="sh-in">
+      <button class="sh-brand" id="shell-brand" type="button"></button>
+      <div class="sh-save" id="shell-save"></div>
+    </div>
+    <div class="sh-in sh-navrow">
+      <nav class="sh-tabs" id="shell-tabs" role="tablist"></nav>
+    </div>
+  </div>
+  <div id="shell-warn"></div>
+  <div id="shell-panel"></div>
+  <input type="file" id="shell-file" accept=".sav" hidden>
+  <script type="module" src="./js/app.js"></script>
+</body>
+</html>

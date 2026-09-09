@@ -1,0 +1,735 @@
+{
+ "meta": {
+  "generated_at": "2026-08-14T03:44:25+00:00",
+  "rom": {
+   "bytes": 268435456,
+   "title": "POKEMON B  ",
+   "game_code": "IRBO",
+   "narc_files": {
+    "personal": 669,
+    "learnsets": 668,
+    "evolutions": 668,
+    "moves": 560
+   },
+   "entry_sizes": [
+    56,
+    60,
+    1300
+   ]
+  },
+  "vanilla_rom": {
+   "bytes": 268435456,
+   "title": "POKEMON B",
+   "game_code": "IRBO",
+   "narc_files": {
+    "personal": 669,
+    "learnsets": 668,
+    "evolutions": 668,
+    "moves": 560
+   },
+   "entry_sizes": [
+    56,
+    60,
+    1300
+   ]
+  },
+  "narcs": {
+   "personal": "a/0/1/6",
+   "learnsets": "a/0/1/8",
+   "evolutions": "a/0/1/9",
+   "moves": "a/0/2/1"
+  },
+  "field_offsets_reference": "Universal Pokemon Randomizer ZX, BW1",
+  "layout_proved_against": "vanilla-rom",
+  "type_id_order": [
+   "normal",
+   "fighting",
+   "flying",
+   "poison",
+   "ground",
+   "rock",
+   "bug",
+   "ghost",
+   "steel",
+   "fire",
+   "water",
+   "grass",
+   "electric",
+   "psychic",
+   "ice",
+   "dragon",
+   "dark"
+  ],
+  "stat_key_order": [
+   "hp",
+   "atk",
+   "def",
+   "spa",
+   "spd",
+   "spe"
+  ],
+  "species_count": 649,
+  "move_count": 559,
+  "warnings": [],
+  "trimmed_for_publication": "Cut to the species in tests/fixture.sav; see tools/make_fixture.py"
+ },
+ "moves": {
+  "2": {
+   "type": "fighting",
+   "category": "physical",
+   "power": 50,
+   "accuracy": 100,
+   "pp": 25,
+   "priority": 0,
+   "name": "Karate Chop"
+  },
+  "10": {
+   "type": "normal",
+   "category": "physical",
+   "power": 40,
+   "accuracy": 100,
+   "pp": 35,
+   "priority": 0,
+   "name": "Scratch"
+  },
+  "13": {
+   "type": "normal",
+   "category": "special",
+   "power": 80,
+   "accuracy": 100,
+   "pp": 10,
+   "priority": 0,
+   "name": "Razor Wind"
+  },
+  "14": {
+   "type": "normal",
+   "category": "status",
+   "power": 0,
+   "accuracy": 101,
+   "pp": 30,
+   "priority": 0,
+   "name": "Swords Dance"
+  },
+  "16": {
+   "type": "flying",
+   "category": "special",
+   "power": 40,
+   "accuracy": 100,
+   "pp": 35,
+   "priority": 0,
+   "name": "Gust"
+  },
+  "17": {
+   "type": "flying",
+   "category": "physical",
+   "power": 75,
+   "accuracy": 100,
+   "pp": 35,
+   "priority": 0,
+   "name": "Wing Attack"
+  },
+  "18": {
+   "type": "normal",
+   "category": "status",
+   "power": 0,
+   "accuracy": 100,
+   "pp": 20,
+   "priority": -6,
+   "name": "Whirlwind"
+  },
+  "21": {
+   "type": "normal",
+   "category": "physical",
+   "power": 80,
+   "accuracy": 75,
+   "pp": 20,
+   "priority": 0,
+   "name": "Slam"
+  },
+  "28": {
+   "type": "ground",
+   "category": "status",
+   "power": 0,
+   "accuracy": 100,
+   "pp": 15,
+   "priority": 0,
+   "name": "Sand Attack"
+  },
+  "33": {
+   "type": "normal",
+   "category": "physical",
+   "power": 50,
+   "accuracy": 100,
+   "pp": 35,
+   "priority": 0,
+   "name": "Tackle"
+  },
+  "36": {
+   "type": "normal",
+   "category": "physical",
+   "power": 90,
+   "accuracy": 85,
+   "pp": 20,
+   "priority": 0,
+   "name": "Take Down"
+  },
+  "38": {
+   "type": "normal",
+   "category": "physical",
+   "power": 120,
+   "accuracy": 100,
+   "pp": 15,
+   "priority": 0,
+   "name": "Double-Edge"
+  },
+  "39": {
+   "type": "normal",
+   "category": "status",
+   "power": 0,
+   "accuracy": 100,
+   "pp": 30,
+   "priority": 0,
+   "name": "Tail Whip"
+  },
+  "45": {
+   "type": "normal",
+   "category": "status",
+   "power": 0,
+   "accuracy": 100,
+   "pp": 40,
+   "priority": 0,
+   "name": "Growl"
+  },
+  "47": {
+   "type": "normal",
+   "category": "status",
+   "power": 0,
+   "accuracy": 55,
+   "pp": 15,
+   "priority": 0,
+   "name": "Sing"
+  },
+  "55": {
+   "type": "water",
+   "category": "special",
+   "power": 40,
+   "accuracy": 100,
+   "pp": 25,
+   "priority": 0,
+   "name": "Water Gun"
+  },
+  "56": {
+   "type": "water",
+   "category": "special",
+   "power": 120,
+   "accuracy": 80,
+   "pp": 5,
+   "priority": 0,
+   "name": "Hydro Pump"
+  },
+  "71": {
+   "type": "grass",
+   "category": "special",
+   "power": 30,
+   "accuracy": 100,
+   "pp": 25,
+   "priority": 0,
+   "name": "Absorb"
+  },
+  "97": {
+   "type": "psychic",
+   "category": "status",
+   "power": 0,
+   "accuracy": 101,
+   "pp": 30,
+   "priority": 0,
+   "name": "Agility"
+  },
+  "98": {
+   "type": "normal",
+   "category": "physical",
+   "power": 40,
+   "accuracy": 100,
+   "pp": 30,
+   "priority": 1,
+   "name": "Quick Attack"
+  },
+  "103": {
+   "type": "normal",
+   "category": "status",
+   "power": 0,
+   "accuracy": 85,
+   "pp": 40,
+   "priority": 0,
+   "name": "Screech"
+  },
+  "104": {
+   "type": "normal",
+   "category": "status",
+   "power": 0,
+   "accuracy": 101,
+   "pp": 15,
+   "priority": 0,
+   "name": "Double Team"
+  },
+  "111": {
+   "type": "normal",
+   "category": "status",
+   "power": 0,
+   "accuracy": 101,
+   "pp": 40,
+   "priority": 0,
+   "name": "Defense Curl"
+  },
+  "116": {
+   "type": "normal",
+   "category": "status",
+   "power": 0,
+   "accuracy": 101,
+   "pp": 30,
+   "priority": 0,
+   "name": "Focus Energy"
+  },
+  "117": {
+   "type": "normal",
+   "category": "physical",
+   "power": 1,
+   "accuracy": 101,
+   "pp": 10,
+   "priority": 1,
+   "name": "Bide"
+  },
+  "119": {
+   "type": "flying",
+   "category": "status",
+   "power": 0,
+   "accuracy": 101,
+   "pp": 20,
+   "priority": 0,
+   "name": "Mirror Move"
+  },
+  "133": {
+   "type": "psychic",
+   "category": "status",
+   "power": 0,
+   "accuracy": 101,
+   "pp": 20,
+   "priority": 0,
+   "name": "Amnesia"
+  },
+  "141": {
+   "type": "bug",
+   "category": "physical",
+   "power": 20,
+   "accuracy": 100,
+   "pp": 15,
+   "priority": 0,
+   "name": "Leech Life"
+  },
+  "146": {
+   "type": "normal",
+   "category": "physical",
+   "power": 70,
+   "accuracy": 100,
+   "pp": 10,
+   "priority": 0,
+   "name": "Dizzy Punch"
+  },
+  "154": {
+   "type": "normal",
+   "category": "physical",
+   "power": 18,
+   "accuracy": 80,
+   "pp": 15,
+   "priority": 0,
+   "name": "Fury Swipes"
+  },
+  "156": {
+   "type": "psychic",
+   "category": "status",
+   "power": 0,
+   "accuracy": 101,
+   "pp": 10,
+   "priority": 0,
+   "name": "Rest"
+  },
+  "162": {
+   "type": "normal",
+   "category": "physical",
+   "power": 1,
+   "accuracy": 90,
+   "pp": 10,
+   "priority": 0,
+   "name": "Super Fang"
+  },
+  "163": {
+   "type": "normal",
+   "category": "physical",
+   "power": 70,
+   "accuracy": 100,
+   "pp": 20,
+   "priority": 0,
+   "name": "Slash"
+  },
+  "185": {
+   "type": "dark",
+   "category": "physical",
+   "power": 60,
+   "accuracy": 101,
+   "pp": 20,
+   "priority": 0,
+   "name": "Feint Attack"
+  },
+  "189": {
+   "type": "ground",
+   "category": "special",
+   "power": 20,
+   "accuracy": 100,
+   "pp": 10,
+   "priority": 0,
+   "name": "Mud-Slap"
+  },
+  "193": {
+   "type": "normal",
+   "category": "status",
+   "power": 0,
+   "accuracy": 101,
+   "pp": 40,
+   "priority": 0,
+   "name": "Foresight"
+  },
+  "195": {
+   "type": "normal",
+   "category": "status",
+   "power": 0,
+   "accuracy": 101,
+   "pp": 5,
+   "priority": 0,
+   "name": "Perish Song"
+  },
+  "210": {
+   "type": "bug",
+   "category": "physical",
+   "power": 20,
+   "accuracy": 95,
+   "pp": 20,
+   "priority": 0,
+   "name": "Fury Cutter"
+  },
+  "211": {
+   "type": "steel",
+   "category": "physical",
+   "power": 70,
+   "accuracy": 90,
+   "pp": 25,
+   "priority": 0,
+   "name": "Steel Wing"
+  },
+  "226": {
+   "type": "normal",
+   "category": "status",
+   "power": 0,
+   "accuracy": 101,
+   "pp": 40,
+   "priority": 0,
+   "name": "Baton Pass"
+  },
+  "227": {
+   "type": "normal",
+   "category": "status",
+   "power": 0,
+   "accuracy": 100,
+   "pp": 5,
+   "priority": 0,
+   "name": "Encore"
+  },
+  "239": {
+   "type": "dragon",
+   "category": "special",
+   "power": 50,
+   "accuracy": 100,
+   "pp": 20,
+   "priority": 0,
+   "name": "Twister"
+  },
+  "266": {
+   "type": "normal",
+   "category": "status",
+   "power": 0,
+   "accuracy": 101,
+   "pp": 20,
+   "priority": 3,
+   "name": "Follow Me"
+  },
+  "269": {
+   "type": "dark",
+   "category": "status",
+   "power": 0,
+   "accuracy": 100,
+   "pp": 20,
+   "priority": 0,
+   "name": "Taunt"
+  },
+  "270": {
+   "type": "normal",
+   "category": "status",
+   "power": 0,
+   "accuracy": 101,
+   "pp": 20,
+   "priority": 5,
+   "name": "Helping Hand"
+  },
+  "279": {
+   "type": "fighting",
+   "category": "physical",
+   "power": 60,
+   "accuracy": 100,
+   "pp": 10,
+   "priority": -4,
+   "name": "Revenge"
+  },
+  "283": {
+   "type": "normal",
+   "category": "physical",
+   "power": 1,
+   "accuracy": 100,
+   "pp": 5,
+   "priority": 0,
+   "name": "Endeavor"
+  },
+  "297": {
+   "type": "flying",
+   "category": "status",
+   "power": 0,
+   "accuracy": 100,
+   "pp": 15,
+   "priority": 0,
+   "name": "Feather Dance"
+  },
+  "304": {
+   "type": "normal",
+   "category": "special",
+   "power": 90,
+   "accuracy": 100,
+   "pp": 10,
+   "priority": 0,
+   "name": "Hyper Voice"
+  },
+  "332": {
+   "type": "flying",
+   "category": "physical",
+   "power": 60,
+   "accuracy": 101,
+   "pp": 20,
+   "priority": 0,
+   "name": "Aerial Ace"
+  },
+  "346": {
+   "type": "water",
+   "category": "status",
+   "power": 0,
+   "accuracy": 101,
+   "pp": 15,
+   "priority": 0,
+   "name": "Water Sport"
+  },
+  "352": {
+   "type": "water",
+   "category": "special",
+   "power": 60,
+   "accuracy": 100,
+   "pp": 20,
+   "priority": 0,
+   "name": "Water Pulse"
+  },
+  "355": {
+   "type": "flying",
+   "category": "status",
+   "power": 0,
+   "accuracy": 101,
+   "pp": 10,
+   "priority": 0,
+   "name": "Roost"
+  },
+  "365": {
+   "type": "flying",
+   "category": "physical",
+   "power": 60,
+   "accuracy": 100,
+   "pp": 20,
+   "priority": 0,
+   "name": "Pluck"
+  },
+  "366": {
+   "type": "flying",
+   "category": "status",
+   "power": 0,
+   "accuracy": 101,
+   "pp": 30,
+   "priority": 0,
+   "name": "Tailwind"
+  },
+  "369": {
+   "type": "bug",
+   "category": "physical",
+   "power": 70,
+   "accuracy": 100,
+   "pp": 20,
+   "priority": 0,
+   "name": "U-turn"
+  },
+  "370": {
+   "type": "fighting",
+   "category": "physical",
+   "power": 120,
+   "accuracy": 100,
+   "pp": 5,
+   "priority": 0,
+   "name": "Close Combat"
+  },
+  "382": {
+   "type": "normal",
+   "category": "status",
+   "power": 1,
+   "accuracy": 101,
+   "pp": 20,
+   "priority": 0,
+   "name": "Me First"
+  },
+  "389": {
+   "type": "dark",
+   "category": "physical",
+   "power": 80,
+   "accuracy": 100,
+   "pp": 5,
+   "priority": 1,
+   "name": "Sucker Punch"
+  },
+  "400": {
+   "type": "dark",
+   "category": "physical",
+   "power": 70,
+   "accuracy": 100,
+   "pp": 15,
+   "priority": 0,
+   "name": "Night Slash"
+  },
+  "401": {
+   "type": "water",
+   "category": "physical",
+   "power": 90,
+   "accuracy": 90,
+   "pp": 10,
+   "priority": 0,
+   "name": "Aqua Tail"
+  },
+  "403": {
+   "type": "flying",
+   "category": "special",
+   "power": 75,
+   "accuracy": 95,
+   "pp": 20,
+   "priority": 0,
+   "name": "Air Slash"
+  },
+  "404": {
+   "type": "bug",
+   "category": "physical",
+   "power": 80,
+   "accuracy": 100,
+   "pp": 15,
+   "priority": 0,
+   "name": "X-Scissor"
+  },
+  "405": {
+   "type": "bug",
+   "category": "special",
+   "power": 90,
+   "accuracy": 100,
+   "pp": 10,
+   "priority": 0,
+   "name": "Bug Buzz"
+  },
+  "413": {
+   "type": "flying",
+   "category": "physical",
+   "power": 120,
+   "accuracy": 100,
+   "pp": 15,
+   "priority": 0,
+   "name": "Brave Bird"
+  },
+  "450": {
+   "type": "bug",
+   "category": "physical",
+   "power": 60,
+   "accuracy": 100,
+   "pp": 20,
+   "priority": 0,
+   "name": "Bug Bite"
+  },
+  "453": {
+   "type": "water",
+   "category": "physical",
+   "power": 40,
+   "accuracy": 100,
+   "pp": 20,
+   "priority": 1,
+   "name": "Aqua Jet"
+  },
+  "512": {
+   "type": "flying",
+   "category": "physical",
+   "power": 55,
+   "accuracy": 100,
+   "pp": 15,
+   "priority": 0,
+   "name": "Acrobatics"
+  },
+  "514": {
+   "type": "normal",
+   "category": "physical",
+   "power": 70,
+   "accuracy": 100,
+   "pp": 5,
+   "priority": 0,
+   "name": "Retaliate"
+  },
+  "515": {
+   "type": "fighting",
+   "category": "special",
+   "power": 1,
+   "accuracy": 100,
+   "pp": 5,
+   "priority": 0,
+   "name": "Final Gambit"
+  },
+  "522": {
+   "type": "bug",
+   "category": "special",
+   "power": 50,
+   "accuracy": 100,
+   "pp": 20,
+   "priority": 0,
+   "name": "Struggle Bug"
+  },
+  "534": {
+   "type": "water",
+   "category": "physical",
+   "power": 75,
+   "accuracy": 95,
+   "pp": 10,
+   "priority": 0,
+   "name": "Razor Shell"
+  },
+  "542": {
+   "type": "flying",
+   "category": "special",
+   "power": 120,
+   "accuracy": 70,
+   "pp": 10,
+   "priority": 0,
+   "name": "Hurricane"
+  }
+ }
+}

@@ -1,0 +1,347 @@
+/*
+ * factory.css -- the Pokemon Factory tab.
+ *
+ * Every class is prefixed fx- on purpose. sheet_template.html's stylesheet is
+ * injected globally at boot (it IS the app's design system), and it already
+ * owns short names like .sp, .nm, .card and .meta. An unprefixed class here
+ * would inherit those rules silently.
+ *
+ * Colours come from that stylesheet's tokens, so light/dark follows the rest
+ * of the app with nothing to maintain here.
+ */
+
+/* Install needs its OWN fill and text tokens, not --ember plus white.
+   --ember is #B8410F in light and #FF8552 in dark, and white on that light
+   dark-mode orange measures 2.41:1 -- below the 4.5:1 floor. The old
+   `filter: brightness(1.09)` hover then took it to 2.06:1, which is why the
+   label vanished under the cursor: the hover was making contrast WORSE.
+
+   So the fill and the text flip together, and hover moves contrast UP in both
+   themes instead of washing the fill out. Measured, not eyeballed:
+     light  #9C370C on white          7.08:1   hover #832E0A  8.90:1
+     dark   #FF8552 with #2A1206 text 7.35:1   hover #FFA173  8.92:1
+
+   --fx-on-x4 / --fx-on-x0 are the same idea for the status fills. --x4 and
+   --x0 INVERT between themes -- dark red #98181A in light, light red #FF6B68
+   in dark -- so a hardcoded white sits on the wrong end of that in one of
+   them: white on the dark-mode --x4 measures 2.78:1, which is what the type
+   synergy matrix was showing. Measured: light white/#98181A 8.47:1,
+   dark #2E0B0A/#FF6B68 6.47:1. */
+:root { --fx-go-bg: #9C370C; --fx-go-bg-hover: #832E0A; --fx-go-ink: #FFFFFF;
+        --fx-go-sub: #FFD9C8; --fx-go-shadow: rgba(156,55,12,.22);
+        --fx-off-bg: #F7F0F5; --fx-off-ink: #746670; --fx-off-rule: #E1D8DE;
+        --fx-on-x4: #FFFFFF; --fx-on-x0: #FFFFFF; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --fx-go-bg: #FF8552; --fx-go-bg-hover: #FFA173; --fx-go-ink: #2A1206;
+  --fx-go-sub: #4E2610; --fx-go-shadow: rgba(0,0,0,.45);
+  --fx-off-bg: #2E2A44; --fx-off-ink: #A39AC4; --fx-off-rule: #3F3A59;
+  --fx-on-x4: #2E0B0A; --fx-on-x0: #06231A; } }
+:root[data-theme="dark"] { --fx-go-bg: #FF8552; --fx-go-bg-hover: #FFA173;
+  --fx-go-ink: #2A1206; --fx-go-sub: #4E2610; --fx-go-shadow: rgba(0,0,0,.45);
+  --fx-off-bg: #2E2A44; --fx-off-ink: #A39AC4; --fx-off-rule: #3F3A59;
+  --fx-on-x4: #2E0B0A; --fx-on-x0: #06231A; }
+
+/* WHY DISABLED IS A COLOUR AND NOT AN OPACITY
+   The go tokens above are measured to 7.08:1 / 7.35:1 -- and then the install
+   button wrapped itself in `opacity: .42`, which composites the whole group
+   toward the page and threw that away: the main label measured 2.27:1 and the
+   sub-label 1.72:1, in three tabs at once. Worse, a faded orange button still
+   reads as an ORANGE BUTTON, so disabled and enabled looked nearly the same
+   and the only real difference was the sub-label text.
+   A disabled control here therefore changes HUE -- it goes grey -- and keeps
+   its own measured contrast: dark #94A1AF on #242E3C is 5.21:1, light
+   #5F6B78 on #EEF2F7 is 4.20:1. Never put an opacity on top of these. */
+.fx-off, .fx-go:disabled, .fx-btn:disabled, .fx-btn.primary:disabled {
+  background: var(--fx-off-bg); border-color: var(--fx-off-rule);
+  color: var(--fx-off-ink); box-shadow: none; filter: none; opacity: 1;
+  cursor: not-allowed; }
+.fx-go:disabled .fx-go-sub, .fx-btn:disabled .fx-go-sub { color: var(--fx-off-ink); }
+
+
+.fx { max-width: 1260px; margin: 0 auto; padding: 18px 22px 60px; }
+
+/* ---------------------------------------------------------------- toolbar */
+.fx-bar { display: flex; gap: 12px; align-items: center; flex-wrap: wrap;
+  padding: 10px 14px; margin-bottom: 16px; background: var(--card); border: 1px solid var(--rule);
+  border-radius: 12px; box-shadow: var(--shadow); }
+.fx-bar h2 { margin: 0; font-size: 15px; letter-spacing: -.01em; }
+.fx-spacer { flex: 1; }
+.fx-btn { font: inherit; font-size: 12.5px; padding: 6px 12px; border-radius: 7px; cursor: pointer;
+  border: 1px solid var(--rule); background: var(--card-3); color: var(--ink); }
+.fx-btn:hover:not(:disabled) { border-color: var(--ember); color: var(--ember); }
+
+/* Same trap as .fx-install: --ember + white is 2.41:1 in dark mode. Reuses
+   the measured tokens defined further down. */
+.fx-btn.primary { background: var(--fx-go-bg); border-color: var(--fx-go-bg);
+  color: var(--fx-go-ink); font-weight: 600; }
+.fx-btn.primary:hover:not(:disabled) { background: var(--fx-go-bg-hover);
+  border-color: var(--fx-go-bg-hover); color: var(--fx-go-ink); }
+.fx-btn.danger:hover:not(:disabled) { border-color: var(--x4); color: var(--x4); }
+.fx-dirty { font-size: 12px; color: var(--x2); background: var(--x2b);
+  padding: 3px 9px; border-radius: 999px; font-weight: 600; }
+
+/* ------------------------------------------------------------------ layout */
+/* Party and Battle Box sit above the PC box rather than beside it in a menu.
+   They hold six each against a box's thirty, so a shared sidebar wasted most
+   of its width on them -- and buried the party, which is the thing you move
+   Pokémon INTO. */
+.fx-main { display: grid; grid-template-columns: minmax(0, 1fr) 272px; gap: 16px;
+  align-items: start; }
+@media (max-width: 1000px) { .fx-main { grid-template-columns: 1fr; } }
+.fx-left { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+
+.fx-stub { display: flex; justify-content: flex-end; }
+.fx-ghost { padding: 3px 9px; font-size: 11.5px; }
+
+/* One chip per box. 24 of them fit on a line or two and beat a 24-row list. */
+.fx-boxarea { display: flex; flex-direction: column; gap: 8px; }
+.fx-chips { display: flex; flex-wrap: wrap; gap: 4px; }
+.fx-chip { font: inherit; font-size: 11.5px; font-variant-numeric: tabular-nums;
+  min-width: 27px; padding: 3px 6px; border: 1px solid var(--rule); border-radius: 7px;
+  background: var(--card-3); color: var(--ink-soft); cursor: pointer; }
+.fx-chip:hover { border-color: var(--ember); color: var(--ember); }
+.fx-chip[aria-current="true"] { background: var(--fx-go-bg); border-color: var(--fx-go-bg);
+  color: var(--fx-go-ink); font-weight: 700; }
+.fx-chip.empty { opacity: 1; color: var(--ink-faint); background: var(--card-3); }
+.fx-chip.hidden-box { border-style: dashed; color: var(--x2); }
+
+/* ------------------------------------------------------------------- grid */
+.fx-grid-wrap { background: var(--card); border: 1px solid var(--rule); border-radius: 12px;
+  box-shadow: var(--shadow); padding: 14px; }
+.fx-grid-head { display: flex; align-items: baseline; gap: 10px; margin-bottom: 10px; }
+.fx-grid-head h3 { margin: 0; font-size: 16px; }
+.fx-grid-head span { font-size: 12px; color: var(--ink-faint); }
+.fx-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 7px; }
+@media (max-width: 620px) { .fx-grid { grid-template-columns: repeat(4, 1fr); } }
+/* NO SEPARATE CAP FOR THE SIX-SLOT AREAS.
+   They used to be `repeat(6, minmax(0, 96px))` to stop the party rendering as
+   six huge tiles -- but the party card and the box card are the same width and
+   both grids are six columns, so plain 1fr makes a party cell EXACTLY a box
+   cell. The cap only ever made the party hug the left of its card with a third
+   of the width empty beside it. */
+
+.fx-grid-head h3 { white-space: nowrap; }
+.fx-grid-head .fx-flag { margin-left: 0; }
+
+/* No aspect-ratio. A fixed square plus overflow:hidden clipped the name and
+   level off the bottom as soon as the sprite grew -- and it grows again below,
+   for the HP bar. The cell sizes to its content and the grid row follows. */
+.fx-slot { position: relative; display: flex; flex-direction: column;
+  align-items: center; justify-content: flex-start; gap: 1px; padding: 4px 3px 6px;
+  min-height: 104px;
+  border: 1px solid var(--rule-soft); border-radius: 9px; background: var(--card-3);
+  cursor: pointer; overflow: hidden; }
+.fx-slot:hover { border-color: var(--ember); }
+.fx-slot.empty { background: var(--zone); border-style: dashed; }
+.fx-slot[aria-selected="true"] { border-color: var(--ember); border-width: 2px;
+  background: var(--ember-soft); padding: 2px; }
+.fx-slot.movesrc { border-color: var(--setter); border-width: 2px; background: var(--setter-bg); padding: 2px; }
+.fx-slot img { width: 100%; max-width: 68px; height: auto; aspect-ratio: 1;
+  image-rendering: -webkit-optimize-contrast; }
+.fx-slot b { font-size: 9.5px; font-weight: 600; line-height: 1.25; text-align: center;
+  max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  padding: 0 1px; }
+.fx-slot em { font-style: normal; font-size: 9px; color: var(--ink-faint); }
+.fx-slot .fx-star { position: absolute; top: 3px; right: 5px; color: var(--ember); font-size: 11px; }
+.fx-slot .fx-num { position: absolute; top: 2px; left: 5px; font-size: 8.5px; color: var(--ink-faint); }
+.fx-moving .fx-slot { cursor: crosshair; }
+
+/* ---------------------------------------------------------------- details */
+.fx-detail { background: var(--card); border: 1px solid var(--rule); border-radius: 12px;
+  box-shadow: var(--shadow); padding: 14px; position: sticky; top: 64px; }
+.fx-detail .fx-hero { display: flex; gap: 10px; align-items: center; margin-bottom: 10px; }
+.fx-detail .fx-hero img { width: 96px; height: 96px; }
+.fx-detail h3 { margin: 0; font-size: 18px; letter-spacing: -.01em; }
+.fx-detail .fx-sub { font-size: 11.5px; color: var(--ink-faint); margin-top: 2px; }
+.fx-kv { display: grid; grid-template-columns: 76px 1fr; gap: 3px 8px; font-size: 12px;
+  margin: 8px 0; }
+.fx-kv dt { color: var(--ink-faint); }
+.fx-kv dd { margin: 0; color: var(--ink); }
+.fx-flag { font-size: 10px; padding: 1px 6px; border-radius: 999px; margin-left: 5px;
+  background: var(--x2b); color: var(--x2); font-weight: 600; }
+.fx-statrow { display: grid; grid-template-columns: 34px 1fr 34px; gap: 5px 7px;
+  align-items: center; font-size: 11px; }
+.fx-statrow i { font-style: normal; color: var(--ink-faint); text-transform: uppercase;
+  font-size: 9.5px; letter-spacing: .04em; }
+.fx-statrow u { text-decoration: none; text-align: right; font-variant-numeric: tabular-nums; }
+.fx-track { height: 5px; border-radius: 3px; background: var(--bartrack); overflow: hidden; }
+.fx-track span { display: block; height: 100%; background: var(--bar); }
+.fx-acts { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+.fx-empty { text-align: center; color: var(--ink-faint); font-size: 13px; padding: 24px 8px; }
+.fx-hint { font-size: 11.5px; color: var(--ink-faint); line-height: 1.5; margin-top: 10px; }
+
+/* ----------------------------------------------------------------- modal */
+.fx-modal { position: fixed; inset: 0; z-index: 200; background: rgba(10,14,20,.55);
+  display: flex; align-items: flex-start; justify-content: center; padding: 4vh 16px;
+  overflow-y: auto; }
+.fx-sheet { background: var(--card); border: 1px solid var(--rule); border-radius: 14px;
+  box-shadow: 0 20px 60px rgba(0,0,0,.35); width: min(760px, 100%); padding: 20px 22px 18px; }
+.fx-sheet h3 { margin: 0 0 3px; font-size: 18px; }
+.fx-sheet .fx-sub { font-size: 12px; color: var(--ink-faint); margin-bottom: 14px; }
+.fx-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(168px, 1fr)); gap: 11px 14px; }
+.fx-field { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.fx-field > label { font-size: 10.5px; letter-spacing: .05em; text-transform: uppercase;
+  color: var(--ink-faint); font-weight: 600; }
+.fx-field input, .fx-field select { font: inherit; font-size: 13px; padding: 5px 7px;
+  border: 1px solid var(--rule); border-radius: 6px; background: var(--card-3);
+  color: var(--ink); min-width: 0; }
+.fx-field input:focus, .fx-field select:focus { outline: 2px solid var(--ember); outline-offset: -1px; }
+.fx-check { flex-direction: row; align-items: center; gap: 7px; }
+.fx-check input { width: auto; }
+.fx-check label { text-transform: none; letter-spacing: 0; font-size: 12.5px; color: var(--ink); }
+.fx-span { grid-column: 1 / -1; }
+.fx-sec { grid-column: 1 / -1; font-size: 10.5px; letter-spacing: .07em; text-transform: uppercase;
+  color: var(--ink-faint); font-weight: 700; border-top: 1px solid var(--rule-soft);
+  padding-top: 11px; margin-top: 3px; display: flex; align-items: center; gap: 10px; }
+.fx-sec .fx-btn { padding: 2px 8px; font-size: 11px; text-transform: none; letter-spacing: 0; }
+.fx-nums { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; }
+@media (max-width: 560px) { .fx-nums { grid-template-columns: repeat(3, 1fr); } }
+.fx-note { grid-column: 1 / -1; font-size: 11.5px; line-height: 1.5; color: var(--ink-soft);
+  background: var(--card-3); border: 1px solid var(--rule-soft); border-radius: 8px; padding: 8px 10px; }
+.fx-note.warn { background: var(--x2b); border-color: transparent; color: var(--x2); }
+.fx-foot { display: flex; gap: 8px; align-items: center; margin-top: 16px;
+  border-top: 1px solid var(--rule-soft); padding-top: 13px; }
+.fx-err { color: var(--x4); font-size: 12.5px; }
+.fx-illegal { color: var(--x2); }
+
+/* ------------------------------------------------- multi-select + sorting */
+.fx-slot[aria-selected="true"] { box-shadow: inset 0 0 0 1px var(--ember); }
+.fx-grid-head .fx-btn, .fx-grid-head select { font: inherit; font-size: 11.5px;
+  padding: 3px 8px; border: 1px solid var(--rule); border-radius: 6px;
+  background: var(--card-3); color: var(--ink); cursor: pointer; }
+.fx-grid-head select:hover, .fx-grid-head .fx-btn:hover { border-color: var(--ember); }
+
+.fx-strip { display: flex; flex-wrap: wrap; gap: 3px; align-items: center;
+  margin: 4px 0 8px; }
+.fx-strip img { width: 44px; height: 44px; }
+.fx-strip span { font-size: 11px; color: var(--ink-faint); padding: 0 4px; }
+
+/* -------------------------------------------------- editor sprite + shiny */
+/* The wiki clone has ONE sprite per species and no shiny variants, so the
+   shiny state is signalled with a ring and a badge rather than recoloured
+   art. Faking the palette would be inventing colours the game does not use. */
+.fx-head { display: flex; gap: 14px; align-items: center; margin-bottom: 14px; }
+.fx-art { width: 106px; height: 106px; flex: none; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; border-radius: 12px;
+  background: var(--card-3); border: 1px solid var(--rule-soft); position: relative; }
+.fx-art img { width: 92px; height: 92px; }
+.fx-art span { font-size: 26px; color: var(--ink-faint); }
+.fx-art.shiny { border-color: var(--ember); border-width: 2px;
+  background: var(--ember-soft); box-shadow: 0 0 0 3px var(--ember-soft); }
+.fx-art b { position: absolute; bottom: -9px; font-size: 9px; font-weight: 800;
+  letter-spacing: .06em; text-transform: uppercase; color: var(--fx-go-ink);
+  background: var(--fx-go-bg); padding: 1px 6px; border-radius: 999px; white-space: nowrap; }
+.fx-detail .fx-hero img.fx-shinyart { border-radius: 10px; outline: 2px solid var(--ember);
+  outline-offset: 1px; background: var(--ember-soft); }
+.fx-secnum { font-size: 10.5px; color: var(--ink-faint); font-weight: 600;
+  letter-spacing: 0; text-transform: none; font-variant-numeric: tabular-nums; }
+
+/* The organize modal is a handful of fields, not a character sheet. */
+.fx-sheet.fx-narrow { width: min(460px, 100%); }
+.fx-sheet.fx-narrow .fx-form { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+
+/* -------------------------------------------------- the two exit actions */
+/* Install and Download are peers. Install is the one you use while iterating;
+   Download is the one that never touches your file. Neither is a footnote of
+   the other, so they share a pedestal and differ in colour, not in weight. */
+.fx-actions { display: flex; gap: 8px; align-items: stretch; }
+.fx-go { display: flex; flex-direction: column; align-items: flex-start; gap: 0;
+  padding: 6px 14px; border-radius: 9px; border: 1px solid; cursor: pointer;
+  line-height: 1.15; text-align: left; }
+.fx-go .fx-go-main { font-size: 12.5px; font-weight: 700; letter-spacing: -.005em; }
+.fx-go .fx-go-sub { font-size: 9.5px; letter-spacing: .05em; text-transform: uppercase;
+  color: var(--ink-faint); font-weight: 700; }
+/* Only the FILLED variant sits on the orange, so only it takes the on-orange
+   sub colour; the outlined Download keeps a normal muted ink. */
+.fx-install .fx-go-sub { color: var(--fx-go-sub); }
+
+.fx-install { background: var(--fx-go-bg); border-color: var(--fx-go-bg);
+  color: var(--fx-go-ink);
+  box-shadow: 0 1px 2px var(--fx-go-shadow), 0 3px 10px var(--fx-go-shadow); }
+.fx-install:hover:not(:disabled) { background: var(--fx-go-bg-hover);
+  border-color: var(--fx-go-bg-hover); color: var(--fx-go-ink); }
+.fx-download { background: var(--card-3); border-color: var(--ember); color: var(--ember); }
+.fx-download:hover:not(:disabled) { background: var(--ember-soft); }
+
+
+/* ------------------------------------------------------------ unlock boxes */
+.fx-chiprow { display: flex; gap: 10px; align-items: flex-start; flex-wrap: wrap; }
+.fx-chiprow .fx-chips { flex: 1; min-width: 0; }
+.fx-unlock { display: flex; flex-direction: column; align-items: flex-start;
+  padding: 4px 11px; border-radius: 8px; cursor: pointer; line-height: 1.2;
+  background: var(--ember-soft); border: 1px solid var(--ember); color: var(--ember); }
+.fx-unlock:hover { background: var(--fx-go-bg); border-color: var(--fx-go-bg);
+  color: var(--fx-go-ink); }
+.fx-unlock b { font-size: 11.5px; font-weight: 700; white-space: nowrap; }
+.fx-unlock i { font-style: normal; font-size: 9.5px; opacity: .8; white-space: nowrap; }
+
+/* ------------------------------------------------------- IV / EV bars */
+/* Two scales, drawn separately: IVs run 0-31 and EVs 0-252, so a shared axis
+   would make a perfect IV look like a rounding error beside a maxed EV. */
+/* The number columns get real width and breathing room on BOTH sides. Right-
+   aligned against a following bar, they read as though they belong to the bar
+   on their right rather than the one they describe. */
+/* Three columns: label, IV pair, EV pair. The number lives INSIDE its pair,
+   in front of the bar -- see the comment in tabs/factory.js for why in front.
+   The gap inside a pair is small; the gap between pairs is large, so grouping
+   is done by proximity rather than by hoping the reader guesses. */
+.fx-ivev { display: grid; grid-template-columns: 24px 1fr 1fr;
+  column-gap: 16px; row-gap: 5px; align-items: center; margin: 9px 0 4px; }
+.fx-ivev-pair { display: flex; align-items: center; gap: 4px; min-width: 0; }
+.fx-ivev-pair .fx-ivev-num { flex: none; width: 21px; text-align: right; }
+.fx-ivev-pair .fx-ivev-bar { flex: 1; min-width: 0; }
+.fx-ivev-head { font-size: 8.5px; font-weight: 800; letter-spacing: .07em;
+  text-transform: uppercase; color: var(--ink-faint); text-align: left;
+  padding-left: 25px; }
+.fx-ivev > i { font-style: normal; font-size: 9px; font-weight: 700; letter-spacing: .04em;
+  text-transform: uppercase; color: var(--ink-faint); }
+.fx-ivev-bar { position: relative; height: 13px; border-radius: 3px;
+  background: var(--bartrack); overflow: hidden; }
+.fx-ivev-bar u { display: block; height: 100%; text-decoration: none; background: var(--s2); }
+.fx-ivev-bar u.ev { background: var(--s1); }
+.fx-ivev-bar u.max { background: var(--x0); }
+.fx-ivev-bar u.zero { background: var(--x4); min-width: 2px; }
+/* The number sits BESIDE the bar, not on it. Inside, it had to be legible
+   against every fill the bar can take -- and --ink is near-white in dark mode
+   while a maxed IV fills with light mint, so it disappeared exactly on the
+   values you most want to read. No overlay, no contrast problem. */
+.fx-ivev-bar b { display: none; }
+.fx-ivev-num { font-size: 10px; font-weight: 700; color: var(--ink-soft);
+  font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
+.fx-ivev-num.max { color: var(--x0); font-weight: 800; }
+.fx-ivev-num.zero { color: var(--x4); }
+.fx-over { color: var(--x2); }
+
+/* ------------------------------------------------------------- party HP */
+/* Colour by how bad it is, not by which Pokémon it is: the point of this bar
+   is spotting a half-dead lead before walking into a gym. */
+.fx-hp { display: block; width: 84%; height: 4px; margin-top: 2px; border-radius: 2px;
+  background: var(--bartrack); overflow: hidden; }
+.fx-hp u { display: block; height: 100%; text-decoration: none; }
+.fx-hp-ok  u { background: var(--x0); }
+.fx-hp-mid u { background: var(--x2); }
+.fx-hp-low u { background: var(--x4); }
+.fx-hp-ko  u { background: var(--x4); }
+.fx-hp-ko { outline: 1px solid var(--x4); }
+
+.fx-heal { white-space: nowrap; }
+.fx-heal.needed { background: var(--x0b); border-color: var(--x0); color: var(--x0);
+  font-weight: 650; }
+.fx-heal.needed:hover { background: var(--x0); color: var(--card); border-color: var(--x0); }
+
+/* ------------------------------------------------------- the ball picker */
+.fx-ballgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr));
+  gap: 6px; margin-top: 10px; }
+.fx-ball { display: flex; flex-direction: column; align-items: center; gap: 3px;
+  padding: 8px 4px 6px; border-radius: 9px; cursor: pointer; font: inherit;
+  background: var(--card-3); border: 1px solid var(--rule-soft); color: inherit; }
+.fx-ball:hover { border-color: var(--ember); }
+.fx-ball:focus-visible { outline: 2px solid var(--ember); outline-offset: 1px; }
+.fx-ball img { width: 32px; height: 32px; image-rendering: pixelated; }
+.fx-balldot { font-size: 22px; line-height: 32px; color: var(--ink-faint); }
+.fx-ballname { font-size: 10.5px; font-weight: 650; color: var(--ink-soft); }
+/* Where it is now, marked rather than merely selected -- this dialog closes on
+   any click, so the current one has to be readable at a glance. */
+.fx-ball.on { border-color: var(--ember); border-width: 2px; padding: 7px 3px 5px;
+  background: var(--ember-soft); }
+.fx-ball.on .fx-ballname { color: var(--ember); }

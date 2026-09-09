@@ -1,0 +1,34 @@
+<!doctype html><meta charset="utf-8"><title>hazel</title>
+<link rel="stylesheet" href="/app/css/theme.css">
+<link rel="stylesheet" href="/app/css/tutor.css">
+<style>body{margin:0;background:var(--ground);display:flex;gap:20px;padding:24px;align-items:flex-end}
+.pose .tu-me{position:static;display:block}
+.pose b{display:block;text-align:center;font:600 12px var(--sans);color:var(--ink-soft);margin-top:8px}</style>
+<script type="module">
+/* Draws the real badge in every pose. It renders through mountTutor rather
+   than rebuilding the markup, because the last version of this harness kept
+   its own copy of the sprite and showed me a stale Slowking while I judged a new
+   one. `?light` for the light palette, `?noface` for a clone with no art. */
+const tpl = await (await fetch('/sheet_template.html')).text();
+const s = document.createElement('style');
+s.textContent = /<style>([\s\S]*?)<\/style>/.exec(tpl)[1];
+document.head.prepend(s);
+const q = new URLSearchParams(location.search);
+if (q.has('light')) document.documentElement.setAttribute('data-theme', 'light');
+if (q.has('white')) document.documentElement.setAttribute('data-version', 'white');
+const D = await (await fetch('/app/data/static.json')).json();
+const face = q.has('noface') ? null
+  : q.has('scientist') ? D.TRFACE['51']
+  : (D.SPRITE.Slowking ?? D.TRFACE['51']);
+const M = await import('/app/js/tutor.js');
+for (const pose of ['idle', 'talk', 'point', 'think', 'cheer']) {
+  const h = M.mountTutor(document, { face });
+  const me = h.root.querySelector('.tu-me');
+  me.classList.add(`tu-${pose}`);
+  h.root.remove();
+  const w = document.createElement('div');
+  w.className = 'pose';
+  w.append(me, Object.assign(document.createElement('b'), { textContent: pose }));
+  document.body.append(w);
+}
+</script>

@@ -1,0 +1,72 @@
+# ---------------------------------------------------------------------------
+# Personal game data -- never commit. This repo is meant to go public, and a
+# save carries the trainer's OT name, TID and SID.
+# ---------------------------------------------------------------------------
+save_backups/
+*.sav
+*.nds
+# ...except the test fixture, which tools/make_fixture.py has anonymised:
+# fake trainer id and secret id, and every record's PID adjusted so its
+# original shiny state survives the change. See that script.
+!tests/fixture.sav
+state/_candidate.sav
+
+# Save-derived output: regenerate with ./refresh
+state/party.json
+state/bag.json
+state/curve_observations.json
+state/team_sheet.html
+
+# ---------------------------------------------------------------------------
+# ROM-extracted tables. Regenerate from your own ROM:
+#     python3 extract_personal.py && python3 extract_items.py && python3 extract_trainers.py
+# Kept out of git deliberately -- these are the game's own data, and shipping
+# them is the part that attracts takedowns, not the code that reads them.
+# ---------------------------------------------------------------------------
+state/personal.json
+state/moves.json
+state/items.json
+state/maps.json
+state/rom_diff.json
+state/trainers.json
+
+# Generated test ground truth (contains save data). Rebuild with ./test-js
+tests/pk5_truth.json
+
+# Built from the ROM by build_static.py. Same reasoning as state/*.json:
+# regenerable, and the game's own data is not ours to redistribute.
+app/data/static.json
+
+# ---------------------------------------------------------------------------
+# The region map. Fetched by ./setup, not committed: it is someone else's
+# artwork, and the same reasoning that keeps the ROM tables and the 232 MB
+# wiki clone out of git applies to it.
+app/img/
+
+# Reference clones and vendor data, fetched rather than committed.
+#   wiki/  is a separate read-only clone (232 MB, has its own .git)
+#   docs/  is Drayano's own documentation from the v3.1 download; the .rtf
+#          originals are 40 MB of embedded images and are not ours to ship
+# ---------------------------------------------------------------------------
+wiki/
+docs/*.rtf
+
+__pycache__/
+*.pyc
+.DS_Store
+
+# Agent/editor local settings. This has only ever been ignored by a GLOBAL
+# gitignore on the author's machine, which is not a property a clone inherits
+# -- and the file records real save paths, so a clone elsewhere could commit
+# a Windows username. Ignored by the repo itself now.
+.claude/
+
+# Local config: your save path is personal
+companion.config.json
+
+# Teams saved from the Team Builder are personal
+state/teams.json
+
+# Map marker corrections made in the app. COMMIT THIS -- it is how a fix
+# reaches everyone rather than living in one browser.
+!state/map_positions.json

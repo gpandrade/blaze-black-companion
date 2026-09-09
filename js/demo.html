@@ -1,0 +1,144 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Blaze Black — save layer demo</title>
+<!--
+  A proof that the JS port does the whole loop client-side: drop a .sav, read
+  the party, every box and the Battle Box, verify all three integrity tiers,
+  optionally raise the box-capacity byte, and download the result. No server
+  touches the file.
+
+  ES modules will not load over file:// -- serve the repo instead:
+      python3 -m http.server 8080
+      open http://localhost:8080/js/demo.html
+-->
+<style>
+  :root { color-scheme: light dark; --line: #8883; }
+  body { font: 14px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace; margin: 0 auto; padding: 2rem 1.5rem; max-width: 60rem; }
+  h1 { font-size: 1.1rem; letter-spacing: .04em; text-transform: uppercase; margin: 0 0 1.5rem; }
+  #drop { border: 1px dashed var(--line); border-radius: 6px; padding: 2.5rem 1rem; text-align: center; cursor: pointer; }
+  #drop.over { border-style: solid; background: #8881; }
+  .row { display: flex; gap: 1rem; flex-wrap: wrap; margin: 1rem 0; align-items: baseline; }
+  .ok { color: #1a7f37; } .bad { color: #c93c37; } .dim { opacity: .65; }
+  table { border-collapse: collapse; width: 100%; margin: .5rem 0 1.5rem; }
+  th, td { text-align: left; padding: .25rem .6rem .25rem 0; border-bottom: 1px solid var(--line); white-space: nowrap; }
+  th { font-weight: 600; opacity: .7; }
+  details { margin: .3rem 0; } summary { cursor: pointer; padding: .2rem 0; }
+  button { font: inherit; padding: .4rem .9rem; cursor: pointer; }
+  .wrap { overflow-x: auto; }
+</style>
+
+<h1>Blaze Black — client-side save layer</h1>
+<div id="drop">Drop <code>pokemon_blaze_black.sav</code> here, or click to pick one.
+  <input type="file" id="file" accept=".sav" hidden></div>
+<div id="out"></div>
+
+<script type="module">
+import { Save, Tables, presentAll } from './index.js';
+
+const $ = (s) => document.querySelector(s);
+const el = (tag, props = {}, ...kids) => {
+  const n = document.createElement(tag);
+  Object.assign(n, props);
+  n.append(...kids);
+  return n;
+};
+const esc = (s) => String(s ?? '');
+
+// The ROM tables are optional: without them everything still decodes, it just
+// reports dex ids instead of names.  Never fall back to vanilla data.
+let tables = null;
+try {
+  tables = await Tables.fetch('../state/');
+} catch (e) {
+  console.warn('ROM tables unavailable, showing raw ids:', e.message);
+}
+
+const drop = $('#drop'), out = $('#out');
+drop.onclick = () => $('#file').click();
+$('#file').onchange = (e) => e.target.files[0] && load(e.target.files[0]);
+drop.ondragover = (e) => { e.preventDefault(); drop.classList.add('over'); };
+drop.ondragleave = () => drop.classList.remove('over');
+drop.ondrop = (e) => {
+  e.preventDefault(); drop.classList.remove('over');
+  if (e.dataTransfer.files[0]) load(e.dataTransfer.files[0]);
+};
+
+async function load(file) {
+  out.replaceChildren();
+  let save;
+  try {
+    save = Save.load(await file.arrayBuffer(), { lastModified: file.lastModified, name: file.name });
+  } catch (err) {
+    out.append(el('p', { className: 'bad' }, `✗ ${err.message}`));
+    return;
+  }
+  render(save, presentAll(save.readAll(), tables));
+}
+
+function render(save, all) {
+  const v = save.verify();
+  const rt = save.selfTestRoundTrip();
+
+  out.append(el('div', { className: 'row' },
+    el('span', {}, `slot ${all.slot_used} — ${all.slot_selection}`),
+    el('span', { className: v.ok ? 'ok' : 'bad' },
+      v.ok ? '✓ all three integrity tiers verify' : `✗ ${v.problems.join('; ')}`),
+    el('span', { className: rt.ok ? 'ok' : 'bad' },
+      rt.ok ? `✓ ${rt.checked} records re-encode byte-identically` : `✗ ${rt.failures.join(', ')}`),
+  ));
+
+  if (!tables) out.append(el('p', { className: 'dim' },
+    'ROM tables not loaded — showing dex/move ids. Serve the repo root so ../state/*.json is fetchable.'));
+  for (const w of all.warnings ?? []) out.append(el('p', { className: 'bad' }, `! ${w}`));
+
+  out.append(el('div', { className: 'row' },
+    el('span', {}, `boxes exposed in game: ${all.box_capacity} of 24`),
+    el('span', { className: 'dim' }, all.box_capacity < 24
+      ? '(anything written above that is invisible in game)' : ''),
+  ));
+
+  group('Party', all.party);
+  group('Battle Box', all.battle_box);
+  for (const b of all.boxes) if (b.count) group(`Box ${b.box} — ${b.name}`, b.pokemon, true);
+
+  const dl = el('button', {}, 'Download this save unchanged');
+  dl.onclick = () => download(save.toBytes(), 'roundtrip.sav');
+  const cap = el('button', {}, 'Raise box capacity to 24 and download');
+  cap.onclick = () => {
+    const edited = save.clone().setBoxCapacity(24);
+    if (!edited.verify().ok) { alert('reseal failed — not offering the download'); return; }
+    download(edited.toBytes(), 'boxes-24.sav');
+  };
+  out.append(el('div', { className: 'row' }, dl, cap,
+    el('span', { className: 'dim' }, 'boot with Continue, not a savestate')));
+}
+
+function group(title, mons, collapsed = false) {
+  if (!mons.length) return;
+  const table = el('table');
+  table.append(el('tr', {}, ...['#', 'Species', 'Nick', 'Lv', 'Nature', 'Ability', 'Item', 'Moves']
+    .map((h) => el('th', {}, h))));
+  for (const m of mons) {
+    table.append(el('tr', {},
+      el('td', { className: 'dim' }, esc(m.slot)),
+      el('td', {}, esc(m.species) + (m.is_shiny ? ' ★' : '')),
+      el('td', { className: 'dim' }, m.is_nicknamed ? esc(m.nickname) : ''),
+      el('td', {}, esc(m.level)),
+      el('td', {}, esc(m.nature)),
+      el('td', {}, esc(m.ability)),
+      el('td', { className: 'dim' }, esc(m.held_item?.name ?? '')),
+      el('td', { className: 'dim' }, m.moves.map((x) => x.name ?? `#${x.id}`).join(', ')),
+    ));
+  }
+  const wrap = el('div', { className: 'wrap' }, table);
+  if (collapsed) out.append(el('details', {}, el('summary', {}, `${title} (${mons.length})`), wrap));
+  else { out.append(el('h2', { style: 'font-size:.95rem;margin:1.2rem 0 0' }, title)); out.append(wrap); }
+}
+
+function download(bytes, name) {
+  const url = URL.createObjectURL(new Blob([bytes], { type: 'application/octet-stream' }));
+  const a = Object.assign(document.createElement('a'), { href: url, download: name });
+  a.click();
+  URL.revokeObjectURL(url);
+}
+</script>

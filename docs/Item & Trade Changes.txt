@@ -1,0 +1,256 @@
+The following items have been edited into "Use" items:
+---
+Dragon Scale
+Dubious Disc
+Electirizer
+Magmarizer
+Prism Scale
+Protector
+Reaper Cloth
+Up-Grade
+Oval Stone
+
++ + + + +
+
+Nuvema Town
+---
+Xtransceiver -> Bicycle
+Super Rod -> Gracidea
+TM10 Hidden Power --> TM60 Quash 
+
+Route 2
+---
+Poké Ball -> Oval Stone
+Potion -> Everstone
+
+Striaton City
+---
+Dusk Ball -> Dive Ball * 10
+Oran Berries * 3 -> HM01 Cut
+HM01 Cut -> TM10 Hidden Power
+
+Dreamyard
+---
+Repel -> TM23 Smack Down
+Poke Ball -> TM59 Incinerate
+TM75 Swords Dance -> Wide Lens
+Potion -> TM76 Struggle Bug
+Parlyz Heal -> TM88 Pluck
+
+Nacrene City
+---
+Chesto Berry * 3 -> Sun Stone * 6
+
+Route 3
+---
+Heal Balls * 3 -> Super Rod
+HP Up -> TM75 Swords Dance
+Full Heal -> TM77 Psych Up
+
+Pinwheel Forest
+---
+Great Ball -> TM43 Flame Charge
+Miracle Seed -> King's Rock * 2
+Parlyz Heal -> Prism Scale
+Super Potion -> TM09 Venoshock
+Antidote -> TM95 Snarl
+Hyper Potion -> Miracle Seed
+Moon Stone (NPC) -> Moon Stone * 6
+
+Castelia City
+---
+Exp Share -> Exp Share * 6
+Quick Ball * 3 -> TM04 Calm Mind
+Timer Ball * 3 -> TM08 Bulk Up
+Lemonade (NPC) -> TM48 Round
+TM76 Struggle Bug (NPC) -> TM89 U-turn
+Leaf Stone (NPC) -> Leaf Stone * 6
+Fire Stone (NPC) -> Fire Stone * 6 
+Water Stone (NPC) -> Water Stone * 6
+
+Route 4
+---
+Hyper Potion -> Cover Fossil
+Great Ball -> Plume Fossil
+Burn Heal -> Root Fossil
+X Accuarcy -> Skull Fossil
+
+Desert Resort
+---
+Fresh Water -> Helix Fossil
+Stardust -> Claw Fossil
+BlackGlasses -> Dome Fossil
+Super Potion -> Armor Fossil
+Fire Stone -> Fire Stone * 6
+
+Relic Castle
+---
+Revive -> Old Amber
+Cover Fossil (NPC) -> DeepSeaTooth
+Plume Fossil (NPC) -> DeepSeaScale
+TM04 Calm Mind (NPC) -> Choice Specs
+TM26 Earthquake -> Rare Bone
+Max Potion -> TM35 Flamethrower
+
+Nimbasa City
+---
+Ultra Ball * 10 (NPC) -> Cherish Ball * 20
+Bicycle (NPC) -> HM02 Fly
+TM72 Volt Switch (NPC) -> TM93 Wild Charge
+Sun Stone (NPC) -> Shiny Stone * 6
+X Attack -> ThunderStone * 6
+
+Route 5
+---
+Zinc -> Up-Grade
+Hyper Potion -> TM72 Volt Switch
+Great Ball -> BlackGlasses
+
+Cold Storage Outside
+---
+Protein -> Dawn Stone * 6
+Ether -> Razor Fang
+
+Cold Storage Inside
+---
+Net Ball -> Metal Coat * 2
+TM01 Hone Claws (NPC) -> Choice Scarf
+Ice Heal -> Razor Claw
+
+Driftveil City
+---
+HM02 Fly (NPC) -> RageCandyBar
+Water Stone -> Water Stone * 6
+
+Route 6
+---
+Hyper Potion -> TM53 Energy Ball
+Shiny Stone (NPC) -> Dusk Stone * 6
+Leaf Stone (NPC) -> Starf Berry * 3
+Leaf Stone -> Leaf Stone * 6
+
+Chargestone Cave
+---
+Lucky Egg -> Lucky Egg * 6
+TM69 Rock Polish (NPC) -> Life Orb
+ThunderStone -> Electirizer
+
+Route 7
+---
+Ultra Ball -> Magmarizer
+
+Celestial Tower
+---
+Revive -> Reaper Cloth 
+Hyper Potion -> TM19 Telekenesis
+
+Mistralton Cave
+---
+Dusk Stone -> Protector
+Max Repel -> TM69 Rock Polish
+
+Icirrus City
+---
+TM79 Frost Breath (NPC) -> TM13 Ice Beam
+
+Moor of Icirrus
+---
+Carbos -> TM79 Frost Breath
+Ultra Ball -> TM34 Sludge Wave
+
+Dragonspiral Tower
+---
+Shiny Stone -> TM29 Psychic
+
+Tubeline Bridge
+---
+TM43 Flame Charge (NPC) -> TM71 Stone Edge
+
+Route 10
+---
+Dusk Stone (NPC) -> TM64 Explosion
+Dawn Stone -> TM26 Earthquake
+
+Victory Road
+---
+TM93 Wild Charge -> Power Herb
+
+Route 11
+---
+Protector -> Air Balloon
+
+Route 12
+---
+TM53 Energy Ball -> Light Ball
+
+Route 13
+---
+Electirizer -> Binding Band
+Razor Claw -> Grip Claw
+Prism Scale -> Shed Shell
+TM29 Psychic -> TM32 Double Team
+TM89 U-turn (NPC) -> Metronome
+
+Route 14
+---
+Reaper Cloth -> Light Clay
+TM08 Bulk Up (NPC) -> Choice Band
+
+Route 15
+---
+Up-Grade -> Thick Club
+TM09 Venoshock -> Black Sludge
+
+Route 16
+---
+Rare Candy -> TM03 Psyshock
+
+Route 18
+---
+TM32 Double Team (NPC) -> Zoom Lens
+TM19 Telekenesis -> TM87 Swagger
+
+Lostlorn Forest
+---
+Big Mushroom -> TM01 Hone Claws
+
+Abundant Shrine
+---
+Razor Fang -> Enigma Berry
+TM35 Flamethrower -> Soul Dew
+
+Giant Chasm
+---
+TM03 Psyshock -> Rare Candy * 50
+TM13 Ice Beam -> God Stone
+
+Challenger's Cave
+---
+Oval Stone -> Master Ball
+TM71 Stone Edge -> Master Ball
+PP Up -> PP Max
+Nugget -> Master Ball
+Timer Ball -> Master Ball
+Protein -> Master Ball
+
+-------------
+
+TRADE #1: NACRENE CITY
+Original: Cottonee/Petilil --> Cottonee/Petilil [Lv. 15] @ Cheri Berry
+New: Shroomish --> Ponyta [Lv. 20] @ Lum Berry
+
+TRADE #2: DRIFTVEIL CITY
+Original: Minccino --> Basculin [Lv. 25] @ Sitrus Berry
+New: Wailmer --> Snover [Lv. 30] @ Focus Sash
+
+TRADE #3: ROUTE 7
+Original: Boldore --> Emolga [Lv. 30] @ Lum Berry
+New: Haunter --> Torkoal [Lv. 40] @ White Herb
+
+TRADE #4: ROUTE 15
+Original: Ditto --> Rotom [Lv. 60] @ Max Elixir
+New: Metagross --> Salamence [Lv. 70] @ Master Ball
+
+TRADE #5: UNDELLA TOWN
+Original: Cinccino --> Munchlax [Lv. 60] @ Leftovers
+New: Tyranitar --> Hydreigon [Lv. 70] @ Master Ball

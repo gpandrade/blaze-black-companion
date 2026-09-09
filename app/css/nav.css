@@ -1,0 +1,283 @@
+/*
+ * nav.css -- the tab rail and the tab dial.
+ *
+ * =========================================================================
+ * THE SHAPE IS THE SKEW
+ * =========================================================================
+ * Everything else in this app that commits something wears a cut corner
+ * (--notch). A plate is the same idea taken all the way: cut BOTH corners on
+ * the same diagonal and you have a parallelogram, which is the shape Persona
+ * builds its menus out of. So the rail needed no new visual vocabulary, only
+ * more of the one already here.
+ *
+ * The skew is on the plate and undone on its contents. Skewed text is
+ * illegible at 12px and looks like a rendering fault, which is the one thing
+ * a navigation control cannot afford to look like.
+ *
+ * =========================================================================
+ * COLOUR RULES, RESTATED BECAUSE THIS FILE BREAKS THEM MOST EASILY
+ * =========================================================================
+ *   - The active plate is a FILLED ACCENT: --fx-go-bg / --fx-go-ink, the
+ *     measured pair (7.08:1 light, 7.35:1 dark). NEVER --ember with #fff --
+ *     that is 2.41:1 on the dark-mode ember.
+ *   - Disabled is --fx-off-*, a colour. Never an opacity: an opacity over a
+ *     filled accent composites the whole control toward the page.
+ *   - The numeral on an active plate uses --fx-go-sub, which is defined
+ *     against --fx-go-bg in both themes. A hardcoded alpha would not be.
+ */
+
+/* ========================================================================
+ * THE RAIL
+ * ====================================================================== */
+.sh-tabs {
+  display: flex; gap: .3rem; flex: 1 1 auto; min-width: 0;
+  align-items: stretch; flex-wrap: wrap;
+}
+
+/* --------------------------------------------------------------- a plate */
+.sh-plate {
+  --skew: -11deg;
+  position: relative; flex: 0 0 auto;
+  display: inline-flex; align-items: center; gap: .42rem;
+  font: inherit; font-size: .8rem; font-weight: 600; letter-spacing: .01em;
+  padding: .34rem .82rem; cursor: pointer;
+  border: 1px solid transparent; border-radius: 3px;
+  background: var(--card-3); color: var(--ink-soft);
+  transform: skewX(var(--skew));
+  transition: transform .16s ease, background .16s ease, color .16s ease,
+              border-color .16s ease;
+  /* The plates deal themselves in on load. Cheap, once, and it is what makes
+     the bar read as a menu rather than a toolbar. Kept in THIS rule rather
+     than a second `.sh-plate {}` further down: two rules for one simple
+     selector setting disjoint properties is the exact shape that hid the
+     .dx-bar toolbar bug, and it stays invisible until the day they collide. */
+  animation: sh-plate-in .26s cubic-bezier(.2,.7,.3,1) backwards;
+  animation-delay: calc(var(--i, 0) * 34ms);
+}
+/* Undo the skew on everything inside it, or the type shears. */
+.sh-plate > * { transform: skewX(calc(-1 * var(--skew))); }
+
+.sh-plate:hover:not(:disabled):not(.is-on) {
+  background: var(--card-2); color: var(--ink);
+  border-color: var(--rule);
+  transform: skewX(var(--skew)) translateX(3px);
+}
+.sh-plate:focus-visible { outline: 2px solid var(--ember); outline-offset: 3px; }
+
+/* THE ACTIVE PLATE BREAKS THE ROW. Filled, lifted, and the only one whose
+   numeral is legible -- Persona's trick is that the selected item is not a
+   highlighted sibling, it is a different object. */
+.sh-plate.is-on {
+  background: var(--fx-go-bg); color: var(--fx-go-ink);
+  border-color: var(--fx-go-bg);
+  font-weight: 700;
+  transform: skewX(var(--skew)) translateY(-2px);
+  box-shadow: 0 2px 0 0 var(--fx-go-shadow);
+}
+.sh-plate.is-on .sh-pnum { color: var(--fx-go-sub); opacity: 1; }
+.sh-plate.is-on .sh-ico { opacity: 1; }
+/* The neon hairline that closes the shell bar and every toolbar, here closing
+   the one plate that is currently true. */
+.sh-plate.is-on::after {
+  content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 2px;
+  pointer-events: none; background: var(--neon-line); opacity: .9;
+}
+
+.sh-plate:disabled {
+  background: var(--fx-off-bg); color: var(--fx-off-ink);
+  border-color: var(--fx-off-rule); cursor: not-allowed;
+}
+.sh-plate:disabled .sh-ico { opacity: .55; }
+
+.sh-pnum {
+  font-family: var(--mono); font-size: .58rem; font-weight: 700;
+  letter-spacing: .06em; color: var(--ink-faint); opacity: .75;
+}
+.sh-ico {
+  width: 15px; height: 15px; flex: none; opacity: .85;
+  fill: none; stroke: currentColor; stroke-width: 1.6;
+  stroke-linecap: round; stroke-linejoin: round;
+}
+.sh-plabel { white-space: nowrap; }
+
+@keyframes sh-plate-in {
+  from { opacity: 0; transform: skewX(-11deg) translateX(-10px); }
+}
+
+/* ----------------------------------------------------------- the hub key */
+/* Opens the dial. On a wide screen it is a shortcut; under 760px it is the
+   entire navigation, so it grows a label naming where you already are. */
+.sh-hub {
+  position: relative; flex: 0 0 auto; display: inline-flex; align-items: center;
+  gap: .4rem; font: inherit; font-size: .72rem; font-weight: 700;
+  letter-spacing: .1em; text-transform: uppercase;
+  padding: .3rem .6rem .3rem .42rem; cursor: pointer;
+  border: 1px solid var(--rule); border-radius: 999px;
+  background: var(--card); color: var(--ink-soft);
+  transition: border-color .16s ease, color .16s ease;
+}
+.sh-hub:hover { border-color: var(--ember); color: var(--ember); }
+.sh-hub:focus-visible { outline: 2px solid var(--ember); outline-offset: 2px; }
+/* A Poke Ball at 13px: a ring, a bar across it, a dot. Drawn rather than
+   drawn ON, so it follows currentColor through both themes. */
+.sh-hub-ring {
+  width: 13px; height: 13px; flex: none; border-radius: 50%;
+  border: 1.5px solid currentColor; position: relative;
+}
+.sh-hub-ring::before {
+  content: ""; position: absolute; left: -1.5px; right: -1.5px; top: 50%;
+  height: 1.5px; margin-top: -.75px; background: currentColor;
+}
+.sh-hub-ring::after {
+  content: ""; position: absolute; left: 50%; top: 50%; width: 4px; height: 4px;
+  margin: -2px 0 0 -2px; border-radius: 50%; background: var(--card);
+  box-shadow: 0 0 0 1.5px currentColor;
+}
+/* The label is the mobile affordance; on a wide screen the plates say it. */
+.sh-hub-now { display: none; }
+/* A KEYCAP, BECAUSE A SHORTCUT NOBODY CAN SEE IS NOT A SHORTCUT. The Pokedex
+   shipped its best feature reachable only by knowing it was there, and the
+   lesson generalises: the hub is a small ring at the far left of the bar and
+   nothing about it says a key opens it. One character does. */
+.sh-hub-key {
+  font-family: var(--mono); font-size: .62rem; line-height: 1;
+  padding: .16rem .3rem; border-radius: 3px;
+  border: 1px solid var(--rule); color: var(--ink-faint);
+  background: var(--card-3);
+}
+
+/* ========================================================================
+ * THE DIAL
+ * ======================================================================
+ * Seven spokes on a ring around a hub that names what you are pointing at.
+ *
+ * Each spoke is placed with rotate -> translate -> counter-rotate, which puts
+ * it on the circle and leaves its contents upright. The counter-rotation is
+ * not optional: without it every label past the first is tilted and three of
+ * them are upside down.
+ */
+.sh-dial { position: fixed; inset: 0; z-index: 200;
+           display: grid; place-items: center; }
+/* NOT a pseudo-element and NOT pointer-events: none -- clicking the backdrop
+   is how you close the dial, so it has to be a real element that takes the
+   click. Every stretched ::before in this project is decoration and is inert;
+   this one is a control. */
+.sh-dial-back { position: absolute; inset: 0; cursor: pointer;
+                background: color-mix(in srgb, var(--ground) 78%, transparent);
+                backdrop-filter: blur(3px); }
+.sh-dial-face {
+  --r: 200px;
+  position: relative; width: calc(var(--r) * 2 + 150px);
+  height: calc(var(--r) * 2 + 150px);
+  display: grid; place-items: center;
+}
+
+/* ------------------------------------------------------------- the hub */
+.sh-dhub {
+  position: relative; z-index: 1; width: 210px; height: 210px; border-radius: 50%;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: .2rem; padding: 1.4rem; text-align: center;
+  background: var(--card); border: 1px solid var(--rule);
+  box-shadow: var(--shadow), var(--rim);
+}
+.sh-dhub::after {
+  content: ""; position: absolute; inset: 6px; border-radius: 50%;
+  pointer-events: none; border: 1px solid var(--rule-soft);
+}
+.sh-dhub-kick { font-family: var(--mono); font-size: 9px; font-weight: 700;
+                letter-spacing: .18em; color: var(--ink-faint); }
+.sh-dhub-name { font-size: 1.05rem; font-weight: 750; color: var(--ink);
+                line-height: 1.15; }
+.sh-dhub-blurb { font-size: .74rem; color: var(--ink-soft); line-height: 1.4;
+                 max-width: 15ch; }
+.sh-dhub-hint { margin-top: .5rem; font-family: var(--mono); font-size: 8.5px;
+                letter-spacing: .06em; color: var(--ink-faint); max-width: 18ch;
+                line-height: 1.5; }
+.sh-dhub.is-off .sh-dhub-name { color: var(--ink-faint); }
+
+/* ----------------------------------------------------------- the spokes */
+.sh-spoke {
+  --a: calc(var(--i) * (360deg / var(--n)) - 90deg);
+  position: absolute; left: 50%; top: 50%; margin: -34px 0 0 -58px;
+  width: 116px; height: 68px; padding: 0; cursor: pointer;
+  border: 0; background: none; font: inherit;
+  transform: rotate(var(--a)) translate(var(--r)) rotate(calc(-1 * var(--a)));
+}
+.sh-spoke-in {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: .18rem; width: 100%; height: 100%;
+  border: 1px solid var(--rule); border-radius: 10px; --notch: 9px;
+  clip-path: polygon(
+    0 var(--notch), var(--notch) 0, 100% 0,
+    100% calc(100% - var(--notch)), calc(100% - var(--notch)) 100%, 0 100%);
+  background: var(--card); color: var(--ink-soft);
+  box-shadow: var(--shadow);
+  transition: transform .18s cubic-bezier(.2,.7,.3,1), background .18s ease,
+              color .18s ease, border-color .18s ease;
+  animation: sh-spoke-in .3s cubic-bezier(.2,.7,.3,1) backwards;
+  animation-delay: calc(var(--i) * 30ms);
+}
+@keyframes sh-spoke-in { from { opacity: 0; transform: scale(.55); } }
+
+.sh-spoke .sh-ico { width: 21px; height: 21px; opacity: .9; }
+.sh-snum { font-family: var(--mono); font-size: .56rem; font-weight: 700;
+           letter-spacing: .1em; color: var(--ink-faint); }
+.sh-slabel { font-size: .76rem; font-weight: 650; }
+
+.sh-spoke:focus { outline: none; }
+.sh-spoke:focus-visible .sh-spoke-in { outline: 2px solid var(--ember);
+                                       outline-offset: 3px; }
+/* WHERE YOU ARE POINTING, which is not the same as where you are going.
+   The dial's whole reason to exist is that you can look without committing. */
+.sh-spoke.is-at .sh-spoke-in {
+  background: var(--fx-go-bg); color: var(--fx-go-ink);
+  border-color: var(--fx-go-bg);
+  transform: scale(1.13);
+  box-shadow: 0 4px 14px var(--fx-go-shadow);
+}
+.sh-spoke.is-at .sh-snum { color: var(--fx-go-sub); }
+.sh-spoke.is-off .sh-spoke-in { background: var(--fx-off-bg); color: var(--fx-off-ink);
+                                border-color: var(--fx-off-rule); cursor: not-allowed; }
+.sh-spoke.is-off.is-at .sh-spoke-in { transform: scale(1.04); }
+
+/* ========================================================================
+ * MOTION, AND THE PEOPLE WHO DO NOT WANT IT
+ * ======================================================================
+ * The dial still opens, it just does not perform: no fan-out, no stagger, no
+ * scale on the pointed spoke. Reduced motion means fewer moving pixels, not
+ * a worse control -- the pointed spoke still changes colour, which was always
+ * the load-bearing signal.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .sh-plate, .sh-spoke-in { animation: none; }
+  .sh-plate, .sh-plate.is-on, .sh-plate:hover:not(:disabled):not(.is-on) {
+    transition: background .1s ease, color .1s ease; }
+  .sh-spoke-in { transition: background .1s ease, color .1s ease; }
+  .sh-spoke.is-at .sh-spoke-in { transform: none; }
+  .sh-dial-back { backdrop-filter: none; }
+}
+
+/* ========================================================================
+ * NARROW: THE DIAL IS THE NAVIGATION
+ * ======================================================================
+ * Seven plates do not fit on a phone. They used to WRAP, which was the least
+ * bad answer available to a row of pills -- two ragged rows of chrome above
+ * every screen. With a dial in hand the better answer is to stop showing the
+ * rail at all and let the hub, which now names the tab you are on, open the
+ * ring.
+ */
+@media (max-width: 760px) {
+  .sh-plate { display: none; }
+  .sh-hub-now { display: inline; }
+  /* No keyboard to press it with. */
+  .sh-hub-key { display: none; }
+  .sh-hub { font-size: .74rem; padding: .38rem .8rem .38rem .5rem; }
+  .sh-dial-face { --r: 132px; width: 100%; height: calc(var(--r) * 2 + 130px); }
+  .sh-dhub { width: 150px; height: 150px; padding: .9rem; }
+  .sh-dhub-name { font-size: .92rem; }
+  .sh-dhub-blurb { font-size: .68rem; }
+  .sh-dhub-hint { display: none; }
+  .sh-spoke { width: 96px; height: 58px; margin: -29px 0 0 -48px; }
+  .sh-spoke .sh-ico { width: 18px; height: 18px; }
+  .sh-slabel { font-size: .68rem; }
+}

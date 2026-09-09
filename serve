@@ -1,0 +1,581 @@
+#!/usr/bin/env python3
+"""
+serve -- the local host for the companion app.
+
+Why a server at all, when the whole point is that everything runs
+client-side?  Three reasons, and none of them involve sending your data
+anywhere:
+
+  1. ES modules do not load over file://.  A browser refuses them outright.
+  2. fetch() of the ROM tables and sprites is blocked over file:// too.
+  3. It is the only way to answer "just read the save at this path" instead
+     of making you re-pick the file every single time.
+
+Everything it serves comes off your own disk, it binds to localhost by
+default, and it never sends anything anywhere.
+
+WHAT IT SERVES, AND WHAT IT DOES NOT
+Static requests are answered from an ALLOW LIST -- app/, js/, the three ROM
+tables js/demo.html reads, and sheet_template.html.  Everything else in the
+repo 404s.
+
+That used to be `directory=ROOT` with the stock directory listings on, which
+published the whole working tree: save_backups/ (every backup you have ever
+taken, each carrying your OT name, trainer id and secret id),
+companion.config.json (an absolute path through your home directory),
+state/party.json, and anything else you keep here.  On the default localhost
+bind that is only reachable by you -- but --host 0.0.0.0 is offered two lines
+below, and one flag should not turn a save editor into a file server for your
+saves.  The allow list is what makes that flag safe to offer.
+
+Scope is decided on the RESOLVED FILESYSTEM PATH, not by matching the URL:
+that settles `..`, percent-encoding and symlinks in one step, and those are
+the three things a prefix test on the request string gets wrong.
+
+    ./serve                  http://127.0.0.1:8080/app/
+    ./serve --port 9000
+    ./serve --save '/mnt/c/.../pokemon_blaze_black.sav'
+    ./serve --host 0.0.0.0   reachable from the LAN -- opt in deliberately
+
+CONFIG
+    companion.config.json in the repo root, or --save.  Copy
+    companion.config.example.json and edit it.  The file is gitignored,
+    because a save path is personal.
+
+      save     path to the .sav
+      backups  where to put the pre-install backup, default save_backups/
+
+INSTALLING AN EDITED SAVE
+    POST /api/save installs an edited save, because placing the file by hand
+    every iteration is genuinely miserable.  An earlier version of this file
+    promised any write endpoint would sit behind an explicit opt-in flag.  It
+    does not: it is on whenever a save path is configured, with --no-write to
+    turn it off.  The guarantee that actually mattered was never the flag, it
+    was the guards, and those are not optional:
+
+      1. refuses while melonDS is running -- it rewrites the .sav on exit and
+         would silently clobber the install
+      2. validates the incoming bytes before touching anything: exact size,
+         every block checksum, and the footer CRC over the checksum table
+      3. BACKS UP the current save first, and names the file in its reply
+      4. writes a temp file beside the target, re-validates that, and only
+         then moves it into place
+      5. re-reads the installed file; if that fails, restores the backup
+
+    It binds localhost, and anything that could reach it could already write
+    the .sav directly, so the marginal exposure is small.  The real risk is a
+    bug in step 4, which is why steps 3 and 5 exist.
+"""
+from __future__ import annotations
+
+import argparse
+import json
+import os
+import shutil
+import struct
+import subprocess
+import sys
+import time
+from datetime import datetime, timezone
+from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import parse_save as ps
+
+ROOT = Path(__file__).resolve().parent
+CONFIG = ROOT / "companion.config.json"
+SAVE_SIZE = 524288
+MIN_MTIME_AGE = 2.0
+DEFAULT_BACKUPS = ROOT / "save_backups"
+TEAMS_FILE = ROOT / "state" / "teams.json"
+MAP_FILE = ROOT / "state" / "map_positions.json"
+MAX_UPLOAD = SAVE_SIZE + 1024
+
+# The static serving scope -- see WHAT IT SERVES in the docstring above.
+# app/ is the companion, js/ the save layer it imports from (and demo.html).
+PUBLIC_DIRS = (ROOT / "app", ROOT / "js")
+# sheet_template.html is fetched whole by the battle tab; the three tables are
+# what js/demo.html loads through Tables.fetch('../state/'). The app itself
+# needs no state/ file -- it reads app/data/static.json -- so nothing else in
+# that directory is published, which is what keeps party.json, bag.json and
+# teams.json off the wire. teams.json still reaches the app, through /api/teams.
+PUBLIC_FILES = (ROOT / "sheet_template.html",
+                ROOT / "state" / "personal.json",
+                ROOT / "state" / "moves.json",
+                ROOT / "state" / "items.json")
+
+
+def melon_running() -> bool:
+    """melonDS rewrites the .sav on exit; installing under it would be undone."""
+    try:
+        out = subprocess.run("tasklist.exe", shell=True, capture_output=True,
+                             timeout=10).stdout.decode("utf-8", "replace")
+    except (OSError, subprocess.SubprocessError):
+        return False          # not on Windows/WSL, or tasklist unavailable
+    return "melon" in out.lower()
+
+
+def validate_bytes(data: bytes) -> list[str]:
+    """Everything that must hold before these bytes go anywhere near the save.
+
+    Deliberately independent of the browser's own checks: the JS verified all
+    three tiers before offering the download, and this verifies them again on
+    arrival, because "the client already checked" is not a guarantee about
+    what actually reached the socket.
+    """
+    if len(data) != SAVE_SIZE:
+        return [f"expected exactly {SAVE_SIZE} bytes, got {len(data)}"]
+
+    problems, any_valid = [], False
+    for i, base in enumerate(ps.SLOT_OFFSETS):
+        rep = ps.slot_report(data, i)
+        footer_ok = ps.crc16_ccitt(
+            data[base + ps.CHECKSUM_TABLE:base + 0x23F8C]
+        ) == struct.unpack_from("<H", data, base + ps.FOOTER + 0x0E)[0]
+        if rep["valid"] and footer_ok and rep["footer_magic_ok"]:
+            any_valid = True
+        elif rep["valid"] and not footer_ok:
+            # The exact failure that once made the game offer to delete a save:
+            # every block checksum refreshed, the footer CRC over the table left
+            # stale.
+            problems.append(f"slot {i}: block checksums pass but the FOOTER CRC "
+                            "over the checksum table is stale")
+    if not any_valid:
+        problems.append("neither save slot passes its block checksums")
+    return problems
+
+
+def load_config(save_override: str | None) -> dict:
+    cfg = {}
+    if CONFIG.is_file():
+        try:
+            cfg = json.loads(CONFIG.read_text())
+        except ValueError as e:
+            print(f"serve: {CONFIG.name} is not valid JSON ({e}); ignoring it",
+                  file=sys.stderr)
+    if save_override:
+        cfg["save"] = save_override
+    return cfg
+
+
+def backup_dir(cfg: dict) -> Path:
+    """Where a pre-install backup goes. Configurable; defaults into the repo."""
+    raw = cfg.get("backups")
+    return Path(raw).expanduser() if raw else DEFAULT_BACKUPS
+
+
+def save_status(path_str: str | None) -> dict:
+    """Everything the app needs to decide whether it can offer 'load from disk'."""
+    if not path_str:
+        return {"configured": False, "reason":
+                "no save path configured -- copy companion.config.example.json "
+                "to companion.config.json, or pass --save"}
+    p = Path(path_str)
+    out = {"configured": True, "path": str(p), "name": p.name}
+    if not p.is_file():
+        return {**out, "readable": False, "reason": f"no file at {p}"}
+    st = p.stat()
+    age = time.time() - st.st_mtime
+    out.update(
+        readable=True,
+        bytes=st.st_size,
+        mtime=datetime.fromtimestamp(st.st_mtime, timezone.utc).isoformat(),
+        age_seconds=round(age, 1),
+        size_ok=st.st_size == SAVE_SIZE,
+        # The emulator buffers and flushes the .sav shortly after an in-game
+        # save, so a read taken too soon can catch a half-written file.
+        fresh_enough=age >= MIN_MTIME_AGE,
+    )
+    if not out["size_ok"]:
+        out["reason"] = f"save is {st.st_size} bytes, expected exactly {SAVE_SIZE}"
+    elif not out["fresh_enough"]:
+        out["reason"] = (f"save was written {age:.1f}s ago; the emulator may still be "
+                         "flushing it. Wait a moment and reload.")
+    return out
+
+
+class Handler(SimpleHTTPRequestHandler):
+    config: dict = {}
+
+    def __init__(self, *a, **kw):
+        super().__init__(*a, directory=str(ROOT), **kw)
+
+    def log_message(self, fmt, *args):
+        if "/api/" in (self.path or "") or self.command != "GET":
+            sys.stderr.write(f"  {self.address_string()} {fmt % args}\n")
+
+    @staticmethod
+    def _in_scope(fs_path: str) -> bool:
+        """Is this resolved path inside the published scope?
+
+        Resolved rather than string-matched, deliberately: `..`, percent
+        encoding and symlinks are all settled by resolve(), and each of them
+        defeats a prefix test on the request line.
+        """
+        try:
+            target = Path(fs_path).resolve()
+        except (OSError, ValueError, RuntimeError):
+            return False
+        if any(target == f.resolve() for f in PUBLIC_FILES):
+            return True
+        return any(target == d.resolve() or d.resolve() in target.parents
+                   for d in PUBLIC_DIRS)
+
+    def send_head(self):
+        """The one gate every static GET and HEAD passes through.
+
+        Overridden here rather than in do_GET because do_HEAD is inherited and
+        calls this too -- gating only do_GET would leave HEAD able to confirm
+        that save_backups/<name>.sav exists and how big it is.
+        """
+        if not self._in_scope(self.translate_path(self.path)):
+            self.send_error(404, "Not Found")
+            return None
+        return super().send_head()
+
+    def list_directory(self, path):
+        """No listings. Nothing in the app needs one and they only enumerate."""
+        self.send_error(404, "Not Found")
+        return None
+
+    def _json(self, obj, code=200):
+        body = json.dumps(obj).encode()
+        self.send_response(code)
+        self.send_header("Content-Type", "application/json")
+        self.send_header("Content-Length", str(len(body)))
+        self.send_header("Cache-Control", "no-store")
+        self.end_headers()
+        self.wfile.write(body)
+
+    def do_GET(self):
+        if self.path.split("?")[0] == "/api/config":
+            cfg = type(self).config
+            return self._json({
+                "save": save_status(cfg.get("save")),
+                "root": str(ROOT),
+                "writes_enabled": bool(cfg.get("writes") and cfg.get("save")),
+                "backups": str(backup_dir(cfg)),
+                "melon_running": melon_running(),
+            })
+
+        if self.path.split("?")[0] == "/api/teams":
+            try:
+                return self._json(json.loads(TEAMS_FILE.read_text()))
+            except (OSError, ValueError):
+                return self._json({"teams": []})
+
+        if self.path.split("?")[0] == "/api/save":
+            cfg = type(self).config
+            st = save_status(cfg.get("save"))
+            if not st.get("readable") or not st.get("size_ok") or not st.get("fresh_enough"):
+                return self._json({"error": st.get("reason", "save unavailable"),
+                                   "status": st}, 409)
+            data = Path(cfg["save"]).read_bytes()      # read-only, always
+            if len(data) != SAVE_SIZE:
+                return self._json({"error": f"short read: {len(data)} bytes"}, 409)
+            self.send_response(200)
+            self.send_header("Content-Type", "application/octet-stream")
+            self.send_header("Content-Length", str(len(data)))
+            self.send_header("Cache-Control", "no-store")
+            self.send_header("X-Save-Mtime", st["mtime"])
+            self.end_headers()
+            self.wfile.write(data)
+            return
+
+        if self.path in ("/", "/app", "/app/"):
+            self.send_response(302)
+            self.send_header("Location", "/app/index.html")
+            self.end_headers()
+            return
+
+        return super().do_GET()
+
+    def do_POST(self):
+        path = self.path.split("?")[0]
+        if path == "/api/map":
+            return self._post_map()
+        if path == "/api/teams":
+            return self._post_teams()
+        if path != "/api/save":
+            return self._json({"error": "no such endpoint"}, 404)
+        return self._post_save()
+
+    def _post_map(self):
+        """Persist corrected map marker positions to state/map_positions.json.
+
+        The pins were placed by eye and are wrong in places. Without this, a
+        correction lives only in the browser that made it -- which makes the
+        calibration mode a personal workaround rather than a fix. Written
+        here, build_static.py merges it over the defaults and everyone who
+        pulls gets the better positions.
+        """
+        length = int(self.headers.get("Content-Length") or 0)
+        if length <= 0 or length > 1_000_000:
+            return self._json({"error": f"bad Content-Length {length}"}, 400)
+        try:
+            body = json.loads(self.rfile.read(length))
+            pos = body["positions"]
+            if not isinstance(pos, dict):
+                raise ValueError("positions must be an object")
+            for k, v in pos.items():
+                if not isinstance(v, dict):
+                    raise ValueError(f"{k}: must be an object")
+                if v.get("hidden"):
+                    continue          # a marker deliberately taken off the map
+                if not (0 <= float(v["x"]) <= 1 and 0 <= float(v["y"]) <= 1):
+                    raise ValueError(f"{k}: x and y must be fractions of the image")
+            # Links are optional: absent means "still following the shipped set",
+            # which is NOT the same as an empty list.
+            links = body.get("links")
+            if links is not None:
+                if not isinstance(links, list):
+                    raise ValueError("links must be a list")
+                for i, l in enumerate(links):
+                    if not (isinstance(l, dict) and l.get("a") and l.get("b")):
+                        raise ValueError(f"link {i}: needs both ends")
+                    if not isinstance(l.get("areas", []), list):
+                        raise ValueError(f"link {i}: areas must be a list")
+                    for b in l.get("bends", []):
+                        if not (isinstance(b, (list, tuple)) and len(b) == 2
+                                and all(0 <= float(c) <= 1 for c in b)):
+                            raise ValueError(f"link {i}: bends must be fractions of the image")
+        except (ValueError, KeyError, TypeError) as e:
+            return self._json({"error": f"bad payload: {e}"}, 400)
+
+        MAP_FILE.parent.mkdir(parents=True, exist_ok=True)
+        tmp = MAP_FILE.with_suffix(".json.tmp")
+        try:
+            out = {"positions": pos}
+            if links is not None:
+                out["links"] = links
+            tmp.write_text(json.dumps(out, indent=1, sort_keys=True))
+            os.replace(tmp, MAP_FILE)
+        except OSError as e:
+            tmp.unlink(missing_ok=True)
+            return self._json({"error": f"could not write {MAP_FILE.name}: {e}"}, 500)
+        nl = "" if links is None else f" and {len(links)} roads"
+        sys.stderr.write(f"  saved {len(pos)} map positions{nl} -> {MAP_FILE}\n")
+        return self._json({"ok": True, "count": len(pos),
+                           "links": None if links is None else len(links),
+                           "path": str(MAP_FILE), "rebuild": "python3 build_static.py"})
+
+    def _post_teams(self):
+        """Persist saved teams to state/teams.json.
+
+        Unlike the save, this is a file the app owns outright -- there is
+        nothing to back up and nothing to corrupt, so it is a plain write.
+        It is still atomic (temp file then replace) so an interrupted write
+        cannot leave a half-parsed JSON behind.
+        """
+        length = int(self.headers.get("Content-Length") or 0)
+        if length <= 0 or length > 4_000_000:
+            return self._json({"error": f"bad Content-Length {length}"}, 400)
+        try:
+            body = json.loads(self.rfile.read(length))
+            teams = body["teams"]
+            if not isinstance(teams, list):
+                raise ValueError("teams must be a list")
+        except (ValueError, KeyError, TypeError) as e:
+            return self._json({"error": f"bad payload: {e}"}, 400)
+
+        TEAMS_FILE.parent.mkdir(parents=True, exist_ok=True)
+        tmp = TEAMS_FILE.with_suffix(".json.tmp")
+        try:
+            tmp.write_text(json.dumps({"teams": teams}, indent=1))
+            os.replace(tmp, TEAMS_FILE)
+        except OSError as e:
+            tmp.unlink(missing_ok=True)
+            return self._json({"error": f"could not write {TEAMS_FILE.name}: {e}"}, 500)
+        sys.stderr.write(f"  saved {len(teams)} team(s) -> {TEAMS_FILE}\n")
+        return self._json({"ok": True, "count": len(teams), "path": str(TEAMS_FILE)})
+
+    def _post_save(self):
+        """Install an edited save, backing the current one up first."""
+
+        cfg = type(self).config
+        target = cfg.get("save")
+        if not cfg.get("writes"):
+            return self._json({"error": "writes are disabled (--no-write)"}, 403)
+        if not target:
+            return self._json({"error": "no save path configured"}, 409)
+
+        # 1. melonDS holds the .sav open and rewrites it on exit.
+        if melon_running():
+            return self._json({"error":
+                "melonDS is running. Close it first — it rewrites the .sav when it "
+                "exits and would silently undo this."}, 409)
+
+        length = int(self.headers.get("Content-Length") or 0)
+        if length <= 0 or length > MAX_UPLOAD:
+            return self._json({"error": f"bad Content-Length {length}"}, 400)
+        data = self.rfile.read(length)
+
+        # 2. Validate before anything is touched.
+        problems = validate_bytes(data)
+        if problems:
+            return self._json({"error": "refusing to install: " + "; ".join(problems),
+                               "problems": problems}, 422)
+
+        target = Path(target)
+        if not target.is_file():
+            return self._json({"error": f"no file at {target}"}, 409)
+
+        # 3. Back up the CURRENT save, and fail loudly if that does not work --
+        #    an install with no backup is the one thing never worth doing.
+        bdir = backup_dir(cfg)
+        try:
+            bdir.mkdir(parents=True, exist_ok=True)
+            stamp = datetime.now().strftime("%Y%m%d-%H%M%S")
+            backup = bdir / f"{target.stem}.{stamp}.pre-factory{target.suffix}"
+            shutil.copy2(target, backup)
+            if backup.stat().st_size != target.stat().st_size:
+                raise OSError("backup is a different size than the save it copied")
+        except OSError as e:
+            return self._json({"error": f"could not back up the current save: {e}. "
+                                        "Nothing was changed."}, 500)
+
+        # 4. Temp file BESIDE the target, so the move is on one filesystem,
+        #    re-validated from disk, and only then swung into place.
+        tmp = target.with_suffix(target.suffix + ".incoming")
+        try:
+            tmp.write_bytes(data)
+            reread = tmp.read_bytes()
+            problems = validate_bytes(reread)
+            if problems:
+                raise OSError("the temp file did not validate after writing: "
+                              + "; ".join(problems))
+            os.replace(tmp, target)
+        except OSError as e:
+            tmp.unlink(missing_ok=True)
+            return self._json({"error": f"install failed: {e}. Your save was not "
+                                        f"changed; the backup is at {backup}."}, 500)
+
+        # 5. Re-read what actually landed. If it is wrong, put the backup back.
+        try:
+            problems = validate_bytes(target.read_bytes())
+        except OSError as e:
+            problems = [f"could not re-read the installed save: {e}"]
+        if problems:
+            try:
+                shutil.copy2(backup, target)
+                restored = True
+            except OSError:
+                restored = False
+            return self._json({
+                "error": "the installed save did not validate; "
+                         + ("the backup was restored" if restored
+                            else f"RESTORE FAILED — put {backup} back by hand"),
+                "problems": problems}, 500)
+
+        sys.stderr.write(f"  installed {len(data)} bytes -> {target}\n"
+                         f"  backup    {backup}\n")
+        return self._json({
+            "ok": True,
+            "installed": str(target),
+            "backup": str(backup),
+            "backup_name": backup.name,
+            "bytes": len(data),
+        })
+
+    # Code and data are NEVER stored; assets only revalidate.
+    #
+    # `no-cache` was not enough. It still lets the browser keep a copy and ask
+    # "is this current", and a tab left open across an edit can end up holding
+    # a MIX -- new app/data/static.json against cached CSS and JS, or the
+    # reverse. That presents as "dark mode is broken and a lot of the UI is
+    # busted", which is indistinguishable from a real regression and cost a
+    # whole session once.
+    #
+    # Images stay revalidating rather than no-store: /app/img/ is 95 trainer
+    # portraits plus the region map, they are keyed by filename and change
+    # only when the ROM is re-extracted, and re-downloading them on every
+    # reload is the kind of waste that makes people stop reloading.
+    NO_STORE_SUFFIXES = (".html", ".js", ".mjs", ".css", ".json", ".map")
+
+    # EVERY TEXT FILE IN THIS REPO IS UTF-8 AND MUST SAY SO.
+    #
+    # SimpleHTTPRequestHandler guesses "text/html" with no charset, and a
+    # browser handed that falls back to a legacy encoding -- so an em dash
+    # arrives as three Latin-1 characters. app/index.html gets away with it
+    # because it carries its own <meta charset>; state/team_sheet.html does
+    # not, because it is a FRAGMENT (a Claude artifact supplies the <head>),
+    # and served raw it renders "Pokémon" as mojibake throughout.
+    TEXT_SUFFIXES = (".html", ".js", ".mjs", ".css", ".json", ".map", ".txt", ".svg", ".md")
+
+    def guess_type(self, path):
+        ctype = super().guess_type(path)
+        base = ctype.split(";")[0].strip()
+        if str(path).endswith(self.TEXT_SUFFIXES) and "charset=" not in ctype:
+            return f"{base}; charset=utf-8"
+        return ctype
+
+    def end_headers(self):
+        if self.path.startswith("/wiki/"):
+            pass                                  # a 232 MB read-only clone
+        elif self.path.rstrip("/").endswith(self.NO_STORE_SUFFIXES) or self.path in ("/", "/app"):
+            self.send_header("Cache-Control", "no-store, must-revalidate")
+        else:
+            self.send_header("Cache-Control", "no-cache")
+        super().end_headers()
+
+
+def main() -> int:
+    ap = argparse.ArgumentParser(description=__doc__.split("\n")[1],
+                                 formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("--port", type=int, default=8080)
+    ap.add_argument("--host", default="127.0.0.1",
+                    help="default 127.0.0.1; use 0.0.0.0 to expose on the LAN")
+    ap.add_argument("--save", help="path to the .sav, overriding the config file")
+    ap.add_argument("--backups", help="where pre-install backups go "
+                                      "(default: save_backups/ in the repo)")
+    ap.add_argument("--no-write", action="store_true",
+                    help="refuse POST /api/save; the app can still download edits")
+    args = ap.parse_args()
+
+    Handler.config = load_config(args.save)
+    if args.backups:
+        Handler.config["backups"] = args.backups
+    Handler.config["writes"] = not args.no_write
+    st = save_status(Handler.config.get("save"))
+
+    missing = [p for p in ("app/data/static.json",) if not (ROOT / p).is_file()]
+    if missing:
+        print(f"serve: {', '.join(missing)} is missing -- run  python3 build_static.py",
+              file=sys.stderr)
+    # The sprites are served straight out of the wiki clone, so its absence is a
+    # RUNTIME failure here and not only a build-time one -- every <img> 404s.
+    # Worth saying at startup, because the symptom (a page full of broken
+    # images) looks like a bug in the app rather than a missing dependency.
+    if not (ROOT / "wiki" / "docs" / "img" / "pokemon").is_dir():
+        print("serve: wiki/docs/img/pokemon is missing -- every Pokemon sprite will 404.",
+              file=sys.stderr)
+        print("serve: run ./setup without --no-wiki to fetch the reference clone.",
+              file=sys.stderr)
+
+    srv = ThreadingHTTPServer((args.host, args.port), Handler)
+    url = f"http://{'127.0.0.1' if args.host == '0.0.0.0' else args.host}:{args.port}/app/"
+    print(f"\n  Blaze Black companion  ->  {url}\n")
+    if st.get("readable") and st.get("size_ok"):
+        print(f"  save: {st['path']}\n        {st['bytes']} bytes, written {st['mtime'][:16].replace('T', ' ')} UTC")
+    else:
+        print(f"  save: not loadable from disk -- {st.get('reason', 'unknown')}")
+        print("        you can still drag a .sav onto the page")
+    print("\n  serving from your own disk, binding "
+          f"{args.host}, nothing leaves this machine")
+    if Handler.config.get("writes") and st.get("readable"):
+        print(f"  installing edits IS enabled. Every install backs up first, to")
+        print(f"    {backup_dir(Handler.config)}")
+        print("  and refuses to run while melonDS is open. --no-write turns it off.\n")
+    else:
+        print("  installing edits is off; edits come back as a download\n")
+    print("  ctrl-c to stop\n")
+    try:
+        srv.serve_forever()
+    except KeyboardInterrupt:
+        print("\nstopped")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

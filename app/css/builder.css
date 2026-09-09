@@ -1,0 +1,771 @@
+/*
+ * builder.css -- the Team Builder tab.
+ *
+ * Prefixed tb- for the same reason the Factory is prefixed fx-: the battle
+ * companion's stylesheet is injected globally and owns short names.
+ *
+ * The two go/stop colours reuse --fx-go-* from factory.css, which are the
+ * measured pair (7.08:1 light, 7.35:1 dark). --ember plus white is 2.41:1 in
+ * dark mode and must not come back.
+ */
+
+.tb { max-width: 1180px; margin: 0 auto; padding: 18px 22px 60px; }
+.tb-spacer { flex: 1; }
+
+.tb-btn { font: inherit; font-size: 12.5px; padding: 5px 11px; border-radius: 7px;
+  cursor: pointer; border: 1px solid var(--rule); background: var(--card-3); color: var(--ink); }
+.tb-btn:hover:not(:disabled) { border-color: var(--ember); color: var(--ember); }
+.tb-btn.primary { background: var(--fx-go-bg); border-color: var(--fx-go-bg);
+  color: var(--fx-go-ink); font-weight: 650; }
+.tb-btn.primary:hover:not(:disabled) { background: var(--fx-go-bg-hover);
+  border-color: var(--fx-go-bg-hover); color: var(--fx-go-ink); }
+.tb-btn.ghost { padding: 2px 8px; font-size: 11px; }
+/* Promote and delete are the two consequential buttons on a team, so they get
+   real colour rather than sitting in the same grey as everything else:
+   promote reads as a commitment, delete as a warning. */
+.tb-btn.promote { background: var(--wall-bg); border-color: var(--wall); color: var(--wall);
+  font-weight: 650; }
+.tb-btn.promote:hover { background: var(--wall); color: var(--card); border-color: var(--wall); }
+/* Quiet until you reach for it. A filled red button was the loudest thing on
+   the team header -- louder than "Save as core", which is the action you
+   actually want people to take. */
+.tb-btn.danger { background: none; border-color: var(--rule); color: var(--ink-faint);
+  font-weight: 650; }
+.tb-btn.danger:hover { background: var(--x4); color: var(--fx-on-x4); border-color: var(--x4); }
+
+/* ----------------------------------------------------------------- header */
+.tb-bar { display: flex; gap: 12px; align-items: center; flex-wrap: wrap;
+  padding: 10px 14px; margin-bottom: 14px; background: var(--card);
+  border: 1px solid var(--rule); border-radius: 12px; box-shadow: var(--shadow); }
+.tb-bar h2 { margin: 0; font-size: 15px; white-space: nowrap; }
+.tb-chips { display: flex; gap: 5px; flex-wrap: wrap; }
+.tb-chip { display: flex; gap: 6px; align-items: center; font: inherit; font-size: 12px;
+  padding: 4px 10px; border-radius: 999px; cursor: pointer;
+  border: 1px solid var(--rule); background: var(--card-3); color: var(--ink-soft); }
+.tb-chip:hover { border-color: var(--ember); color: var(--ember); }
+.tb-chip[aria-current="true"] { background: var(--fx-go-bg); border-color: var(--fx-go-bg);
+  color: var(--fx-go-ink); font-weight: 650; }
+.tb-chip i { font-style: normal; font-size: 10px; color: var(--ink-faint); }
+/* The slot count sits INSIDE the chip, so on the selected chip it sits on the
+   orange fill -- a muted grey there measures 1.25:1. It takes the chip's own
+   ink instead, at a lower weight. */
+.tb-chip[aria-current="true"] i { color: var(--fx-go-ink); font-weight: 600; }
+/* Actions, not teams. They sat in the same pill as the team chips, so
+   "+ New team" read like a team called "+". */
+.tb-add { font-weight: 600; padding: 4px 11px; border-style: dashed;
+  color: var(--ink-faint); background: none; }
+.tb-add:hover { border-style: solid; }
+
+.tb-head { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 8px 14px;
+  padding: 14px 16px; margin-bottom: 14px; background: var(--card);
+  border: 1px solid var(--rule); border-radius: 12px; box-shadow: var(--shadow); }
+.tb-name { grid-column: 1; font: inherit; font-size: 19px; font-weight: 750;
+  letter-spacing: -.015em; padding: 3px 7px; border: 1px solid transparent;
+  border-radius: 7px; background: none; color: var(--ink); }
+.tb-name:hover, .tb-name:focus { border-color: var(--rule); background: var(--card-3); outline: none; }
+.tb-notes { grid-column: 1 / -1; font: inherit; font-size: 12.5px; line-height: 1.5;
+  padding: 7px 9px; border: 1px solid var(--rule); border-radius: 8px;
+  background: var(--card-3); color: var(--ink-soft); resize: vertical; }
+.tb-headacts { grid-column: 2; grid-row: 1; display: flex; align-items: center;
+  gap: 6px; }
+/* A read-only action and two consequential ones should not read as three
+   buttons of the same weight -- least of all with the destructive one at the
+   end of the row. */
+.tb-actsplit { width: 1px; align-self: stretch; margin: 2px 6px;
+  background: var(--rule); }
+
+.tb-empty { max-width: 30rem; margin: 4rem auto; text-align: center; padding: 2rem 1.5rem;
+  background: var(--card); border: 1px solid var(--rule); border-radius: 12px; }
+.tb-empty h3 { margin: 0 0 6px; font-size: 16px; }
+.tb-empty p { margin: 0 0 16px; font-size: 13px; color: var(--ink-soft); }
+
+/* Structural hooks that the JS has always emitted and the stylesheet never
+   answered. They were doing nothing; these are the rules they were reaching
+   for. verify_app.mjs now fails on an emitted class with no rule, which is how
+   they surfaced. */
+.tb-body { display: flex; flex-direction: column; gap: 14px; }
+.tb-spread { display: flex; flex-direction: column; gap: 6px; }
+/* The empty top-left cell of a matrix. It exists to occupy a grid track. */
+.tb-corner, .tb-syn-corner { display: block; }
+
+/* ------------------------------------------------------------------ slots */
+/* align-items: start, NOT stretch. Slot cards carry wildly different amounts
+   of prose -- one swap note versus three plus an Engineered block -- and
+   stretching every card in a row to the tallest one, with the action row
+   pinned to the bottom, produced 100-250px of dead space inside the short
+   cards. Ragged bottoms read better than internal holes. */
+.tb-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 12px; margin-bottom: 20px; align-items: start; }
+.tb-slot { display: flex; flex-direction: column; padding: 0; overflow: hidden;
+  background: var(--card); border: 1px solid var(--rule); border-radius: 12px;
+  box-shadow: var(--shadow); border-left-width: 3px; }
+.tb-plan { display: flex; flex-direction: column; gap: 7px; padding: 13px 14px; }
+/* The state stripe is the card's one piece of neon: it is the only thing on
+   a slot card that is allowed to glow. */
+.tb-owned   { border-left-color: var(--x0); box-shadow: var(--shadow), inset 3px 0 12px -6px var(--x0); }
+.tb-close   { border-left-color: var(--x2); box-shadow: var(--shadow), inset 3px 0 12px -6px var(--x2); }
+.tb-missing { border-left-color: var(--ink-faint); }
+
+.tb-slot-head { display: flex; gap: 9px; align-items: center; padding: 13px 14px 11px; }
+.tb-slot-head img { width: 76px; height: 76px; flex: none; image-rendering: -webkit-optimize-contrast; }
+.tb-slot-id { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.tb-slot-id b { font-size: 17px; letter-spacing: -.015em; }
+.tb-slot-id span { font-size: 11px; color: var(--ink-faint); }
+.tb-types { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 4px; align-items: center; }
+/* The type icons are 96x32 WORD badges, so they are sized by height with the
+   width left to follow -- the same `height:Npx;width:auto` the battle sheet
+   uses. Forcing one into a 13x13 box squashed the word into a smear. */
+img.tb-type { height: 17px; width: auto; display: block; }
+.tb-type-txt { font-size: 9.5px; font-weight: 800; letter-spacing: .04em;
+  text-transform: uppercase; padding: 1px 6px; border-radius: 4px;
+  background: var(--card-3); color: var(--ink-soft); }
+.tb-state { font-size: 9.5px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase;
+  padding: 2px 7px; border-radius: 999px; white-space: nowrap; }
+.tb-state-owned { background: var(--x0b); color: var(--x0); }
+.tb-state-close { background: var(--x2b); color: var(--x2); }
+.tb-state-missing { background: var(--card-2); color: var(--ink-faint); }
+
+.tb-slot-meta { font-size: 11.5px; color: var(--ink-soft); }
+/* A FIXED 2x2. Free-flowing chips wrapped at a different point on every card
+   -- three on one line here, two and two there -- so no two cards in a row
+   ever lined up. Four is the cap the game imposes, so the shape is just the
+   shape, and a missing move leaves its cell empty rather than reflowing. */
+.tb-moves { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
+.tb-move { display: flex; align-items: center; gap: 5px; min-width: 0;
+  font-size: 11px; padding: 3px 8px 3px 5px; border-radius: 6px;
+  background: var(--card-3); color: var(--ink-soft); }
+.tb-move img { height: 15px; width: auto; flex: none; }
+.tb-movename { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.tb-note { margin: 0; font-size: 11.5px; color: var(--ink-faint); line-height: 1.45; }
+.tb-diffs { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 2px; }
+.tb-diffs li { display: flex; gap: 7px; font-size: 11px; }
+.tb-diffs b { min-width: 48px; color: var(--ink-faint); font-weight: 600; text-transform: capitalize; }
+.tb-diffs span { color: var(--ink-soft); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* Editing the PLAN. Kept with the plan, not mixed in with the one button that
+   writes into your save file -- see the note on .tb-save. */
+.tb-slot-acts { display: flex; gap: 5px; flex-wrap: wrap; padding-top: 3px; }
+
+/* IN YOUR SAVE. Its own surface, its own label, its own actions. The old card
+   ran "Edit / Adjust it / Create it / + Swap / Remove" together in one row,
+   where two of the five wrote into the working copy and three only changed
+   the plan, with nothing distinguishing them. */
+/* Under the header, not at the foot of the card: "do I have this one?" is
+   the first question a slot has to answer, and the answer was sitting as far
+   from the question as the card allowed. */
+.tb-save { position: relative; overflow: hidden;
+  display: flex; flex-direction: column; gap: 5px; padding: 8px 14px 9px;
+  background: var(--card-3);
+  border-top: 1px solid var(--rule-soft); border-bottom: 1px solid var(--rule-soft); }
+/* Baseline, not centre, and ONE type family. The label was mono at 9px and
+   the sentence sans at 11.5px, centred against each other, so "In your save"
+   and "You do not have this species" read as two unrelated fragments that
+   happened to share a row. Same family, same baseline, and the label earns
+   its label-ness from case and tracking instead. */
+.tb-saveline { display: flex; align-items: baseline; gap: 7px; flex-wrap: wrap; }
+.tb-saveline .tb-savelab { font-family: var(--sans); font-size: 9.5px;
+  font-weight: 800; letter-spacing: .1em; text-transform: uppercase;
+  color: var(--ink-faint); flex: none; }
+.tb-savetext { flex: 1; min-width: 0; font-size: 11.5px; color: var(--ink-soft); }
+.tb-saveline .tb-btn { font-size: 11px; padding: 3px 9px; }
+/* The footer is the half of the card that talks to the save file, so it gets
+   the tortoise-shell mesh -- a data surface, quietly marked as one. */
+.tb-save::before {
+  content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 0;
+  background: var(--pat-ink);
+  -webkit-mask-image: var(--pat-kikko); mask-image: var(--pat-kikko);
+  -webkit-mask-repeat: repeat; mask-repeat: repeat;
+  -webkit-mask-size: var(--pat-kikko-size); mask-size: var(--pat-kikko-size);
+  opacity: calc(var(--pat-band-a) * .7);
+}
+.tb-save > * { position: relative; z-index: 1; }
+.tb-savelab { font-family: var(--mono); font-size: 9px; font-weight: 700;
+  letter-spacing: .13em; text-transform: uppercase; color: var(--ink-faint); }
+.tb-save-owned .tb-savelab { color: var(--x0); }
+.tb-save-close .tb-savelab { color: var(--x2); }
+
+/* The sheet's .rigged block, brought across: a deliberately-broken Pokémon
+   gets a standing disclaimer, not just a badge. */
+.tb-rigged { display: flex; gap: 8px; align-items: flex-start; margin: 1px 0 3px 58px;
+  padding: 7px 10px; border-radius: 8px; border-left: 3px solid var(--setter);
+  background: var(--setter-bg); font-size: 11px; line-height: 1.5; color: var(--ink-soft); }
+.tb-rigged b { color: var(--ink); font-weight: 700; }
+.tb-rlab { font-family: var(--mono); font-size: 8.5px; font-weight: 700;
+  letter-spacing: .13em; text-transform: uppercase; color: var(--setter);
+  white-space: nowrap; padding-top: 2px; }
+
+/* The empty card carries TWO ways in now — pick one yourself, or be shown
+   what would fit — so it is a container rather than one big button. */
+.tb-addslot { display: flex; flex-direction: column; align-items: center;
+  justify-content: center; gap: 10px;
+  border-style: dashed; border-left-width: 1px; color: var(--ink-faint); min-height: 150px; }
+.tb-addslot:hover { border-color: var(--rule); }
+.tb-addbtn { display: flex; flex-direction: column; align-items: center; gap: 4px;
+  font: inherit; color: inherit; background: none; border: 0; cursor: pointer;
+  padding: 4px 10px; border-radius: 8px; }
+.tb-addbtn:hover { color: var(--ember); }
+.tb-addslot b { font-size: 26px; font-weight: 300; line-height: 1; }
+.tb-addslot span { font-size: 12px; }
+.tb-addsug { font-size: 12px; }
+
+/* --------------------------------------------------------- visualisations */
+.tb-viz { display: flex; flex-direction: column; gap: 14px; }
+.tb-toggles { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.tb-tog-label { font-size: 10.5px; letter-spacing: .07em; text-transform: uppercase;
+  color: var(--ink-faint); font-weight: 700; }
+.tb-tog { font: inherit; font-size: 11.5px; padding: 3px 10px; border-radius: 999px;
+  cursor: pointer; border: 1px solid var(--rule); background: var(--card-3); color: var(--ink-soft); }
+.tb-tog[aria-pressed="true"] { background: var(--ember-soft); border-color: var(--ember); color: var(--ember); }
+
+.tb-panel { padding: 14px 16px; background: var(--card); border: 1px solid var(--rule);
+  border-radius: 12px; box-shadow: var(--shadow); }
+.tb-panel h3 { margin: 0 0 10px; font-size: 13.5px; display: flex; gap: 9px;
+  align-items: baseline; flex-wrap: wrap; }
+.tb-panel h3 span { font-size: 11.5px; font-weight: 400; color: var(--ink-faint); }
+
+/* Column heads carry 56px sprites: at 30px a Pokémon is a coloured smudge and
+   the grid becomes unreadable exactly where you need to identify who the bad
+   column belongs to. The row heads are three-letter type codes rather than
+   icons for the same reason -- a 17-row column of tiny type icons is worse
+   than the abbreviations the type chart itself uses. */
+.tb-dgrid { display: grid; grid-template-columns: 40px repeat(var(--n), minmax(52px, 1fr)) 34px;
+  gap: 3px; font-size: 11px; overflow-x: auto; padding-bottom: 4px; }
+.tb-colhead { display: flex; align-items: flex-end; justify-content: center; padding-bottom: 2px; }
+.tb-colhead img { width: 64px; height: 64px; }
+.tb-rowhead { display: flex; align-items: center; text-transform: uppercase;
+  font-weight: 700; font-size: 9.5px; letter-spacing: .04em; color: var(--ink-faint); }
+.tb-cell { display: flex; align-items: center; justify-content: center; min-height: 22px;
+  border-radius: 4px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.tb-cell.m1 { background: var(--card-3); color: var(--ink-faint); }
+.tb-cell.m0 { background: var(--x0b); color: var(--x0); }
+.tb-cell.m25 { background: var(--x25b); color: var(--x25); }
+.tb-cell.m5 { background: var(--x5b); color: var(--x5); }
+.tb-cell.m2 { background: var(--x2b); color: var(--x2); }
+.tb-cell.m4 { background: var(--x4); color: var(--fx-on-x4); }
+.tb-count { background: var(--card-2); color: var(--ink-soft); }
+.tb-count.bad { background: var(--x4); color: var(--fx-on-x4); }
+.tb-count.good { background: var(--x0b); color: var(--x0); }
+.tb-worst { font-size: 9px; color: var(--ink-faint); text-align: center; }
+
+.tb-cov { display: flex; flex-wrap: wrap; gap: 5px; }
+.tb-covchip { display: flex; gap: 5px; align-items: baseline; font-size: 10.5px;
+  font-weight: 700; text-transform: uppercase; letter-spacing: .04em;
+  padding: 3px 9px; border-radius: 6px; }
+.tb-covchip.yes { background: var(--x0b); color: var(--x0); }
+.tb-covchip.no { background: var(--x4); color: var(--fx-on-x4); }
+.tb-covchip i { font-style: normal; font-weight: 800; opacity: .8; }
+
+.tb-spread-row { display: grid; grid-template-columns: 92px repeat(6, 22px 1fr 30px);
+  gap: 3px 5px; align-items: center; font-size: 10.5px; padding: 3px 0; }
+.tb-spread-row > b { font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tb-sl { font-size: 8.5px; text-transform: uppercase; color: var(--ink-faint); font-weight: 700; }
+.tb-track { height: 5px; border-radius: 3px; background: var(--bartrack); overflow: hidden; }
+.tb-track i { display: block; height: 100%; background: var(--bar); }
+.tb-spread-row u, .tb-speed u { text-decoration: none; text-align: right;
+  font-variant-numeric: tabular-nums; }
+@media (max-width: 900px) { .tb-spread-row { grid-template-columns: 92px repeat(3, 22px 1fr 30px); } }
+
+.tb-speed { display: grid; grid-template-columns: 34px 1fr 3fr 40px; gap: 4px 8px;
+  align-items: center; font-size: 12px; }
+.tb-speed img { width: 30px; height: 30px; }
+.tb-speed b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* Synergy matrix: members down, members across. */
+.tb-syn { display: grid; grid-template-columns: 56px repeat(var(--n), minmax(44px, 1fr));
+  gap: 3px; overflow-x: auto; }
+.tb-syn-head, .tb-syn-row-head { display: flex; align-items: center; justify-content: center; }
+.tb-syn-head img, .tb-syn-row-head img { width: 52px; height: 52px; }
+.tb-syn-cell { display: flex; align-items: center; justify-content: center; min-height: 42px;
+  border-radius: 5px; font-size: 12px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.tb-syn-cell.self { background: var(--zone); color: var(--ink-faint); }
+.tb-syn-cell.none { background: var(--card-3); color: var(--ink-faint); }
+.tb-syn-cell.some { background: var(--x5b); color: var(--x5); }
+.tb-syn-cell.strong { background: var(--x0b); color: var(--x0); }
+.tb-note-inline { margin: 8px 0 0; font-size: 11.5px; color: var(--ink-faint); line-height: 1.45; }
+
+/* Small-multiple stat radars. */
+/* auto-FIT, not auto-fill. auto-fill keeps making empty 112px tracks, so six
+   charts sat bunched at the left of a 1200px panel with the rest of the row
+   empty; auto-fit collapses the empty tracks and lets the six stretch. The
+   min track is also much larger -- these were 112px charts of a six-axis
+   polygon, which is small enough that the shape is the only readable thing
+   about them. */
+/* ONE COLUMN PER MEMBER, not auto-fit. auto-fill kept making empty tracks, so
+   six charts bunched at the left; auto-fit fixed that but still derives the
+   count from the width, which put the sixth radar alone on a second row at
+   some window sizes. --n comes from the team. */
+.tb-radars { display: grid; grid-template-columns: repeat(var(--n, 3), minmax(0, 1fr));
+  gap: 14px; justify-items: center; }
+@media (max-width: 1000px) { .tb-radars { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 620px)  { .tb-radars { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.tb-radar { margin: 0; display: flex; flex-direction: column; align-items: center;
+  gap: 3px; width: 100%; max-width: 300px; }
+.tb-radar svg { width: 100%; height: auto; overflow: visible; }
+.tb-r-grid { fill: none; stroke: var(--grid); stroke-width: .7; }
+.tb-r-spoke { stroke: var(--grid); stroke-width: .5; }
+.tb-r-shape { fill: var(--s1); fill-opacity: .26; stroke: var(--s1); stroke-width: 1.6;
+  stroke-linejoin: round; }
+.tb-r-label { font-size: 5.6px; fill: var(--ink-faint); text-anchor: middle;
+  font-weight: 700; letter-spacing: .04em; }
+.tb-radar figcaption { display: flex; align-items: center; gap: 4px; font-size: 12px;
+  color: var(--ink-soft); }
+.tb-radar figcaption img { width: 40px; height: 40px; }
+
+/* Role balance. */
+.tb-rolebar { display: flex; gap: 3px; height: 26px; }
+.tb-roleseg { display: flex; align-items: center; justify-content: center; border-radius: 6px;
+  font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: .04em;
+  overflow: hidden; white-space: nowrap; }
+
+/* ----------------------------------------------------------------- modal */
+.tb-modal { position: fixed; inset: 0; z-index: 200; background: rgba(10,14,20,.55);
+  display: flex; align-items: flex-start; justify-content: center; padding: 4vh 16px; overflow-y: auto; }
+.tb-sheet { background: var(--card); border: 1px solid var(--rule); border-radius: 14px;
+  box-shadow: 0 20px 60px rgba(0,0,0,.35); width: min(760px, 100%); padding: 20px 22px 18px; }
+.tb-sheet-head { display: flex; gap: 14px; align-items: center; margin-bottom: 14px; }
+.tb-sheet-head h3 { margin: 0; font-size: 18px; }
+/* No text-transform. This is a prose sentence, and `capitalize` rendered it
+   as "Teams Here Are A Scratchpad. When One Settles...". */
+.tb-sub { font-size: 12px; color: var(--ink-faint); line-height: 1.5; }
+.tb-art { width: 102px; height: 102px; flex: none; display: flex; align-items: center;
+  justify-content: center; border-radius: 12px; background: var(--card-3);
+  border: 1px solid var(--rule-soft); position: relative; }
+.tb-art img { width: 88px; height: 88px; }
+.tb-art span { font-size: 24px; color: var(--ink-faint); }
+.tb-art.shiny { border-color: var(--ember); border-width: 2px; background: var(--ember-soft); }
+.tb-art b { position: absolute; bottom: -7px; right: -5px; font-size: 10px;
+  background: var(--fx-go-bg); color: var(--fx-go-ink); padding: 1px 5px; border-radius: 999px; }
+
+.tb-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(168px, 1fr)); gap: 11px 14px; }
+.tb-field { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.tb-field > label { font-size: 10.5px; letter-spacing: .05em; text-transform: uppercase;
+  color: var(--ink-faint); font-weight: 600; }
+.tb-field input, .tb-field select { font: inherit; font-size: 13px; padding: 5px 7px;
+  border: 1px solid var(--rule); border-radius: 6px; background: var(--card-3);
+  color: var(--ink); min-width: 0; }
+.tb-field input:focus, .tb-field select:focus { outline: 2px solid var(--ember); outline-offset: -1px; }
+.tb-check { flex-direction: row; align-items: center; gap: 7px; }
+.tb-check input { width: auto; }
+.tb-check label { text-transform: none; letter-spacing: 0; font-size: 12.5px; color: var(--ink); }
+.tb-span { grid-column: 1 / -1; }
+.tb-sec { grid-column: 1 / -1; font-size: 10.5px; letter-spacing: .07em; text-transform: uppercase;
+  color: var(--ink-faint); font-weight: 700; border-top: 1px solid var(--rule-soft);
+  padding-top: 11px; margin-top: 3px; display: flex; align-items: center; gap: 10px; }
+.tb-nums { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; }
+@media (max-width: 560px) { .tb-nums { grid-template-columns: repeat(3, 1fr); } }
+/* Scoped to the modal. An unscoped copy of this rule sat after the slot
+   card's own .tb-note and won, boxing every card's location line. */
+.tb-form .tb-note, .tb-sheet > .tb-note, .tb-seedlist .tb-note {
+  grid-column: 1 / -1; font-size: 11.5px; line-height: 1.5; color: var(--ink-soft);
+  background: var(--card-3); border: 1px solid var(--rule-soft); border-radius: 8px; padding: 8px 10px; }
+.tb-form .tb-note.warn, .tb-sheet > .tb-note.warn {
+  background: var(--x2b); border-color: transparent; color: var(--x2); }
+.tb-foot { display: flex; gap: 8px; margin-top: 16px; border-top: 1px solid var(--rule-soft);
+  padding-top: 13px; }
+
+/* Role reuses the battle sheet's own role colours, so a slot reads the same
+   here as it does over there. */
+.tb-role { font-size: 9px; font-weight: 800; letter-spacing: .05em; text-transform: uppercase;
+  padding: 1px 6px; border-radius: 4px; margin-right: 6px; }
+.tb-role-setter  { background: var(--setter-bg); color: var(--setter); }
+.tb-role-sweeper { background: var(--sweep-bg);  color: var(--sweep); }
+.tb-role-wall    { background: var(--wall-bg);   color: var(--wall); }
+.tb-role-pivot   { background: var(--pivot-bg);  color: var(--pivot); }
+.tb-why { margin: 0; font-size: 11.5px; line-height: 1.45; color: var(--ink-soft);
+  font-style: italic; }
+
+/* Install and Download, matching the Factory's pair exactly -- they act on
+   the same working copy, so they must not look like different features. */
+/* The Install / Download pair moved to the shell bar -- one working copy,
+   one pair of buttons. Its styling lives in app/index.html. */
+
+
+.tb-status { grid-column: 1 / -1; margin: 0; font-size: 11.5px; padding: 5px 9px;
+  border-radius: 7px; }
+/* A statement of fact, not a success. Green here devalues the green that
+   does mean "this worked". */
+.tb-status.info { background: var(--card-3); color: var(--ink-soft);
+  border: 1px solid var(--rule-soft); }
+.tb-status.ok { background: var(--x0b); color: var(--x0); }
+.tb-status.no { background: var(--x2b); color: var(--x2); }
+
+/* --------------------------------------------------- offensive coverage */
+/* A one-directional ramp: here 2x is GOOD, so reusing the defensive panel's
+   red-for-two would invert the meaning halfway down the page. */
+.tb-cell.o1   { background: var(--card-3); color: var(--ink-faint); }
+.tb-cell.o2   { background: var(--x0b);    color: var(--x0); }
+.tb-cell.o4   { background: var(--x0);     color: var(--card); }
+.tb-cell.olow { background: var(--card-2); color: var(--ink-faint); }
+.tb-cell.o0   { background: var(--x4);     color: var(--fx-on-x4); }
+.tb-ogrid .tb-count.bad  { background: var(--x2b); color: var(--x2); }
+.tb-ogrid .tb-count.good { background: var(--x0b); color: var(--x0); }
+
+/* ------------------------------------------------------------- swaps */
+/* The swap tree, under its own heading and AFTER the description -- it used
+   to sit between the Pokémon's name and its moves, so the card stopped
+   describing one Pokémon halfway down and started offering others. */
+.tb-opts { display: flex; flex-direction: column; gap: 5px; margin-top: 3px;
+  padding-top: 9px; border-top: 1px solid var(--rule-soft); }
+.tb-optslab { font-family: var(--mono); font-size: 9px; font-weight: 700;
+  letter-spacing: .13em; text-transform: uppercase; color: var(--ink-faint); }
+.tb-opt { display: flex; align-items: center; gap: 4px; font: inherit; font-size: 10px;
+  padding: 2px 8px 2px 3px; border-radius: 999px; cursor: pointer;
+  border: 1px solid var(--rule); background: var(--card-3); color: var(--ink-faint); }
+.tb-opt img { width: 26px; height: 26px; }
+.tb-opt i { font-style: normal; }
+.tb-opt:hover { border-color: var(--ember); color: var(--ember); }
+.tb-opt.on { border-color: var(--ember); background: var(--ember-soft); color: var(--ember);
+  font-weight: 700; }
+
+/* ------------------------------------------------------- species picker */
+/* You recognise a Pokémon by its picture long before you can spell it, and a
+   649-row <select> made you scroll for Sableye. Search plus sprites. */
+.tb-pick { display: flex; flex-direction: column; gap: 9px; }
+.tb-search { font: inherit; font-size: 13px; padding: 7px 11px; width: 100%;
+  border: 1px solid var(--rule); border-radius: 8px;
+  background: var(--card-3); color: var(--ink); }
+.tb-search:focus { outline: none; border-color: var(--ember); }
+/* THE SPRITE IS HOW YOU PICK. You recognise a Pokémon by its picture long
+   before you can spell it, so 46px art under a name was the wrong way round --
+   the label was bigger than the thing it labelled. 72px on a 96px-native
+   sprite is a clean downscale, and the taller grid shows more of them. */
+.tb-pickgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(122px, 1fr));
+  gap: 7px; max-height: 380px; overflow-y: auto; padding: 2px; }
+.tb-pickcell { display: flex; flex-direction: column; align-items: center; gap: 2px;
+  font: inherit; font-size: 11px; padding: 6px 4px 7px; cursor: pointer;
+  border: 1px solid var(--rule-soft); border-radius: 9px;
+  background: var(--card-3); color: var(--ink-soft); }
+.tb-pickcell:hover { border-color: var(--ember); color: var(--ember); }
+.tb-pickcell.on { border-color: var(--ember); border-width: 2px;
+  background: var(--ember-soft); color: var(--ember); font-weight: 700; padding: 4px 2px 5px; }
+/* 96px is the art's NATIVE size -- no scaling at all, which is as sharp as
+   these get and is the size the Factory already shows them at. */
+.tb-pickcell img { width: 96px; height: 96px; image-rendering: pixelated; }
+.tb-pickcell i { font-style: normal; width: 96px; height: 96px; display: flex;
+  align-items: center; justify-content: center; color: var(--ink-faint); }
+.tb-pickcell span { max-width: 100%; overflow: hidden; text-overflow: ellipsis;
+  white-space: nowrap; }
+.tb-picknone { margin: 0; padding: 14px 4px; font-size: 12px; color: var(--ink-faint); }
+
+/* The copies you already own of the species you just chose. */
+.tb-yours { display: flex; flex-direction: column; gap: 4px; padding: 9px 11px;
+  border: 1px solid var(--rule-soft); border-radius: 9px; background: var(--card-3); }
+/* The count is the point of this heading; "Ignore" is the way out of it, so
+   it is pushed to the far end and sized down. It was sitting right up against
+   the label and reading louder than the thing it dismisses. */
+.tb-yourshead { display: flex; align-items: baseline; gap: 14px; width: 100%;
+  font: inherit; text-align: left; padding: 0; border: 0; background: none;
+  cursor: pointer; }
+.tb-yourslab { flex: 1; font-family: var(--mono); font-size: 9px; font-weight: 700;
+  letter-spacing: .13em; text-transform: uppercase; color: var(--ink-faint); }
+.tb-yoursmore { flex: none; font-style: normal; font-size: 10px; font-weight: 600;
+  letter-spacing: .04em; color: var(--ink-faint); text-decoration: underline;
+  text-underline-offset: 2px; }
+.tb-yourshead:hover .tb-yoursmore { color: var(--ember); }
+.tb-yourrow { display: flex; align-items: center; gap: 9px; }
+.tb-yourrow img { width: 34px; height: 34px; flex: none; image-rendering: pixelated; }
+.tb-yourwhere { display: flex; flex-direction: column; flex: 1; min-width: 0; }
+.tb-yourwhere b { font-size: 12px; }
+.tb-yourwhere i { font-style: normal; font-family: var(--mono); font-size: 10.5px;
+  color: var(--ink-faint); }
+.tb-yourhint { margin: 3px 0 0; font-size: 11px; line-height: 1.5; color: var(--ink-faint); }
+
+/* ---------------------------------------------------------- seed a core */
+.tb-narrow { width: min(520px, 100%); }
+/* flex: none on the rows is load-bearing. A flex column with a max-height
+   SHRINKS its children before it scrolls, and .tb-seed clipped its overflow --
+   so with the party plus eight built-in rosters the list overflowed, every row
+   was squeezed, and the bottom of each (the sprites, and the Field it / Move
+   back buttons) was silently cut off. */
+.tb-seedlist { display: flex; flex-direction: column; gap: 7px; max-height: 56vh;
+  overflow-y: auto; margin-top: 4px; }
+.tb-seedlist > * { flex: none; }
+/* The row is a frame; .tb-seed-main inside it carries the padding, so this
+   has none of its own. Core actions sit beneath the line-up button so
+   "field it" cannot be hit when you meant to start a team from it. */
+.tb-seed { position: relative; display: flex; flex-direction: column; gap: 0;
+  width: 100%; text-align: left; font: inherit; padding: 0; border-radius: 10px;
+  cursor: pointer; border: 1px solid var(--rule); background: var(--card-3);
+  color: var(--ink); }
+.tb-seed:hover { border-color: var(--ember); background: var(--ember-soft); }
+.tb-seed-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.tb-seed-head b { font-size: 13px; }
+.tb-seed-head i { font-style: normal; font-size: 10.5px; color: var(--ink-faint); }
+.tb-seed-mons { display: flex; gap: 2px; flex-wrap: wrap; align-items: center; }
+.tb-seed-mons img { width: 48px; height: 48px; flex: none; display: block; }
+.tb-seed-mons span { font-size: 10px; color: var(--ink-faint); align-self: center; }
+
+/* -------------------------------- swap cards, mirroring the battle sheet */
+/* Same anatomy as .opt over there: sprite, name over a location/ability line,
+   badge pushed right, note beneath. Building a swap here and finding it looks
+   like something else on the battle tab is how a tool loses trust. */
+.tb-optcard { display: flex; align-items: center; gap: 10px; width: 100%; text-align: left;
+  font: inherit; padding: 5px 10px 5px 5px; border-radius: 9px; cursor: pointer;
+  border: 1px solid var(--rule); background: var(--card-3); color: var(--ink); }
+.tb-optcard:hover { background: var(--card-2); border-color: var(--ember); }
+.tb-optcard.on { border-color: var(--ember); border-width: 2px; background: var(--ember-soft);
+  padding: 4px 9px 4px 4px; }
+.tb-optcard img { width: 46px; height: 46px; flex: none; }
+.tb-optcard i { font-style: normal; width: 46px; text-align: center; color: var(--ink-faint); }
+.tb-optbody { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+.tb-optname { font-size: 14px; font-weight: 700; letter-spacing: -.01em; }
+.tb-optsub { font-family: var(--mono); font-size: 10.5px; color: var(--ink-faint);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tb-optbadge { font-family: var(--mono); font-size: 9.5px; font-weight: 700;
+  letter-spacing: .09em; text-transform: uppercase; color: var(--ember); flex: none; }
+.tb-optnote { margin: -1px 0 1px 58px; font-size: 11.5px; color: var(--ink-soft); line-height: 1.45; }
+.tb-optnote b { color: var(--ink); font-weight: 700; }
+
+.tb-seed-del { position: absolute; top: 7px; right: 8px; padding: 0 7px; font-size: 14px;
+  line-height: 1.4; }
+
+/* Starting blank sits in the same list as the line-ups you can copy, since
+   they are all answers to "how do you want to start" -- and it gets the same
+   HEIGHT, six empty slots standing in for the six sprites the other rows
+   show. A one-line strip beside them read as an afterthought. */
+.tb-seed-blank { border-style: dashed; }
+.tb-seed-blanks { gap: 6px; }
+.tb-blankslot { display: flex; align-items: center; justify-content: center;
+  width: 42px; height: 42px; border-radius: 9px;
+  border: 1px dashed var(--rule); color: var(--ink-faint);
+  font-family: var(--mono); font-size: 11px; }
+.tb-seed-blank:hover .tb-blankslot { border-color: var(--ember); color: var(--ember); }
+.tb-seed-main { display: flex; flex-direction: column; gap: 5px; width: 100%; text-align: left;
+  font: inherit; padding: 9px 11px; cursor: pointer; border: 0; background: none; color: inherit; }
+.tb-seed-main:hover { background: var(--ember-soft); }
+.tb-seed-acts { display: flex; gap: 6px; padding: 0 11px 10px; flex-wrap: wrap; }
+.tb-seed-acts .tb-btn { padding: 4px 10px; font-size: 11.5px; }
+
+
+/* ------------------------------------------------------------- the moves */
+/* It was four dropdowns of 559 options each, with type and power crammed into
+   the option label where they could not be scanned or sorted. Picking
+   Flamethrower meant scrolling the whole game's move list, four times.
+   This is the species picker's shape, which already worked: the four slots
+   always visible, a search, and rows you can read. */
+/* `tb-mvpick`, NOT `tb-moves` -- the slot card already owns that name for the
+   four moves it lists. Two rules on one simple selector with conflicting
+   values is the trap this project has now shipped four times. */
+@media (max-width: 620px) { .tb-mvslots { grid-template-columns: 1fr; } }
+
+/* Illegal is FLAGGED, never blocked -- Gen 5 reads the move bytes directly and
+   writing one the species cannot learn is a feature here. */
+
+
+/* ---------------------------------------------------- ability + held item */
+/* A species has two or three abilities. Scrolling 165 to reach one of them was
+   the move list's defect again: the answer is nearly always in a handful, and
+   the long list is the exception -- so the handful are buttons and the rest is
+   behind a search you open deliberately. */
+/* The ability and item rows are two columns, not the move row's four. */
+
+/* A slot you have ARMED as the destination for the next pick. */
+.tb-hint { margin: 0; font-size: 11.5px; line-height: 1.5; color: var(--ink-faint); }
+/* Three pickers, one look -- they are the same kind of control -- but each is
+   identifiable, so the DOM says which is which and a test can scope to one. */
+
+
+/* ================================================================ the form */
+/* The slot editor was a column of number boxes and dropdowns -- correct, and
+   dull to look at and slow to use. Every control below is the same decision it
+   always was, shaped like the decision instead of like a form field. */
+
+/* ---- level: a range you can see, and the answers people actually want ---- */
+
+/* ---- nature: the game's own 5x5 chart -------------------------------------
+   A nature IS a pair of stats, and the id encodes exactly that. Laying it out
+   the way everybody already reasons about it makes "+Speed, -Attack" one
+   glance instead of recalling that this is called Timid. */
+/* The diagonal is the five neutral natures. Quieter, because choosing one is
+   choosing to spend nothing. */
+
+/* ---- IVs and EVs: bars, not a spreadsheet -------------------------------- */
+/* IVs and EVs SIDE BY SIDE. Six labelled sliders in one narrow column left
+   half the dialog empty, and the two are read together anyway: one is what you
+   rolled, the other what you spent. */
+/* The section heading inside a column must not span the outer form grid. */
+/* A nature and a spread are one decision made in two places, and the second is
+   where you forget the first -- so the raised and lowered stats are marked. */
+/* EVs are a BUDGET, and that is the whole skill. A grid of inputs makes you do
+   the arithmetic in your head and then type the answer. */
+/* OVER BUDGET IS A WARNING, NOT A WALL. The app writes illegal abilities and
+   illegal moves on purpose -- flagged, never blocked -- and an EV spread is
+   the same kind of byte. */
+
+/* ---- shiny, role, reason ------------------------------------------------- */
+/* Shiny sits with the sprite, because that is what it changes. */
+
+/* FOUR CHIPS ACROSS, not stacked in a 168px column with the rest of the
+   dialog empty beside them. They only stacked because the block was placed as
+   an ordinary grid item; it spans the form now, and the chips lay out along
+   it. */
+.tb-roles { display: grid; grid-template-columns: repeat(auto-fit, minmax(168px, 1fr));
+  gap: 6px; }
+.tb-rolechip { display: flex; flex-direction: column; gap: 2px; align-items: flex-start;
+  font: inherit; text-align: left; padding: 8px 11px; cursor: pointer;
+  border: 1px solid var(--rule-soft); border-radius: 9px; background: var(--card-3);
+  color: var(--ink); }
+.tb-rolechip:hover { border-color: var(--ember); }
+.tb-rolechip.on { border-color: var(--ember); border-width: 2px; padding: 7px 10px;
+  background: var(--ember-soft); }
+.tb-rolechip b { font-size: 13px; font-weight: 650; }
+.tb-rolechip.on b { color: var(--ember); }
+.tb-rolechip span { font-size: 11px; line-height: 1.45; color: var(--ink-soft); }
+
+/* `tb-whyin`, not `tb-why` -- the slot card already owns that name for the
+   rendered reason. The editor's input is a different thing that happens to
+   hold the same text. */
+.tb-whyin { width: 100%; font: inherit; font-size: 13px; line-height: 1.5;
+  padding: 8px 10px; border: 1px solid var(--rule); border-radius: 8px;
+  background: var(--card-3); color: var(--ink); resize: vertical; }
+
+/* ---- a picker that has done its job collapses to its answer -------------- */
+.tb-chosen { display: grid; grid-template-columns: auto 1fr auto; gap: 12px;
+  align-items: center; width: 100%; font: inherit; text-align: left;
+  padding: 8px 12px; cursor: pointer; border: 1px solid var(--rule-soft);
+  border-radius: 10px; background: var(--card-3); color: var(--ink); }
+.tb-chosen:hover { border-color: var(--ember); }
+.tb-chosen img { width: 56px; height: 56px; image-rendering: pixelated; }
+.tb-chosen i { font-style: normal; width: 56px; height: 56px; display: flex;
+  align-items: center; justify-content: center; color: var(--ink-faint); }
+.tb-chosen b { display: block; font-size: 16px; font-weight: 700; }
+.tb-chosen u { text-decoration: none; font-size: 11px; color: var(--ink-faint); }
+.tb-chosen em { font-style: normal; font-size: 11.5px; font-weight: 650;
+  color: var(--ember); }
+.tb-pickfoot { display: flex; justify-content: flex-end; }
+
+
+/* ---- the two spread columns must end level ------------------------------- */
+/* They sat side by side with the EV column taller by exactly one meter, and a
+   ragged bottom on two things that are obviously a pair reads as a mistake
+   rather than as a choice. The IV column has its own meter now -- worth having
+   on its own terms (186 is six 31s) and it squares the columns for free. */
+/* The EV meter grows a third row when it has something to say; the IV meter
+   never does, so the columns are held level from the bottom instead of hoping
+   the content matches. */
+
+/* A nuzlocke rule may take the illegal spread away. Said in the meter, in the
+   same chained language the shackles use. */
+
+/* The copies you own are an ADVANCED path, so the panel is shut until asked
+   for -- but SHUT IS NOT GONE. `display: none` on the whole panel hid the
+   heading too, so the feature read as deleted rather than collapsed and there
+   was nothing left to tell you it existed. The heading is always there, states
+   how many you have, and says what opening it gets you; only the rows fold
+   away. */
+.tb-yours.shut .tb-yourrow,
+.tb-yours.shut .tb-yourhint { display: none; }
+.tb-yours.shut { border-style: dashed; background: none; }
+.tb-yours.shut .tb-yourshead { color: var(--ink-faint); }
+
+
+/* ---- who it is: nickname, gender, shiny --------------------------------- */
+/* The three things that make a slot a PARTICULAR Pokémon rather than a species
+   with a spread, so they sit together and next to the sprite. All three were
+   missing from this editor entirely while the Factory had them from the
+   beginning -- the drift that comes of two editors for one record. */
+@media (max-width: 620px) { .tb-idrow { grid-template-columns: 1fr; align-items: start; } }
+
+/* ONE SELECTED TREATMENT, not one per gender. Colour-coding these was
+   tempting and measured badly: --s2 on --card-2 is 3.90:1 in light mode, and a
+   12px bold chip is not large text. The ♂ and ♀ symbols carry the distinction,
+   which is where it belonged anyway -- colour is never allowed to be the only
+   signal here. The selected state uses the measured pair every other chip in
+   the app uses (6.45:1). */
+
+
+/* ---- reordering ---------------------------------------------------------- */
+/* Slot order is the order the battle tab lists a team and the order "Field it"
+   writes into the party, so it is what you lead with in game. It was only
+   changeable by rebuilding a slot. */
+.tb-grip { flex: none; font-size: 15px; line-height: 1; color: var(--ink-faint);
+  cursor: grab; user-select: none; letter-spacing: -.1em; }
+.tb-slot:active .tb-grip { cursor: grabbing; }
+/* `tb-nudge`, NOT `tb-move` -- the slot card already owns that name for the
+   move chips it lists. Sixth time in this project; the rule stays "name the
+   control, not the content". */
+.tb-nudgebar { display: flex; gap: 2px; flex: none; }
+.tb-nudge { font: inherit; font-size: 11px; line-height: 1; padding: 4px 6px;
+  cursor: pointer; border: 1px solid var(--rule); border-radius: 5px;
+  background: var(--card-3); color: var(--ink-soft); }
+.tb-nudge:hover:not(:disabled) { border-color: var(--ember); color: var(--ember); }
+/* Disabled is a COLOUR, never an opacity -- the standing rule. */
+.tb-nudge:disabled { background: var(--fx-off-bg); border-color: var(--fx-off-rule);
+  color: var(--fx-off-ink); cursor: not-allowed; }
+/* IT SHOULD FEEL LIKE SWAPPING TWO CARDS, NOT LIKE ONE FADING OUT.
+   `opacity: .45` on the card being dragged made it look like it was being
+   deleted, and left nothing saying where it would land -- you could not tell
+   a swap from a removal until you let go.
+   The dragged card LIFTS instead: full opacity, a tilt, a real shadow. It is
+   the card in your hand, and a card in your hand is the most solid thing on
+   the table. */
+.tb-slot.dragging { opacity: .92; transform: rotate(-1.4deg) scale(1.02);
+  box-shadow: 0 10px 22px -6px rgba(0,0,0,.45), var(--rim);
+  border-color: var(--ember); cursor: grabbing; z-index: 5; }
+/* ...and the card it would swap with LEANS BACK, so the pair reads as one
+   exchange rather than as a source and an unrelated highlight. The leading
+   edge marks where it goes. */
+.tb-slot.dropinto { border-left-color: var(--ember);
+  transform: rotate(.8deg) scale(.985);
+  box-shadow: var(--shadow), inset 4px 0 0 var(--ember); }
+.tb-slot { transition: transform .12s ease, box-shadow .12s ease; }
+@media (prefers-reduced-motion: reduce) {
+  .tb-slot { transition: none; }
+  .tb-slot.dragging, .tb-slot.dropinto { transform: none; }
+}
+
+
+/* ---- the Showdown export ------------------------------------------------- */
+/* SHOWN, NOT SILENTLY COPIED. A button that puts something on your clipboard
+   and says "copied" gives you no way to check what it took -- and this text
+   carries a header naming the hack, which is the part you would want to see
+   before pasting it somewhere public. */
+.tb-exportsheet { max-width: 640px; }
+.tb-exportsheet h3 { margin: 0 0 6px; font-size: 16px; }
+.tb-exporttext { width: 100%; margin-top: 10px; font-family: var(--mono);
+  font-size: 12px; line-height: 1.5; padding: 10px 12px; resize: vertical;
+  border: 1px solid var(--rule); border-radius: 8px; background: var(--card-3);
+  color: var(--ink); }
+.tb-exportbar { display: flex; align-items: center; gap: 8px; margin-top: 10px; }
+.tb-exportbar .tb-hint { flex: 1 1 auto; }
+
+/* ---------------------------------------------------------------------------
+   THE SUGGESTER — what else could go in this slot, and what it would cost.
+
+   The premise chips are the load-bearing control, not decoration: the app has
+   INFERRED what your team is for, and a filter you cannot argue with is a
+   filter that will be wrong at you. `off` is the same struck-through colour
+   the nuzlocke's shackle uses, because it means the same thing — this is here
+   and currently not applying.
+   --------------------------------------------------------------------------- */
+.tb-suggest { max-width: 720px; }
+.tb-premise { display: flex; align-items: center; gap: 7px; flex-wrap: wrap;
+  margin: 0 0 9px; }
+.tb-plabel { font-family: var(--mono); font-size: 9px; font-weight: 700;
+  letter-spacing: .16em; color: var(--ink-faint); flex: none; }
+.tb-pchip { font: 600 12px var(--sans); padding: 4px 10px; cursor: pointer;
+  border-radius: 999px; border: 1px solid var(--ember); background: var(--ember-soft);
+  color: var(--ember); }
+/* Disabled is a COLOUR here as everywhere, never an opacity. */
+.tb-pchip.off { border-color: var(--rule); background: var(--card-3);
+  color: var(--ink-faint); text-decoration: line-through; }
+.tb-pchip:hover { border-color: var(--ink-soft); }
+
+.tb-suglist { display: flex; flex-direction: column; gap: 9px; margin: 12px 0 0;
+  max-height: 52vh; overflow-y: auto; }
+.tb-sug { border: 1px solid var(--rule); border-radius: 11px; padding: 10px 12px;
+  background: var(--card-3); }
+.tb-sug-head { display: flex; align-items: center; gap: 10px; }
+.tb-sug-head img { width: 44px; height: 44px; flex: none; image-rendering: pixelated; }
+.tb-sug-head > div { flex: 1; min-width: 0; }
+.tb-sug-name { font-size: 15px; font-weight: 750; }
+.tb-sug-head .tb-btn { flex: none; }
+/* WHY and WHAT IT COSTS read as two lists, not one. The second half is what
+   makes this a suggestion rather than an advert, so it is coloured as the
+   caution it is and never folded into the first. */
+.tb-sugwhy, .tb-sugcost { margin: 7px 0 0; padding-left: 17px; font-size: 12.5px;
+  line-height: 1.5; }
+.tb-sugwhy { color: var(--x0); }
+.tb-sugcost { color: var(--x2); }
+.tb-sugwhy li::marker { content: '+  '; }
+.tb-sugcost li::marker { content: '−  '; }

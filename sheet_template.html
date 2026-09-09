@@ -1,0 +1,2744 @@
+<title>Kaiju, Rain, Trick Room, Edgelord, Mewtwo</title>
+<style>
+  :root{
+    --ground:#F5EDF3; --card:#FFFCFE; --card-2:#F1E9EF; --card-3:#FEF7FB; --zone:#EFE7ED;
+    --ink:#1A1519; --ink-soft:#5B4F58; --ink-faint:#7A6B76;
+    --rule:#E1D8DE; --rule-soft:#EEE6EC;
+    --ember:#B8410F; --ember-soft:#FBE8DE;
+    --setter:#3B3897; --setter-bg:#E5E4F7; --sweep:#A8360F; --sweep-bg:#FAE3D7;
+    --wall:#0A6152; --wall-bg:#D6EDE8; --pivot:#774E04; --pivot-bg:#F7EBCF;
+    --x0:#157054;--x0b:#D2ECE2; --x25:#27835A;--x25b:#DAEFE2; --x5:#537F42;--x5b:#E2EFD6;
+    --x1:#8B7C87;--x1b:#F3EBF1; --x2:#B84F14;--x2b:#FAE2D2; --x4:#98181A;--x4b:#F8D8D8;
+    --bar:#B8410F; --bartrack:#E9E1E7;
+    --shadow:0 1px 1px rgba(16,23,32,.06),0 2px 5px rgba(16,23,32,.05),0 10px 26px rgba(16,23,32,.06);
+    --rim:inset 0 1px 0 rgba(255,255,255,.85),inset 0 -1px 0 rgba(16,23,32,.05);
+    /* Two-series categorical pair. Stepped separately per mode and validated
+       with the dataviz six-checks against each mode's card surface:
+       light #B8410F/#5B57C4 on #FFF, dark #E0632B/#7B78D8 on #161D27.
+       Worst adjacent CVD separation 24.8 (protan), normal-vision 27.1. */
+    --s1:#B8410F; --s2:#5B57C4; --grid:#EEE6EC; --axis:#8B7C87;
+    --on-ember:#FFFFFF; --on-x4:#FFFFFF; --on-series:#FFFFFF;
+    --nat-up:#C2410C; --nat-down:#1D4ED8;
+    --sans:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    --mono:ui-monospace,SFMono-Regular,"SF Mono","Cascadia Mono",Menlo,Consolas,monospace;
+  }
+  @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+    --ground:#0D061A; --card:#27233B; --card-2:#36314D; --card-3:#1A172A; --zone:#130F20;
+    --ink:#F0EBFF; --ink-soft:#BCB4D9; --ink-faint:#988FBC;
+    --rule:#3F3A59; --rule-soft:#2D2942; --ember:#FF8552; --ember-soft:#3A1C10;
+    --setter:#A6A3F5;--setter-bg:#211F3A; --sweep:#FF9466;--sweep-bg:#331B10;
+    --wall:#5FD3BC;--wall-bg:#0F2E29; --pivot:#E9B563;--pivot-bg:#2E2414;
+    --x0:#5FDDB2;--x0b:#0F2F26; --x25:#6BD29C;--x25b:#132D21; --x5:#9BCB78;--x5b:#1E2B19;
+    --x1:#988FBC;--x1b:#2F2B45; --x2:#FF8B52;--x2b:#331B10; --x4:#FF6B68;--x4b:#3A1717;
+    --bar:#FF8552; --bartrack:#3B3553;
+    --shadow:0 1px 2px rgba(0,0,0,.62),0 4px 11px rgba(0,0,0,.45),0 16px 38px rgba(0,0,0,.34);
+    --rim:inset 0 1px 0 rgba(190,222,255,.07),inset 0 -1px 0 rgba(0,0,0,.34);
+    --s1:#E0632B; --s2:#8A87E0; --grid:#332E49; --axis:#988FBC;
+    --on-ember:#2A1206; --on-x4:#2E0B0A; --on-series:#0B0A18;
+    --nat-up:#FF9466; --nat-down:#7FB4FF;
+  }}
+  :root[data-theme="dark"]{
+    --ground:#0D061A; --card:#27233B; --card-2:#36314D; --card-3:#1A172A; --zone:#130F20;
+    --ink:#F0EBFF; --ink-soft:#BCB4D9; --ink-faint:#988FBC;
+    --rule:#3F3A59; --rule-soft:#2D2942; --ember:#FF8552; --ember-soft:#3A1C10;
+    --setter:#A6A3F5;--setter-bg:#211F3A; --sweep:#FF9466;--sweep-bg:#331B10;
+    --wall:#5FD3BC;--wall-bg:#0F2E29; --pivot:#E9B563;--pivot-bg:#2E2414;
+    --x0:#5FDDB2;--x0b:#0F2F26; --x25:#6BD29C;--x25b:#132D21; --x5:#9BCB78;--x5b:#1E2B19;
+    --x1:#988FBC;--x1b:#2F2B45; --x2:#FF8B52;--x2b:#331B10; --x4:#FF6B68;--x4b:#3A1717;
+    --bar:#FF8552; --bartrack:#3B3553;
+    --shadow:0 1px 2px rgba(0,0,0,.62),0 4px 11px rgba(0,0,0,.45),0 16px 38px rgba(0,0,0,.34);
+    --rim:inset 0 1px 0 rgba(190,222,255,.07),inset 0 -1px 0 rgba(0,0,0,.34);
+    --s1:#E0632B; --s2:#8A87E0; --grid:#332E49; --axis:#988FBC;
+    --on-ember:#2A1206; --on-x4:#2E0B0A; --on-series:#0B0A18;
+    --nat-up:#FF9466; --nat-down:#7FB4FF;
+  }
+  *{box-sizing:border-box;}
+  body{background:var(--ground);color:var(--ink);font-family:var(--sans);font-size:16px;
+    line-height:1.5;margin:0;padding:0 0 90px;-webkit-font-smoothing:antialiased;}
+  .wrap{max-width:1400px;margin:0 auto;padding:0 24px;}
+  img{image-rendering:pixelated;}
+
+  header.mast{padding:32px 0 18px;}
+  h1{font-size:clamp(28px,4vw,42px);line-height:1.02;letter-spacing:-.03em;font-weight:800;margin:0;}
+  .kicker{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;
+    color:var(--ember);margin:0 0 8px;}
+  .built{font-family:var(--mono);font-size:11px;color:var(--ink-faint);margin:8px 0 0;}
+
+  nav.tabs{display:flex;gap:8px;flex-wrap:wrap;padding:0 0 20px;}
+  nav.tabs button{font:700 16px var(--sans);color:var(--ink-soft);background:var(--card);
+    border:1px solid var(--rule);border-radius:10px;padding:11px 18px;cursor:pointer;
+    display:flex;align-items:baseline;gap:9px;box-shadow:var(--shadow);}
+  nav.tabs button:hover{background:var(--card-2);}
+  nav.tabs button[aria-selected="true"]{background:var(--ember);border-color:var(--ember);color:var(--on-ember);}
+  nav.tabs button:focus-visible{outline:3px solid var(--ember);outline-offset:2px;}
+  nav.tabs .loc{font-family:var(--mono);font-size:11.5px;opacity:.85;}
+  /* the team's one-letter box tag, which is how it is found in the PC */
+  /* status colour: fielded reads as live, stored as parked */
+  nav.tabs .loc.st-fielded{color:var(--x0);font-weight:700;}
+  nav.tabs .loc.st-partial{color:var(--x2);font-weight:700;}
+  nav.tabs button[aria-selected="true"] .loc{color:var(--on-ember);}
+
+  /* ---- big zoned sections ---- */
+  section.zone{padding:30px 0 34px;border-top:3px solid var(--ink);margin-top:30px;}
+  section.zone.alt{background:var(--zone);border-top-color:var(--ember);
+    margin-left:calc(50% - 50vw);margin-right:calc(50% - 50vw);padding-left:24px;padding-right:24px;}
+  section.zone.alt > *{max-width:1400px;margin-left:auto;margin-right:auto;}
+  .zhead{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin:0 0 20px;}
+  .zhead h2{font-size:26px;font-weight:800;letter-spacing:-.02em;margin:0;}
+  .zhead .zsub{color:var(--ink-faint);font-size:14.5px;}
+  .znum{font-family:var(--mono);font-size:12px;font-weight:700;color:var(--on-ember);background:var(--ember);
+    border-radius:6px;padding:4px 9px;letter-spacing:.06em;}
+
+  .panel{background:var(--card);border:1px solid var(--rule);border-radius:12px;
+    box-shadow:var(--shadow);padding:18px 20px;}
+  .strip h3{margin:0 0 5px;font-size:22px;font-weight:750;letter-spacing:-.02em;}
+  .strip .tag{margin:0;color:var(--ink-soft);font-size:15px;max-width:90ch;}
+  .whereline{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:6px 0 10px;font-size:13.5px;}
+  .whereline b{font-family:var(--mono);font-size:12.5px;color:var(--ink);}
+  .whereline b.st-fielded{color:var(--x0);} .whereline b.st-partial{color:var(--x2);}
+  .pilot{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px;margin-top:16px;}
+  .pilot div{background:var(--card-3);border:1px solid var(--rule-soft);border-radius:9px;padding:12px 14px;}
+  .pilot dt{font-family:var(--mono);font-size:10.5px;letter-spacing:.13em;text-transform:uppercase;
+    color:var(--ember);margin:0 0 4px;}
+  .pilot dd{margin:0;font-size:14px;color:var(--ink-soft);}
+  .warnbar{margin:16px 0 0;padding:12px 15px;background:var(--ember-soft);border-radius:9px;
+    font-size:14.5px;color:var(--ink-soft);border-left:4px solid var(--ember);} .warnbar b{color:var(--ink);}
+
+  /* ---- roster ---- */
+  .roster{display:grid;grid-template-columns:repeat(auto-fill,minmax(438px,1fr));gap:18px;align-items:start;}
+  .slot{display:flex;flex-direction:column;}
+  /* Its own containment context: the card's width comes from the roster grid,
+     not the viewport, so a media query cannot see it. */
+  .card{background:var(--card);border:1px solid var(--rule);border-radius:12px;
+    box-shadow:var(--shadow);container-type:inline-size;}
+  .card .top{display:flex;align-items:center;gap:12px;padding:11px 15px;background:var(--card-2);
+    border-bottom:1px solid var(--rule);border-radius:11px 11px 0 0;}
+  .num{font-family:var(--mono);font-size:12px;font-weight:700;color:var(--ink-faint);letter-spacing:.08em;}
+  .chip{font-family:var(--mono);font-size:10.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+    padding:4px 9px;border-radius:5px;margin-left:auto;}
+  .chip.setter{color:var(--setter);background:var(--setter-bg);}
+  .chip.sweeper{color:var(--sweep);background:var(--sweep-bg);}
+  .chip.wall{color:var(--wall);background:var(--wall-bg);}
+  .chip.pivot{color:var(--pivot);background:var(--pivot-bg);}
+  .idbar{display:flex;align-items:center;column-gap:15px;row-gap:9px;
+    padding:15px 15px 8px;flex-wrap:wrap;}
+  .idbar img.sp{width:96px;height:96px;flex:none;}
+  .idbar .nm{font-size:22px;font-weight:800;letter-spacing:-.02em;line-height:1.1;}
+  .idbar .shiny{color:var(--ember);font-size:15px;}
+  .tline{display:flex;gap:6px;margin-top:6px;align-items:center;flex-wrap:wrap;}
+  .tline img{height:20px;width:auto;}
+  .meta{font-family:var(--mono);font-size:12.5px;color:var(--ink-soft);margin-top:6px;}
+  .meta b{color:var(--ink);font-weight:700;}
+.tip{position:relative;border-bottom:1px dotted var(--ember);cursor:help;}
+  .tip>.tipbox{position:absolute;left:0;top:calc(100% + 7px);z-index:60;width:290px;
+    background:var(--card);color:var(--ink);border:2px solid var(--ember);border-radius:10px;
+    padding:10px 13px;font-family:var(--sans);font-size:13.5px;line-height:1.5;font-weight:400;
+    box-shadow:0 10px 30px rgba(0,0,0,.28);visibility:hidden;opacity:0;text-transform:none;
+    letter-spacing:normal;pointer-events:none;}
+  .tip>.tipbox b{display:block;color:var(--ember);font-family:var(--mono);font-size:11px;
+    letter-spacing:.08em;text-transform:uppercase;margin-bottom:4px;}
+  .tip:hover>.tipbox,.tip:focus>.tipbox,.tip:focus-within>.tipbox{visibility:visible;opacity:1;}
+  .tip:last-child>.tipbox{left:auto;right:0;}
+
+  .bars{padding:6px 15px 12px;display:grid;grid-template-columns:auto 1fr auto;gap:5px 10px;align-items:center;}
+  .bars .bn{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;color:var(--ink-faint);}
+  /* The nature's +/-10%, marked on the stat name the way the game marks it
+     on the summary screen. No legend: anyone reading this knows. */
+  .bars .bn.nat-up{color:var(--nat-up);font-weight:700;}
+  .bars .bn.nat-down{color:var(--nat-down);font-weight:700;}
+  .bars .bt{display:block;height:11px;background:var(--bartrack);border-radius:6px;overflow:hidden;}
+  .bars .bf{display:block;height:11px;background:var(--bar);border-radius:6px;}
+.bars .bv{font-family:var(--mono);font-size:13px;font-weight:700;font-variant-numeric:tabular-nums;}
+  /* THE DIVIDER IS ITS OWN GRID ROW, not padding on three cells.
+     It used to be `margin-top:4px;padding-top:5px;border-top:1px` on .tot,
+     which applied to all three cells -- and `.bt` has a FIXED 11px height
+     under `box-sizing:border-box`, so the border and padding ate 6 of its 11
+     pixels. The track still painted its full 11px pill while the fill was
+     clipped to the bottom 5px, i.e. the bar sat below its own colouring.
+     It also never drew a continuous line: with `align-items:center` the three
+     cells are different heights, so each border landed at a different y. */
+  .bars .totrule{grid-column:1/-1;height:1px;background:var(--rule);}
+  .bars .bn.tot{color:var(--ember);font-weight:700;}
+  .bars .bv.tot{color:var(--ember);font-size:14px;}
+  .bars .bt.tot .bf{background:var(--ember);opacity:.85;}
+
+  .movelist{padding:0 15px 12px;display:flex;flex-direction:column;gap:5px;}
+  details.mv{border:1px solid var(--rule-soft);border-radius:8px;background:var(--card-3);}
+  details.mv summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:9px;padding:8px 11px;font-size:14.5px;}
+  details.mv summary::-webkit-details-marker{display:none;}
+  details.mv summary::after{content:"▾";margin-left:auto;font-size:11px;color:var(--ink-faint);}
+  details.mv[open] summary::after{content:"▴";}
+  details.mv summary:hover{background:var(--card-2);}
+  details.mv summary img{height:17px;width:auto;flex:none;}
+  details.mv summary .mn{font-weight:650;}
+  details.mv summary .pw{font-family:var(--mono);font-size:11.5px;color:var(--ink-faint);}
+  .mvbody{padding:4px 12px 11px;border-top:1px dashed var(--rule);}
+  .mvstat{font-family:var(--mono);font-size:11px;color:var(--ink-faint);letter-spacing:.05em;
+    text-transform:uppercase;margin:8px 0 7px;}
+  .flag{display:inline-block;font-family:var(--mono);font-size:10.5px;font-weight:700;letter-spacing:.07em;
+    text-transform:uppercase;padding:3px 8px;border-radius:5px;margin:0 5px 5px 0;}
+  .f-ail{color:var(--x2);background:var(--x2b);} .f-stat{color:var(--pivot);background:var(--pivot-bg);}
+  .f-pri{color:var(--setter);background:var(--setter-bg);}
+  .mvnote{font-size:14px;color:var(--ink-soft);margin:3px 0 0;} .mvnote b{color:var(--ink);}
+  .mvplain{font-size:14px;color:var(--ink-faint);margin:3px 0 0;font-style:italic;}
+  .why{margin:0;padding:0 15px 14px;font-size:14px;color:var(--ink-soft);}
+
+  .branch{margin-left:18px;padding-left:20px;border-left:3px solid var(--rule);padding-top:10px;
+    display:flex;flex-direction:column;gap:9px;}
+  .branch .bl{font-family:var(--mono);font-size:10.5px;letter-spacing:.13em;text-transform:uppercase;
+    color:var(--ink-faint);margin:0 0 2px;}
+  .opt{position:relative;display:flex;align-items:center;gap:12px;width:100%;text-align:left;
+    background:var(--card-3);border:1px solid var(--rule);border-radius:10px;padding:9px 12px;
+    cursor:pointer;font:inherit;color:inherit;}
+  .opt::before{content:"";position:absolute;left:-22px;top:50%;width:20px;height:3px;background:var(--rule);}
+  .opt:hover{background:var(--card-2);border-color:var(--ember);}
+  .opt:focus-visible{outline:3px solid var(--ember);outline-offset:2px;}
+  .opt[aria-current="true"]{border-color:var(--ember);background:var(--ember-soft);border-width:2px;}
+  .opt img.sp{width:60px;height:60px;flex:none;}
+  .opt .on{font-size:17px;font-weight:750;} .opt .od{font-family:var(--mono);font-size:11.5px;color:var(--ink-faint);}
+  .opt .badge{margin-left:auto;font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.09em;
+    text-transform:uppercase;color:var(--ember);}
+  .optnote{font-size:13.5px;color:var(--ink-soft);margin:-2px 0 2px 72px;} .optnote b{color:var(--ink);}
+  /* Deliberately-broken Pokemon: an ability or moveset written into the save
+     that the species cannot legally have.  Uses the setter token so it reads
+     as a distinct, non-alarming aside in both themes. */
+  /* Team-scale version of .rigged: the whole roster is engineered, not one slot. */
+  .teamrig{display:flex;gap:12px;align-items:flex-start;margin:14px 0 0;padding:12px 15px;
+    background:var(--setter-bg);border-left:4px solid var(--setter);border-radius:0 9px 9px 0;
+    font-size:14.5px;line-height:1.55;color:var(--ink-soft);}
+  .teamrig b{color:var(--ink);}
+  .teamrig .rlab{font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.14em;
+    text-transform:uppercase;color:var(--setter);flex:none;padding-top:3px;white-space:nowrap;}
+  /* Shown in place of the roster when the team store is empty -- a fresh
+     checkout, or someone who has retired everything. */
+  .noteams{margin:0 0 6px;padding:14px 16px;border:1px dashed var(--rule);border-radius:10px;
+    background:var(--card-3);font-size:13.5px;line-height:1.6;color:var(--ink-soft);}
+  .noteams b{color:var(--ink);font-weight:700;}
+  .rigged{display:flex;gap:10px;align-items:flex-start;margin:2px 0 4px 72px;padding:8px 12px;
+    background:var(--setter-bg);border-left:3px solid var(--setter);border-radius:0 8px 8px 0;
+    font-size:13px;line-height:1.5;color:var(--ink-soft);}
+  .rigged b{color:var(--ink);font-weight:700;}
+  .rigged .rlab{font-family:var(--mono);font-size:9.5px;font-weight:700;letter-spacing:.13em;
+    text-transform:uppercase;color:var(--setter);flex:none;padding-top:3px;}
+  .delta{display:inline-block;font-family:var(--mono);font-size:10.5px;font-weight:700;padding:3px 8px;
+    border-radius:5px;margin:4px 0 0 72px;}
+  .d-good{color:var(--x0);background:var(--x0b);} .d-bad{color:var(--x4);background:var(--x4b);}
+  .d-same{color:var(--x1);background:var(--x1b);}
+
+  /* ---- lookup / ranking ---- */
+  .lookup{display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end;}
+  .fld{display:flex;flex-direction:column;gap:5px;}
+  .fld label{font-family:var(--mono);font-size:10.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--ink-faint);}
+  .fld input,.fld select{font:15px var(--sans);color:var(--ink);background:var(--card-3);
+    border:1px solid var(--rule);border-radius:9px;padding:10px 12px;min-width:190px;}
+  .fld input:focus,.fld select:focus{outline:3px solid var(--ember);outline-offset:1px;}
+  /* The ability field carries a second control -- "all abilities" -- and .fld
+     stacks its children, which would put a button under the select and break
+     the row's baseline. The select and its escape hatch sit side by side. */
+  .fld.abfld{flex-direction:row;flex-wrap:wrap;align-items:center;gap:7px;}
+  .fld.abfld label{flex:0 0 100%;}
+  .lookup button.aball{font:700 11.5px var(--sans);padding:8px 11px;border-radius:8px;}
+.minibtn{font:700 12.5px var(--sans);background:var(--card-2);color:var(--ink-soft);
+    border:1px solid var(--rule);border-radius:7px;padding:6px 11px;cursor:pointer;}
+  .minibtn:hover{border-color:var(--ember);}
+  .lookup button{font:700 14px var(--sans);background:var(--card-2);color:var(--ink-soft);
+    border:1px solid var(--rule);border-radius:9px;padding:11px 16px;cursor:pointer;}
+  .lookup button:hover{border-color:var(--ember);}
+  .oppline{margin:16px 0 0;display:flex;align-items:center;gap:11px;flex-wrap:wrap;font-size:16px;}
+  .oppline img.big{width:76px;height:76px;}
+  .rank{display:flex;flex-direction:column;gap:7px;margin-top:12px;}
+  .rrow{display:flex;align-items:center;gap:12px;background:var(--card-3);border:1px solid var(--rule-soft);
+    border-radius:10px;padding:8px 13px;flex-wrap:wrap;}
+  .rrow.best{border-color:var(--ember);border-width:2px;background:var(--ember-soft);}
+  .rrow img{width:52px;height:52px;flex:none;}
+  .rrow .rn{font-weight:750;font-size:16.5px;min-width:120px;}
+  .lbl{font-family:var(--mono);font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-faint);}
+  .rrow .mvname{font-size:13.5px;color:var(--ink-soft);}
+  .spacer{margin-left:auto;}
+
+  .speed{display:flex;gap:9px;flex-wrap:wrap;align-items:center;}
+  .sp{display:flex;align-items:center;gap:9px;background:var(--card-3);border:1px solid var(--rule-soft);
+    border-radius:10px;padding:7px 12px;}
+  .sp img{width:46px;height:46px;} .sp .v{font-family:var(--mono);font-size:14px;font-weight:700;}
+  .sp .n{font-size:14.5px;font-weight:600;}
+  .arrow{color:var(--ink-faint);font-size:16px;}
+  .toggle{display:flex;align-items:center;gap:10px;font-size:15px;color:var(--ink-soft);cursor:pointer;font-weight:600;}
+  .toggle input{width:19px;height:19px;accent-color:var(--ember);cursor:pointer;}
+
+  /* ---- unified type matchup ---- */
+  .tgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px;align-items:start;}
+  details.tcard{background:var(--card);border:1px solid var(--rule);border-radius:11px;box-shadow:var(--shadow);}
+  details.tcard>summary{cursor:pointer;list-style:none;display:flex;align-items:center;gap:11px;padding:12px 14px;}
+  details.tcard>summary::-webkit-details-marker{display:none;}
+  details.tcard>summary::after{content:"▾";margin-left:6px;color:var(--ink-faint);}
+  details.tcard[open]>summary::after{content:"▴";}
+  details.tcard>summary:hover{background:var(--card-2);border-radius:11px;}
+  .tcard .ico{height:22px;width:auto;}
+  .tcard .tn{font-size:15.5px;font-weight:700;text-transform:capitalize;min-width:74px;}
+  .tcard .pair{display:flex;align-items:center;gap:7px;margin-left:auto;}
+  .tcard .pair img{width:44px;height:44px;}
+  .tbody{padding:0 14px 13px;}
+  .mult{font-family:var(--mono);font-size:14px;font-weight:800;padding:3px 9px;border-radius:6px;}
+  .m0{color:var(--x0);background:var(--x0b);} .m25{color:var(--x25);background:var(--x25b);}
+  .m5{color:var(--x5);background:var(--x5b);} .m1{color:var(--x1);background:var(--x1b);}
+  .m2{color:var(--x2);background:var(--x2b);} .m4{color:var(--x4);background:var(--x4b);}
+
+  /* ---- matrix ---- */
+  .matwrap{overflow-x:auto;background:var(--card);border:1px solid var(--rule);border-radius:12px;box-shadow:var(--shadow);}
+  table.mat{border-collapse:collapse;width:100%;font-family:var(--mono);font-size:14px;font-variant-numeric:tabular-nums;}
+  table.mat th,table.mat td{padding:8px 10px;text-align:center;border-bottom:1px solid var(--rule-soft);}
+  table.mat thead th{background:var(--card-2);padding:12px 8px;border-bottom:2px solid var(--rule);}
+  table.mat thead img{width:62px;height:62px;display:block;margin:0 auto;}
+  table.mat thead .hn{font-size:11.5px;color:var(--ink-soft);display:block;margin-top:3px;font-weight:700;}
+  table.mat td.tl{text-align:left;white-space:nowrap;font-size:13px;letter-spacing:.06em;
+    text-transform:uppercase;color:var(--ink-soft);font-weight:700;}
+  table.mat td.tl img{height:19px;width:auto;vertical-align:-4px;margin-right:8px;}
+  table.mat tbody tr:hover{background:var(--card-3);}
+  .cell{display:inline-block;min-width:52px;padding:6px 0;border-radius:6px;font-weight:800;font-size:14px;}
+  /* marks a multiplier that an ABILITY changed, not the typing */
+  .encrow{display:flex;align-items:center;gap:12px;padding:7px 0;border-bottom:1px solid var(--rule-soft);flex-wrap:wrap;}
+  .encrow:last-child{border-bottom:none;}
+  .encrow.gated{opacity:.45;}
+  .encrow .lbl{min-width:120px;}
+  .encmon{display:inline-flex;flex-direction:column;align-items:center;width:46px;}
+  .encmon img{width:42px;height:42px;}
+  .encmon i{font-family:var(--mono);font-size:9.5px;font-style:normal;color:var(--ink-faint);margin-top:-4px;}
+  .rrow.dim{opacity:.5;}
+  .abkey b{color:var(--ink);}
+
+  /* ---- opponents ---- */
+  details.big{background:var(--card);border:1px solid var(--rule);border-radius:12px;box-shadow:var(--shadow);margin-bottom:14px;}
+  details.big>summary{cursor:pointer;padding:15px 18px;font-weight:750;font-size:17px;list-style:none;
+    display:flex;align-items:center;gap:11px;}
+  details.big>summary::-webkit-details-marker{display:none;}
+  details.big>summary::after{content:"▾";margin-left:auto;color:var(--ink-faint);}
+  details.big[open]>summary::after{content:"▴";}
+  details.big>summary .sub{font-weight:400;font-size:14px;color:var(--ink-faint);}
+  .bigbody{padding:0 18px 16px;}
+  .gym{border:1px solid var(--rule);border-radius:10px;margin-bottom:11px;background:var(--card-3);}
+  .gym>summary{cursor:pointer;padding:12px 15px;list-style:none;display:flex;align-items:center;gap:12px;
+    font-size:16px;font-weight:700;flex-wrap:wrap;}
+  .gym>summary::-webkit-details-marker{display:none;}
+  .gym>summary .gl{font-family:var(--mono);font-size:12px;color:var(--ink-faint);font-weight:400;}
+  .gym>summary::after{content:"▾";margin-left:auto;color:var(--ink-faint);}
+  .gym[open]>summary::after{content:"▴";}
+  .gbody{padding:0 15px 15px;display:flex;flex-direction:column;gap:9px;}
+  .omon{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--rule-soft);
+    border-radius:10px;padding:9px 13px;flex-wrap:wrap;}
+  .omon img.osp{width:64px;height:64px;flex:none;}
+  .omon .oname{font-weight:750;font-size:16px;min-width:120px;}
+  .omon .olv{font-family:var(--mono);font-size:12.5px;color:var(--ink-faint);}
+  .omon .oans{display:flex;align-items:center;gap:8px;margin-left:auto;flex-wrap:wrap;}
+  .omon .oans img{width:46px;height:46px;}
+  .omoves{font-size:13px;color:var(--ink-faint);width:100%;font-family:var(--mono);}
+  .note{font-size:13.5px;color:var(--ink-faint);margin:0 0 10px;font-style:italic;}
+
+.pchips{display:flex;gap:8px;flex-wrap:wrap;}
+  .pchip{display:flex;align-items:center;gap:8px;background:var(--card-3);border:2px solid var(--rule);
+    border-radius:10px;padding:6px 12px 6px 6px;cursor:pointer;font:650 14px var(--sans);color:var(--ink);}
+  .pchip img{width:42px;height:42px;}
+  .pchip:hover{border-color:var(--ember);}
+  .pchip.off{opacity:.38;border-style:dashed;}
+  .pchip:focus-visible{outline:3px solid var(--ember);outline-offset:2px;}
+.omon.dim,.omonD.dim{opacity:.5;}
+  /* ---- battle index: every important fight at a glance ---- */
+  .bidx{display:grid;grid-template-columns:repeat(auto-fill,minmax(344px,1fr));gap:11px;margin-top:12px;}
+  .bcard{display:flex;flex-direction:column;gap:7px;text-align:left;cursor:pointer;font:inherit;color:inherit;
+    background:var(--card-3);border:1px solid var(--rule);border-radius:11px;padding:11px 13px;}
+  .bcard:hover{border-color:var(--ember);background:var(--card-2);}
+  .bcard:focus-visible{outline:3px solid var(--ember);outline-offset:2px;}
+  .bcard[aria-current="true"]{border-color:var(--ember);border-width:2px;background:var(--ember-soft);padding:10px 12px;}
+  .bcard.past{opacity:.5;}
+  .bcard.next{border-color:var(--wall);border-width:2px;padding:10px 12px;}
+  .k-done{color:var(--x0);background:var(--x0b);} .k-next{color:var(--wall);background:var(--wall-bg);}
+  .bcard .blv span.gap-ok{color:var(--x0);} .bcard .blv span.gap-warn{color:var(--x2);}
+  .bcard .blv span.gap-bad{color:var(--x4);}
+  .donebtn{font-family:var(--mono);font-size:10px;letter-spacing:.09em;text-transform:uppercase;
+    color:var(--ink-faint);border-top:1px solid var(--rule-soft);padding-top:6px;margin-top:2px;}
+  .donebtn:hover{color:var(--ember);}
+  .bcard .btop{display:flex;align-items:center;gap:8px;}
+  .bcard .bord{font-family:var(--mono);font-size:11px;font-weight:700;color:var(--ink-faint);}
+  .bcard .bname{font-size:16px;font-weight:750;letter-spacing:-.01em;line-height:1.15;}
+  .bcard .bloc{font-family:var(--mono);font-size:11px;color:var(--ink-faint);}
+  .bcard .blv{margin-left:auto;text-align:right;line-height:1;}
+  .bcard .blv b{font-family:var(--mono);font-size:21px;font-weight:800;color:var(--ember);
+    font-variant-numeric:tabular-nums;display:block;}
+  .bcard .blv span{font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-faint);}
+  /* SIX COLUMNS, ALWAYS. A wrapping flex row left every card's team hugging
+     the left of a card it never filled, and gave no sense of scale between a
+     two-Pokemon card and a six-Pokemon one. A fixed grid fills the card and
+     makes one sprite the same size on every card in the index. */
+  /* Field effects: who sets it, and which of yours can. The sprite row is
+     the point -- a reference page that also answers "can I do this" is worth
+     opening twice. */
+  .fieldset{display:flex;align-items:center;gap:4px;flex-wrap:wrap;margin-top:6px;}
+  .fieldset img{width:34px;height:34px;}
+  .mvchip{font-family:var(--mono);font-size:10px;letter-spacing:.04em;padding:2px 7px;
+    border-radius:999px;background:var(--card-2);color:var(--ink-soft);border:1px solid var(--rule-soft);}
+  .mvchip.ab{color:var(--ember);border-color:var(--ember);background:var(--ember-soft);}
+  .bcard .bteam{display:grid;grid-template-columns:repeat(6,1fr);gap:3px;align-items:center;}
+  .bcard .bteam img{width:100%;height:auto;aspect-ratio:1;max-width:66px;justify-self:center;}
+  .bcard .bteam img.no{opacity:.28;}
+  /* THE TRAINER, not their Pokemon. The card has always shown the six and
+     never the person you walk up to, which is the thing you actually
+     recognise. The portrait sits on the same recessed plinth the roster
+     sprites use, so it reads as artwork rather than as a chip. */
+  .bcard .bwho{display:flex;align-items:center;gap:10px;min-width:0;}
+  .bcard .bwho>div{min-width:0;}
+  .bcard .bface{flex:0 0 auto;width:68px;height:68px;border-radius:8px;
+    background:var(--card-3);border:1px solid var(--rule);
+    display:flex;align-items:flex-end;justify-content:center;overflow:hidden;}
+  .bcard .bface img{width:66px;height:66px;object-fit:contain;object-position:bottom;
+    image-rendering:pixelated;}
+  .bcard .bcls{font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;
+    text-transform:uppercase;color:var(--ink-faint);}
+  /* The planner header is a flow line, so the portrait sits inline with the
+     name rather than in its own column. */
+  /* .oppline is ALREADY a centred flex row (see the rule above with the 76px
+     lookup sprite) -- redefining it here to "fix" the alignment only clobbered
+     its gap. The portrait just needs to not shrink. */
+  .oppline .bface{display:inline-flex;align-items:flex-end;justify-content:center;
+    flex:0 0 auto;width:64px;height:64px;border-radius:8px;background:var(--card-3);
+    border:1px solid var(--rule);overflow:hidden;}
+  .oppline .bface img{width:62px;height:62px;object-fit:contain;object-position:bottom;
+    image-rendering:pixelated;}
+  .kchip{font-family:var(--mono);font-size:9.5px;font-weight:700;letter-spacing:.11em;text-transform:uppercase;
+    padding:3px 7px;border-radius:5px;}
+  .k-gym{color:var(--sweep);background:var(--sweep-bg);}
+  .k-rival{color:var(--setter);background:var(--setter-bg);}
+  .k-n{color:var(--wall);background:var(--wall-bg);}
+  .k-plasma{color:var(--x4);background:var(--x4b);}
+  .k-champion{color:var(--pivot);background:var(--pivot-bg);}
+  .k-elite{color:var(--x4);background:var(--x4b);}
+  .k-story{color:var(--ink-faint);background:var(--card-2);}
+
+  .navrow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+  .navrow select{font:15px var(--sans);color:var(--ink);background:var(--card-3);
+    border:1px solid var(--rule);border-radius:9px;padding:9px 11px;flex:1;min-width:220px;}
+  .minibtn.on{background:var(--ember);color:var(--on-ember);border-color:var(--ember);}
+.mechbar{display:flex;gap:8px;flex-wrap:wrap;}
+  .mechwrap{padding:12px 14px;margin:0 0 14px;background:var(--ember-soft);border-radius:10px;}
+  .mechbar .minibtn{font-size:13.5px;padding:8px 14px;}
+  details.omonD{background:var(--card);border:1px solid var(--rule-soft);border-radius:10px;}
+  details.omonD>summary{cursor:pointer;list-style:none;display:flex;align-items:center;gap:12px;
+    padding:9px 13px;flex-wrap:wrap;}
+  details.omonD>summary::-webkit-details-marker{display:none;}
+  details.omonD>summary::after{content:"▾";margin-left:6px;color:var(--ink-faint);}
+  details.omonD[open]>summary::after{content:"▴";}
+  details.omonD>summary:hover{background:var(--card-2);border-radius:10px;}
+  details.omonD img.osp{width:64px;height:64px;flex:none;}
+  .odetail{padding:0 13px 12px;}
+  .fieldwrap{margin-top:20px;padding:15px;background:var(--card-3);border:1px solid var(--rule);border-radius:11px;}
+  .fbtns{display:flex;gap:7px;flex-wrap:wrap;margin-top:5px;}
+  .fbtn{display:flex;align-items:center;gap:7px;background:var(--card);border:2px solid var(--rule);
+    border-radius:9px;padding:5px 10px 5px 5px;cursor:pointer;font:600 13.5px var(--sans);color:var(--ink);}
+  .fbtn img{width:38px;height:38px;}
+  .fbtn:hover{border-color:var(--ember);}
+  .fbtn.on{border-color:var(--ember);background:var(--ember-soft);}
+  .pairs{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:11px;margin-top:14px;}
+  .mcard{background:var(--card);border:1px solid var(--rule);border-radius:11px;overflow:hidden;}
+  .mhead{display:flex;align-items:center;gap:11px;padding:10px 13px;background:var(--card-2);
+    border-bottom:1px solid var(--rule);}
+  .mhead img{width:56px;height:56px;}
+  .mname{font-size:17px;font-weight:750;}
+  .mline{display:flex;align-items:center;gap:8px;padding:8px 13px;flex-wrap:wrap;
+    border-bottom:1px solid var(--rule-soft);border-left:4px solid transparent;}
+  .mline:last-child{border-bottom:none;}
+  .mline img{width:40px;height:40px;}
+  .mline.good{border-left-color:var(--x0);background:var(--x0b);}
+  .mline.bad{border-left-color:var(--x4);background:var(--x4b);}
+  .mtarget{font-weight:700;font-size:14.5px;min-width:92px;}
+  .spd{font-family:var(--mono);font-size:11.5px;font-weight:700;margin-left:auto;color:var(--ink-faint);}
+  .spd.f{color:var(--x0);} .spd.s{color:var(--x2);}
+  .glos{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:12px;}
+  .glos div{background:var(--card-3);border:1px solid var(--rule-soft);border-radius:9px;padding:12px 14px;}
+  .glos dt{font-weight:750;font-size:15px;margin-bottom:3px;}
+  .glos dd{margin:0;font-size:14px;color:var(--ink-soft);}
+
+
+  footer{margin-top:34px;padding-top:18px;border-top:1px solid var(--rule);font-size:14px;
+    color:var(--ink-soft);line-height:1.65;}
+  footer code{font-family:var(--mono);font-size:13px;background:var(--card-2);padding:2px 6px;border-radius:4px;}
+  footer b{color:var(--ink);}
+  @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important;}}
+  /* ============ added panels ============ */
+  .hpbar{position:relative;flex:1;min-width:90px;max-width:180px;height:12px;border-radius:6px;
+    background:var(--bartrack);overflow:hidden;}
+  .hpbar i{position:absolute;left:0;top:0;bottom:0;display:block;border-radius:6px 0 0 6px;}
+  .hpbar i.lo{background:var(--x2);opacity:.45;} .hpbar i.hi{background:var(--x2);}
+  .hpbar.kill i.hi{background:var(--x4);} .hpbar.chip i.hi{background:var(--x5);}
+  .hpbar span.over{position:absolute;right:4px;top:-1px;font-family:var(--mono);font-size:9px;
+    font-weight:800;color:#fff;letter-spacing:.04em;}
+  .dmg{font-family:var(--mono);font-size:12.5px;font-weight:700;font-variant-numeric:tabular-nums;}
+  .ko{font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+    padding:2px 6px;border-radius:4px;background:var(--card-2);color:var(--ink-soft);}
+  .ko.k1{color:var(--x0);background:var(--x0b);} .ko.k2{color:var(--x5);background:var(--x5b);}
+  .ko.kx{color:var(--x2);background:var(--x2b);}
+  .statnote{font-size:12px;color:var(--ink-faint);font-style:italic;margin:-6px 0 10px;padding:0 15px;}
+  .bars .bv.up{color:var(--ember);}
+  .abmark{font-size:9px;font-weight:700;opacity:.75;margin-left:1px;vertical-align:super;cursor:help;}
+  .abkey{font-size:13.5px;color:var(--ink-soft);margin:9px 0 0;} .abkey b{color:var(--ink);}
+
+  /* Each sub-tool is its own card again, with a real heading on top. */
+  .subhead{font-size:17px;font-weight:750;color:var(--ink);letter-spacing:-.01em;
+    margin:22px 0 0;padding:14px 16px 0;background:var(--card-3);
+    border:1px solid var(--rule);border-bottom:none;border-radius:12px 12px 0 0;}
+  .subhead span{display:block;font-size:13px;font-weight:400;color:var(--ink-soft);
+    margin-top:6px;padding:8px 0 0;border-top:1px solid var(--rule);}
+  .subbody{background:var(--card-3);border:1px solid var(--rule);border-top:none;
+    border-radius:0 0 12px 12px;padding:14px 16px;margin-bottom:4px;}
+  /* Six columns x three rows, parked to the right of the name WHEN IT FITS.
+     The roster is auto-fill minmax(390px), so the narrowest column leaves only
+     60px beside a 96px sprite and this 174px grid -- not enough for a 24px
+     name or for two 60px type icons, both of which used to overflow across
+     the grid. .idbar wraps and .idtext carries a real flex-basis, so below
+     about a 486px card the grid drops to its own row instead of colliding.
+     It keeps its fixed width there rather than stretching, because the whole
+     point of a same-shape grid is being able to pattern-match it across the
+     roster. */
+  .idbar .idtext{flex:1 1 126px;min-width:0;}
+  /* Vertically centred with the sprite and name -- .idbar is align-items:center
+     and this must not opt out of it, or the grid hugs the top of the card. */
+  .tcov{display:grid;grid-template-columns:repeat(6,1fr);gap:2.5px;
+    width:150px;flex:none;margin-left:auto;}
+  .tcov b{display:flex;flex-direction:column;align-items:center;justify-content:center;
+    font-family:var(--mono);font-size:7.5px;font-weight:800;letter-spacing:.02em;
+    padding:2.5px 0 2px;border-radius:3.5px;cursor:help;text-transform:uppercase;line-height:1.2;}
+  .tcov b i{font-style:normal;font-size:10px;font-weight:800;margin-top:1px;}
+  .metarow{padding:0 15px;margin-top:2px;}
+  /* Only if the card is genuinely too narrow for the header to hold the grid
+     does it become a full-width strip -- a deliberate row spanning the card,
+     not a block shoved to one side by a wrap. */
+  @container (max-width:429px){
+    .tcov{width:100%;grid-template-columns:repeat(9,1fr);margin-left:0;}
+  }
+  @media (max-width:520px){.tcov b{font-size:6.5px;} .tcov b i{font-size:8.5px;}}
+
+  .tlegend{display:flex;gap:16px;flex-wrap:wrap;font-size:12.5px;color:var(--ink-soft);margin-bottom:10px;}
+  .tlegend i{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:6px;vertical-align:-1px;}
+  .tlegend i.t-ok{background:var(--x0);} .tlegend i.t-warn{background:var(--x2);} .tlegend i.t-bad{background:var(--x4);}
+  /* Wider than it was. The card carries both halves of an exchange now, and at
+     236px the names truncated to "Scoli…" and the metadata broke one word per
+     line -- which is the shape of a layout that was sized for less content.
+
+     THE COLUMN COUNT DIVIDES THE TEAM. `auto-fill` packs as many as fit, which
+     for the usual six meant FOUR on the first row and two stranded on the
+     second -- the worst possible split, and the first thing you see. The count
+     is chosen in threatBoard() from the roster size and passed in as --tcols;
+     the breakpoints below only ever reduce it, so a narrow window still gets
+     something that fits. */
+  .threats{display:grid;gap:12px;grid-template-columns:1fr;}
+  @media (min-width:660px){ .threats{grid-template-columns:repeat(min(2,var(--tcols,2)),1fr);} }
+  @media (min-width:1000px){ .threats{grid-template-columns:repeat(var(--tcols,3),1fr);} }
+  .tcard2{background:var(--card);border:1px solid var(--rule);border-left-width:5px;
+    border-radius:11px;padding:11px 13px;box-shadow:var(--shadow);}
+  .tcard2.t-ok{border-left-color:var(--x0);} .tcard2.t-warn{border-left-color:var(--x2);}
+  .tcard2.t-bad{border-left-color:var(--x4);}
+  .k-ok{color:var(--x0);background:var(--x0b);} .k-warn{color:var(--x2);background:var(--x2b);}
+  .k-bad{color:var(--x4);background:var(--x4b);}
+  .tcard2 .thead{display:flex;align-items:center;gap:9px;}
+  .tcard2 .thead img{width:48px;height:48px;flex:none;}
+  .tcard2 .tid{min-width:0;flex:1;}
+  .tcard2 .mname{font-size:15.5px;font-weight:750;line-height:1.15;}
+  /* Not `.lbl`: that is the mono-caps kicker idiom, and a level, an ability and
+     a held item read as a sentence rather than as a label. */
+  .tcard2 .tmeta{font-size:11.5px;color:var(--ink-faint);line-height:1.35;margin-top:1px;}
+  /* THE VERDICT IS THE HEADLINE, so it gets its own full-width band rather
+     than competing with the name for the header row -- which is what cropped
+     six names to "Scoli…". */
+  .tverdict{display:block;margin:8px 0 9px;padding:4px 8px;border-radius:6px;
+    font-family:var(--mono);font-size:10.5px;font-weight:700;letter-spacing:.06em;
+    text-transform:uppercase;text-align:center;
+    border-bottom:1px solid var(--rule-soft);border-bottom-left-radius:0;
+    border-bottom-right-radius:0;}
+  .trow{display:grid;grid-template-columns:74px 1fr;gap:8px;align-items:center;padding:3px 0;}
+  .tk{font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-faint);}
+  .tv{display:flex;align-items:center;gap:6px;font-size:13.5px;min-width:0;flex-wrap:wrap;}
+  .tv img{width:28px;height:28px;flex:none;}
+  /* THE CARD IS A DUEL, not a list of your options.
+     It used to state your best answer and stop -- a threat board that said
+     nothing about the threat. Two stacked halves, yours then theirs, with the
+     turn order between them: read top to bottom and the card is the exchange
+     in the order it happens. */
+  .tcard2 .ttypes{display:flex;gap:4px;margin-top:3px;}
+  .tcard2 .ttypes img{width:auto;height:12px;}
+  .tduel{display:flex;flex-direction:column;gap:5px;}
+  .tside{display:flex;flex-direction:column;gap:3px;}
+  .tmv{font-size:12.5px;color:var(--ink-soft);}
+  .tbar{display:flex;align-items:center;gap:7px;min-width:0;}
+  .tbar .hpbar{flex:1;min-width:60px;}
+  .tko{font-family:var(--mono);font-size:10px;font-weight:700;padding:1px 5px;
+    border-radius:4px;flex:none;}
+  .tko.good{color:var(--x0);background:var(--x0b);}
+  .tko.bad{color:var(--x4);background:var(--x4b);}
+  /* The order marker sits BETWEEN the two halves, because that is what it
+     decides: which of them happens first. */
+  .tord{font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.05em;
+    text-align:center;padding:2px 0;margin:1px 0;border-radius:5px;
+    color:var(--ink-faint);background:var(--card-3);}
+  .tord.f{color:var(--x0);background:var(--x0b);}
+  .tord.s{color:var(--x2);background:var(--x2b);}
+  .tv b{font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+
+  .ladder{display:flex;flex-direction:column;border:1px solid var(--rule);border-radius:11px;overflow:hidden;}
+  .lgnd{display:flex;gap:16px;align-items:center;font-size:12.5px;color:var(--ink-soft);
+    padding:9px 13px;background:var(--card-2);border-bottom:1px solid var(--rule);flex-wrap:wrap;}
+  .lgnd i{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:6px;vertical-align:-1px;}
+  .lrow{display:grid;grid-template-columns:52px 1fr 2fr 46px;gap:10px;align-items:center;
+    padding:5px 13px;border-bottom:1px solid var(--rule-soft);}
+  .lrow:last-child{border-bottom:none;}
+  .lrow.me{background:var(--ember-soft);} .lrow.opp{background:var(--card);}
+  .lside{font-family:var(--mono);font-size:9px;font-weight:800;letter-spacing:.1em;
+    padding:3px 0;text-align:center;border-radius:4px;}
+  .lrow.me .lside{color:var(--on-series);background:var(--s1);}
+  .lrow.opp .lside{color:var(--on-series);background:var(--s2);}
+  .lname{display:flex;align-items:center;gap:7px;font-size:13.5px;min-width:0;}
+  .lrow.me .lname{color:var(--ink);font-weight:700;} .lrow.opp .lname{color:var(--ink-soft);}
+  .lname img{width:30px;height:30px;flex:none;}
+  .ltrack{height:10px;background:var(--bartrack);border-radius:5px;overflow:hidden;}
+  .ltrack i{display:block;height:10px;border-radius:5px;}
+  .lval{font-family:var(--mono);font-size:13px;font-weight:700;font-variant-numeric:tabular-nums;text-align:right;}
+
+  .rings{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:20px;margin:16px 0 4px;}
+  .rings figure{margin:0;text-align:center;background:var(--card-3);
+    border:1px solid var(--rule);border-radius:12px;padding:14px 14px 10px;}
+  .ringsvg{width:100%;max-width:280px;height:auto;display:block;margin:0 auto;}
+  .rings figcaption{font-size:15px;font-weight:750;color:var(--ink);margin-bottom:8px;line-height:1.35;}
+  .rings figcaption span{display:block;font-size:11.5px;font-weight:400;color:var(--ink-faint);
+    font-family:var(--mono);margin-top:3px;}
+  .takeaway{font-size:13px;line-height:1.55;color:var(--ink-soft);text-align:left;
+    margin:10px 0 0;padding-top:9px;border-top:1px solid var(--rule);}
+  .takeaway b{color:var(--ink);}
+  .curve{margin-top:4px;}
+
+  /* per-slot type coverage: every non-neutral type this Pokemon faces */
+  .tcov b.m0{color:var(--x0);background:var(--x0b);} .tcov b.m25{color:var(--x25);background:var(--x25b);}
+  .tcov b.m5{color:var(--x5);background:var(--x5b);} .tcov b.m2{color:var(--x2);background:var(--x2b);}
+  .tcov b.m4{color:var(--on-x4);background:var(--x4);}
+  .tcovkey{font-size:11.5px;color:var(--ink-faint);margin:4px 0 0;}
+
+/* Stat stages -- a what-if control, so it reads as a tool rather than as data.
+   Colours come from THIS sheet's tokens, which are defined for all three theme
+   states. The raised/lowered chips borrow the effectiveness scale the page has
+   already trained the eye on: x0 green is the good direction, x4 red the bad.
+   Every pair below was measured on both grounds; the worst is 4.66:1. Note
+   what is NOT here: white on --ember, which is 2.41:1 in dark mode. */
+.boostrow{display:flex;flex-wrap:wrap;gap:4px;align-items:center;margin:2px 15px 6px;}
+.boostrow .blab{font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--ink-faint);margin-right:2px;cursor:help;}
+.boostrow .bmv{font:inherit;font-size:.72rem;line-height:1;padding:4px 8px;cursor:pointer;
+  border:1px solid var(--rule);border-radius:99px;background:var(--card-3);
+  color:var(--ink-soft);transition:none;}
+.boostrow .bmv:hover{border-color:var(--ember);color:var(--ink);}
+.boostrow .bmv:focus-visible{outline:2px solid var(--ember);outline-offset:1px;}
+.boostrow .bmv.on{background:var(--ember-soft);color:var(--ember);border-color:var(--ember);
+  font-weight:600;}
+.boostrow .bmv i{font-style:normal;opacity:.85;margin-left:3px;
+  font-variant-numeric:tabular-nums;}
+.boostrow .stg{font-size:.7rem;font-weight:700;padding:3px 6px;border-radius:4px;
+  letter-spacing:.02em;font-variant-numeric:tabular-nums;}
+.boostrow .stg.up{background:var(--x0b);color:var(--x0);}
+.boostrow .stg.dn{background:var(--x4b);color:var(--x4);}
+.boostrow .stg.inert{background:transparent;color:var(--ink-faint);
+  border:1px dashed var(--rule);font-weight:600;}
+.boostrow .bclr,.boostbar .bclr{font:inherit;font-size:.7rem;padding:3px 8px;cursor:pointer;
+  background:transparent;border:1px solid var(--rule);border-radius:99px;color:var(--ink-soft);}
+.boostrow .bclr:hover,.boostbar .bclr:hover{color:var(--ink);border-color:var(--ink-faint);}
+.boostrow .bclr:focus-visible,.boostbar .bclr:focus-visible{outline:2px solid var(--ember);
+  outline-offset:1px;}
+.boostbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:0 0 14px;
+  padding:9px 13px;border:1px solid var(--ember);border-left-width:3px;border-radius:6px;
+  background:var(--ember-soft);color:var(--ink);font-size:.8rem;}
+.boostbar b{font-weight:700;color:var(--ember);letter-spacing:.03em;text-transform:uppercase;
+  font-size:.72rem;}
+.boostbar span{flex:1;min-width:14rem;color:var(--ink-soft);}
+
+/* ---- the free-form calculator ------------------------------------------
+   It sits in 02 Combat reference under the opponent lookup, because it
+   answers the same question -- "what about THIS one" -- with numbers instead
+   of a switch-in ranking. */
+.calcpanel{margin-top:14px}
+.calcout{margin-top:12px}
+.calctab{width:100%;border-collapse:collapse;font-size:13px;margin-top:8px}
+.calctab th{text-align:left;font-size:10px;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--ink-faint);font-weight:700;padding:0 8px 5px 0;border-bottom:1px solid var(--rule)}
+.calctab td{padding:5px 8px 5px 0;border-bottom:1px solid var(--rule-soft);vertical-align:middle}
+.calctab tr:last-child td{border-bottom:0}
+.calctab .num{font-family:var(--mono);font-size:12px;white-space:nowrap}
+.calctab .barcell{width:34%;min-width:110px}
+.calctab tr.dim td{color:var(--ink-faint)}
+/* A one-shot is the answer you were looking for, so it is allowed to be loud. */
+.calctab tr.kills b{color:var(--x0)}
+.calcnote{margin:10px 0 0;font-size:12px;line-height:1.5;color:var(--ink-soft)}
+.calcnote.ok{color:var(--x0);font-weight:600}
+.calcnote.lbl{color:var(--ink-faint);font-size:11px}
+
+/* ---------------------------------------------------------------------------
+   THE TURN AS A MATRIX GAME.
+
+   The payoff scale deliberately reuses the EFFECTIVENESS colours -- g4 is the
+   same green as a x4 multiplier and g0 the same red as a x0 -- because the
+   page already taught that scale on every other surface and a second colour
+   language for "good" would be one to learn for no reason. All five are the
+   measured ink/background pairs, so a cell is readable at any value.
+   --------------------------------------------------------------------------- */
+.gpanel{margin-top:2px}
+.gverdict{margin:0 0 8px;font-size:14px;line-height:1.55;color:var(--ink)}
+.gverdict.ok b{color:var(--x0)}
+.gverdict.warn b{color:var(--x2)}
+.gsurv{margin:0 0 12px;font-size:12.5px;line-height:1.5;color:var(--ink-soft)}
+.gsurv.ok{color:var(--x0)}
+.gsurv.warn b{color:var(--x2)}
+.gsurv.bad b{color:var(--x4)}
+/* The board scrolls in its own box: a wide move set must never make the PAGE
+   scroll sideways. */
+.gwrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.gtab{border-collapse:separate;border-spacing:2px;font-size:12px;min-width:100%}
+.gtab th{font-weight:700;color:var(--ink-soft);text-align:left;padding:4px 6px;
+  white-space:nowrap;vertical-align:middle}
+.gtab thead th{font-size:10px;letter-spacing:.05em;text-transform:uppercase;
+  color:var(--ink-faint);text-align:center}
+.gtab .gcorner{font-family:var(--mono);font-size:9px;text-align:left;color:var(--ink-faint)}
+.gtab tbody th{background:var(--card-3);border-radius:6px;font-size:12px;
+  max-width:190px}
+/* ico() and spr() are sized for the roster cards. Left alone here they made
+   the row-header column wider than the whole board and pushed the `worst`
+   column -- the one the verdict is read from -- off the right edge. */
+.gtab tbody th .ico{height:11px;width:auto;vertical-align:-1px;margin-left:5px}
+.gtab thead th .ico{height:11px;width:auto;display:block;margin:3px auto 0}
+/* Sprites are page-sized; in a dense header they set the row height on their
+   own and the column labels get pushed out of sight. */
+.gtab th img:not(.ico){height:20px;width:auto;vertical-align:middle;margin-right:5px}
+.gtab thead th img:not(.ico){display:block;margin:0 auto 2px}
+/* THE TWO COLUMNS YOU READ BY MUST NOT SCROLL AWAY.
+   Their switches made the board wide enough to need horizontal scrolling, and
+   the first thing off the right edge was `worst` -- the column the reading
+   guide tells you to look at, and the one the verdict is computed from. Both
+   anchors stick: the row label on the left, the guarantee on the right. */
+.gtab th[scope="row"],.gtab .gcorner{position:sticky;left:0;z-index:2;
+  background:var(--card)}
+.gtab tbody th[scope="row"]{background:var(--card-3)}
+.gtab .gmin{position:sticky;right:0;z-index:2;
+  box-shadow:-7px 0 7px -7px rgba(0,0,0,.45)}
+.gtab thead .gmin{background:var(--card)}
+.gtab .gmv{font-weight:700}
+.gtab .gsw{font-weight:600;color:var(--ink-soft)}
+.gtab .gacc{display:block;font-family:var(--mono);font-size:9px;color:var(--x2)}
+.gtab td{font-family:var(--mono);font-size:12px;font-weight:700;text-align:center;
+  padding:6px 8px;border-radius:6px;min-width:52px}
+.gtab .g4,.gscale .g4{background:var(--x0b);color:var(--x0)}
+.gtab .g3,.gscale .g3{background:var(--x25b);color:var(--x25)}
+.gtab .g2,.gscale .g2{background:var(--x1b);color:var(--x1)}
+.gtab .g1,.gscale .g1{background:var(--x2b);color:var(--x2)}
+.gtab .g0,.gscale .g0{background:var(--x4b);color:var(--x4)}
+/* THE WORST CELL IN EACH ROW IS WHAT MAXIMIN READS, so it is marked -- with a
+   ring rather than a colour, because the cell's colour already means its
+   value and a second meaning on the same channel would collide. */
+.gtab .gworst{box-shadow:inset 0 0 0 2px currentColor}
+/* A cell can be BOTH the pinned column and the row's worst, and the second
+   box-shadow would drop the first. Restated as one. */
+.gtab .gmin.gworst{box-shadow:inset 0 0 0 2px currentColor,-7px 0 7px -7px rgba(0,0,0,.45)}
+.gtab .gmin{font-weight:800}
+.gtab thead .gmin{color:var(--ink-faint)}
+.gtab tr.gbest th{box-shadow:inset 0 0 0 1px var(--ember)}
+.gnote{margin:10px 0 0;font-size:11px;line-height:1.55;color:var(--ink-faint)}
+.gnote b{color:var(--ink-soft)}
+/* THE SCALE IS THE FIRST THING TO READ, so it is a strip of the actual cell
+   colours rather than a sentence about them: the reader matches a cell to the
+   legend by colour, which is the way anybody actually uses a heat map.
+
+   BOTH ROWS ARE THE SAME GRID. The captions used to be one flowing sentence
+   with ellipses between the phrases, under a five-up bar -- so nothing lined
+   up with the swatch it described and the whole thing read as a mistake. Five
+   equal columns in both rows makes each caption sit under its own colour by
+   construction rather than by luck with the wording. */
+.gkey{margin:14px 0 0;max-width:560px}
+.gscale{display:grid;grid-template-columns:repeat(5,1fr);gap:3px}
+.gscale>span{text-align:center;font-family:var(--mono);font-size:10px;
+  font-weight:700;padding:4px 2px;border-radius:5px}
+.gkeytxt{margin-top:4px}
+.gkeytxt>span{font-family:var(--sans);font-size:10px;font-weight:600;
+  line-height:1.35;padding:0 2px;color:var(--ink-faint);background:none}
+/* The two ends are the ones worth reading; the middle three are the ramp. */
+.gkeytxt>span:first-child,.gkeytxt>span:last-child{color:var(--ink-soft)}
+/* The framing and the caveats are for the first read and the sceptical read,
+   not for every visit -- so they fold away. */
+.gwhy{margin:10px 0 0}
+.gwhy>summary{cursor:pointer;font-size:11px;font-weight:700;color:var(--ink-soft);
+  list-style:none;display:inline-flex;align-items:center;gap:6px;
+  padding:3px 8px;border:1px solid var(--rule);border-radius:999px}
+.gwhy>summary::-webkit-details-marker{display:none}
+.gwhy>summary::before{content:"?";font-family:var(--mono);font-size:9px;
+  width:13px;height:13px;line-height:13px;text-align:center;border-radius:50%;
+  background:var(--card-2);color:var(--ink-faint)}
+.gwhy[open]>summary{margin-bottom:2px}
+.gwhy>summary:hover{border-color:var(--ember);color:var(--ember)}
+</style>
+
+<div class="wrap">
+  <header class="mast">
+    <p class="kicker" id="kick"></p>
+    <h1>Kaiju, Rain, Trick Room</h1>
+    <p class="built" id="built"></p>
+  </header>
+  <nav class="tabs" id="tabs" role="tablist"></nav>
+</div>
+<div id="view"></div>
+<div class="wrap"><footer id="foot"></footer></div>
+
+<script>
+const D=__DATA__;
+const {TYPES,CHART,MOVES,ABIL,ITEMDESC,DEX,SPRITE,TICON,TEAMS,OPPONENTS,STATUS,NOTES,META,HERE,BAGTM,BOXED,SPNAME}=D;
+// Portraits arrived after the app started hosting this template, so an
+// older blob simply has no TRFACE. Defaulting keeps the battle tab alive
+// instead of throwing on the first encounter card.
+const TRFACE=D.TRFACE||{};
+
+const MECH={
+  rain:{label:'Rain',       atk:{water:1.5,fire:0.5}, spd:{'Swift Swim':2},
+        hint:'Water ×1.5, Fire ×0.5, Thunder never misses'},
+  sun: {label:'Harsh sun',  atk:{fire:1.5,water:0.5}, spd:{'Chlorophyll':2},
+        hint:'Fire ×1.5, Water ×0.5, SolarBeam skips its charge'},
+  sand:{label:'Sandstorm',  atk:{},                   spd:{'Sand Rush':2},
+        hint:'Rock types get +50% Sp. Def; non Rock/Ground/Steel chip each turn'},
+  tr:  {label:'Trick Room', atk:{},                   spd:{}, invert:true,
+        hint:'Speed order inverted for five turns'}};
+const mechOn={};
+const atkMul=ty=>Object.keys(mechOn).reduce((a,k)=>mechOn[k]&&MECH[k].atk[ty]?a*MECH[k].atk[ty]:a,1);
+// ---------------------------------------------------------------------------
+// EFFECTIVE STATS.  The save stores raw stats; several of the abilities on
+// these teams multiply them, and the sheet used to ignore that entirely -- a
+// Huge Power Snorlax displayed 70 Attack while functionally having 140.
+// Weather-gated entries only apply while that toggle is on.
+// ---------------------------------------------------------------------------
+const SIDX={hp:0,atk:1,def:2,spa:3,spd:4,spe:5};
+
+/* NATURE MARKS. Gen 5 packs the effect into the nature's INDEX: id/5 is the
+   stat raised and id%5 the one lowered, over [atk, def, spe, spa, spd] --
+   speed THIRD, which is the save's stat order and not the order stats print
+   in. The blob carries the nature by name, so the name list has to stay in
+   the same order as js/tables.js; the five where both land on one stat
+   (Hardy, Docile, Serious, Bashful, Quirky) are the neutral ones. */
+const NATNAMES=['Hardy','Lonely','Brave','Adamant','Naughty',
+  'Bold','Docile','Relaxed','Impish','Lax',
+  'Timid','Hasty','Serious','Jolly','Naive',
+  'Modest','Mild','Quiet','Bashful','Rash',
+  'Calm','Gentle','Sassy','Careful','Quirky'];
+const NATORD=['atk','def','spe','spa','spd'];
+const natEffect=n=>{
+  const i=NATNAMES.indexOf(n);
+  if(i<0) return null;
+  const u=Math.floor(i/5), d=i%5;
+  return u===d?null:{up:NATORD[u],down:NATORD[d]};
+};
+const STAT_ABIL={
+  'Huge Power':{atk:2}, 'Pure Power':{atk:2},
+  'Solar Power':{spa:1.5,mech:'sun'},
+  'Flower Gift':{atk:1.5,spd:1.5,mech:'sun'},
+  'Slow Start':{atk:0.5,spe:0.5},
+  'Defeatist':{atk:0.5,spa:0.5},
+  'Marvel Scale':{def:1.5,status:true},
+  'Guts':{atk:1.5,status:true}};
+// ---------------------------------------------------------------------------
+// STAT STAGES.  A what-if layer: "what does Snorlax hit for AFTER Belly Drum".
+//
+// Deliberately NOT persisted.  A boost is a hypothetical about one turn, not a
+// preference -- coming back tomorrow to a sheet quietly reporting +6 Attack
+// numbers would be a lie the page told itself overnight.  Reload clears it.
+//
+// Which moves boost what comes from the ROM (MOVES[].st / .tg), so a stat move
+// this hack rebalanced is reflected without anyone editing a list here.
+// ---------------------------------------------------------------------------
+const BOOSTCAP=6;
+const stageMul=n=>n>=0?(2+n)/2:2/(2-n);
+const bKey=m=>`${m.name}|${m.box}`;
+const bState={};                      // monKey -> {moveName: times applied}
+
+// CONTRARY AND SIMPLE REWRITE THE MOVE, so they have to be applied where the
+// stage deltas are read and not anywhere downstream.
+//
+// This was a real wrong answer, not a missing nicety.  A Contrary Arcanine
+// with V-create (ROM: Spe -1, Def -1) was having the drop applied literally,
+// so two clicks put it at 0.5x speed and three at 0.4x -- which is why the
+// turn order flipped from "you first" to "them first" as the boost was
+// stacked UP.  With Contrary the move raises those stats, so more clicks can
+// only ever make it faster.  The sheet knew about the ability -- statNote()
+// said so in prose -- and then ignored it in every number on the page.
+//
+// Only the SELF side is touched.  Contrary inverts what happens to its own
+// holder; a foe-targeting drop we inflict is unaffected by our ability.
+const selfDelta=(mon,d)=>{
+  const sign=mon.ab==='Contrary'?-1:1, scale=mon.ab==='Simple'?2:1;
+  const out={};
+  for(const k in d.st) out[k]=d.st[k]*sign*scale;
+  return out;
+};
+const stageFx=(mon,d)=>(d.tg==='foe'?d.st:selfDelta(mon,d));
+// How many times a move can stack before it hits the +-6 ceiling.  Belly Drum
+// gets one click, Dragon Dance six -- and Simple halves both, because it is
+// the doubled delta that has to fit under the cap.
+const bMax=(d,mon)=>Math.max(1,Math.ceil(
+  BOOSTCAP/Math.max(...Object.values(stageFx(mon,d)).map(Math.abs))));
+function stagesOf(mon){
+  const out={self:{},foe:{}}, act=bState[bKey(mon)]||{};
+  for(const mv in act){
+    const d=MOVES[mv], n=act[mv];
+    if(!d||!d.st||!n) continue;
+    const side=d.tg==='foe'?'foe':'self';
+    const st=stageFx(mon,d);
+    for(const k in st)
+      out[side][k]=Math.max(-BOOSTCAP,Math.min(BOOSTCAP,(out[side][k]||0)+st[k]*n));
+  }
+  return out;
+}
+const anyBoost=()=>Object.values(bState).some(a=>Object.values(a).some(n=>n>0));
+// Every stat-changing move this mon actually knows.  No move, no button.
+const boostMoves=m=>(m.moves||[]).filter(n=>MOVES[n]&&MOVES[n].st&&Object.keys(MOVES[n].st).length);
+
+// THE ABILITY AND WEATHER HALF, on its own, so BOTH SIDES get it.
+//
+// This used to live only inside statMul(), which is your side. The opponent's
+// defence was read straight off their base stats and their Speed straight off
+// theirs, so a Marvel Scale wall took full damage and a Swift Swim sweeper was
+// listed as slower than you in the rain. This tab exists to say how YOUR team
+// does against THEM, which it cannot do while their abilities are ignored.
+//
+// Stat stages are deliberately NOT in here: those are the what-if layer, and
+// they belong to your side only.
+function abilMul(mon,key){
+  let m=1;
+  const a=STAT_ABIL[mon&&mon.ab];
+  // `status:true` entries need a status condition we do not model, so they are
+  // reported in the notes rather than silently baked into the number.
+  if(a&&a[key]&&!a.status&&(!a.mech||mechOn[a.mech])) m*=a[key];
+  if(key==='spe') Object.keys(mechOn).forEach(k=>{
+    if(mechOn[k]&&MECH[k].spd[mon&&mon.ab]) m*=MECH[k].spd[mon.ab];});
+  return m;
+}
+function statMul(mon,key){
+  let m=abilMul(mon,key);
+  const st=stagesOf(mon).self[key];
+  if(st) m*=stageMul(st);
+  return m;
+}
+const statOf=(mon,key)=>Math.floor((mon.stats?mon.stats[SIDX[key]]:0)*statMul(mon,key));
+const spdOf=m=>statOf(m,'spe');
+// ---------------------------------------------------------------------------
+// DAMAGE.  Gen 5 formula, with the opponent's stats built from their real
+// level and species base stats at 31 IVs / 0 EVs / neutral nature -- Drayano
+// documents natures for some trainers but the parser does not capture them, so
+// neutral is the stated assumption rather than a hidden one.
+// ---------------------------------------------------------------------------
+const ITEM_MUL={'Life Orb':{all:1.3},'Choice Band':{phys:1.5},'Choice Specs':{spec:1.5},
+                'Muscle Band':{phys:1.1},'Wise Glasses':{spec:1.1},'Expert Belt':{se:1.2}};
+function calcDamage(me,mvName,om){
+  const md=MOVES[mvName]; if(!md||md.c==='status') return null;
+  if(!md.p||md.p<=1||!om||!om.b) return null;          // variable-power moves
+  const phys=md.c==='physical';
+  const lvl=me.lvl||50, dlv=om.lvl||50, b=om.b;
+  const A=statOf(me,phys?'atk':'spa');
+  const fstg=stagesOf(me).foe[phys?'def':'spd']||0;
+  // The defender's own ability counts too -- see abilMul. Their nature, IVs and
+  // EVs remain the stated assumption (neutral / 31 / 0); the ability is not an
+  // assumption, it is in the roster.
+  const D=Math.max(1,Math.floor((Math.floor((2*b[phys?2:4]+31)*dlv/100)+5)
+    *stageMul(fstg)*abilMul(om,phys?'def':'spd')));
+  const hp=Math.floor((2*b[0]+31)*dlv/100)+dlv+10;
+  const e=eff(md.t,om);
+  if(e===0) return {e:0,hp,lo:0,hi:0,pctLo:0,pctHi:0,ko:null};
+  let m=e*atkMul(md.t);
+  m*= (me.types||[]).includes(md.t) ? (me.ab==='Adaptability'?2:1.5) : 1;
+  const im=ITEM_MUL[me.item]||{};
+  if(im.all) m*=im.all;
+  if(im.phys&&phys) m*=im.phys;
+  if(im.spec&&!phys) m*=im.spec;
+  if(im.se&&e>1) m*=im.se;
+  const base=Math.floor(Math.floor(Math.floor(2*lvl/5+2)*md.p*A/D)/50)+2;
+  const lo=Math.max(1,Math.floor(base*m*0.85)), hi=Math.max(1,Math.floor(base*m));
+  const pctLo=lo/hp*100, pctHi=hi/hp*100;
+  const koMax=Math.ceil(hp/lo), koMin=Math.ceil(hp/hi);
+  return {e,hp,lo,hi,pctLo,pctHi,ko:koMin===koMax?`${koMin}HKO`:`${koMin}–${koMax}HKO`};
+}
+// Draws the low..high damage range against the target's HP.  Overkill is
+// clamped to the track and labelled, so a 240% hit does not silently look the
+// same as a 100% one.
+function hpBar(d){
+  if(!d) return '';
+  if(d.e===0) return '<span class="hpbar"><span class="over" style="color:var(--ink-faint)">immune</span></span>';
+  const lo=Math.min(100,d.pctLo), hi=Math.min(100,d.pctHi);
+  const cls=d.pctLo>=100?'kill':d.pctHi<35?'chip':'';
+  return `<span class="hpbar ${cls}" title="${d.lo}–${d.hi} of ${d.hp} HP">
+    <i class="hi" style="width:${hi}%"></i><i class="lo" style="width:${lo}%"></i>
+    ${d.pctLo>=100?`<span class="over">×${(d.pctLo/100).toFixed(1)} over</span>`:''}</span>`;
+}
+const dmgTxt=d=>!d?'':d.e===0?'immune'
+  :`${d.pctLo.toFixed(0)}–${d.pctHi.toFixed(0)}%`;
+
+// A conditional boost the sheet deliberately does not apply, so it can say so.
+function statNote(mon){
+  const a=STAT_ABIL[mon.ab];
+  if(a&&a.status) return `${mon.ab} adds ×${a.atk||a.def} once it is statused — not counted here`;
+  if(mon.ab==='Speed Boost') return 'Speed Boost adds +1 stage every turn — not counted here';
+  if(mon.ab==='Contrary') return 'Contrary turns each self-lowering attack into a boost — counted in the what-if buttons';
+  if(mon.ab==='Simple') return 'Simple doubles every stat stage — counted in the what-if buttons';
+  if(mon.ab==='Adaptability') return 'Adaptability makes STAB ×2 — counted in the damage figures';
+  return null;
+}
+
+// An opponent as a defender the shared eff() can read, so THEIR abilities
+// finally count.  Previously an enemy Levitate or Flash Fire was displayed and
+// then ignored by every calculation on the page.
+const oppMon=o=>({name:o.n,types:(DEX[o.n]||{t:[]}).t,ab:o.a||'',
+                  b:(DEX[o.n]||{}).b,lvl:parseInt(o.l,10)||50});
+const dealTo=(mvType,om)=>eff(mvType,om)*atkMul(mvType);
+const trOn=()=>Object.keys(mechOn).some(k=>mechOn[k]&&MECH[k].invert);
+const ABS_IMMUNE={'Levitate':'ground','Storm Drain':'water','Water Absorb':'water',
+  'Volt Absorb':'electric','Motor Drive':'electric','Flash Fire':'fire','Sap Sipper':'grass',
+  'Lightningrod':'electric','Dry Skin':'water'};
+// Abilities that change the defensive multiplier without granting an immunity.
+const ABS_HALVE={'Thick Fat':['fire','ice'],'Heatproof':['fire']};
+const ABS_FILTER=new Set(['Filter','Solid Rock']);   // super-effective x0.75
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
+const pick={};
+TEAMS.forEach(t=>pick[t.id]=t.slots.map(s=>s.defaultIdx||0));
+try{const s=JSON.parse(localStorage.getItem('bb_pick')||'{}');
+  TEAMS.forEach(t=>{if(Array.isArray(s[t.id])&&s[t.id].length===t.slots.length)pick[t.id]=s[t.id];});}catch(e){}
+const save=()=>{try{localStorage.setItem('bb_pick',JSON.stringify(pick));}catch(e){}};
+const cur=t=>t.slots.map((s,i)=>s.options[Math.min(pick[t.id][i],s.options.length-1)].mon);
+
+function eff(at,mon){
+  if(ABS_IMMUNE[mon.ab]===at) return 0;
+  let m=1; for(const ty of mon.types) m*=CHART[at][ty];
+  // WONDER GUARD: anything not super-effective does nothing at all.  Tested on
+  // the RAW type multiplier, because "super effective" is a property of the
+  // type match-up -- resistances from other abilities do not change it.
+  if(mon.ab==='Wonder Guard'&&m<=1) return 0;
+  const h=ABS_HALVE[mon.ab]; if(h&&h.includes(at)) m*=0.5;
+  if(m>1&&ABS_FILTER.has(mon.ab)) m*=0.75;
+  return m;
+}
+// True when the number above is doing something the typing alone would not,
+// so the UI can mark it instead of quietly showing a surprising figure.
+function effAbil(at,mon){
+  let raw=1; for(const ty of mon.types) raw*=CHART[at][ty];
+  return eff(at,mon)!==raw ? mon.ab : null;
+}
+const vsTypes=(mv,ts)=>ts.reduce((a,t)=>a*CHART[mv][t],1)*atkMul(mv);
+const MCLASS=m=>m===0?'m0':m<=0.25?'m25':m<=0.5?'m5':m===1?'m1':m<=2?'m2':'m4';
+const MTXT=m=>m===0?'×0':m===0.25?'×¼':m===0.5?'×½':m===1?'×1':'×'+m;
+const ico=t=>TICON[t]?`<img class="ico" src="${TICON[t]}" alt="${t}">`:`<span>${t}</span>`;
+const spr=(n,c)=>SPRITE[n]?`<img class="${c||''}" src="${SPRITE[n]}" alt="${esc(n)}">`:'';
+// A documented fight's own portrait, out of the ROM. TRFACE is keyed by SPRITE
+// id rather than by trainer because one portrait serves several classes, and
+// it is only populated for the fights this page can show -- so a missing key
+// is normal and must render as nothing, not as a broken image.
+const face=(e,c)=>(e&&e.face!=null&&TRFACE[e.face])
+  ? `<span class="bface ${c||''}"><img src="${TRFACE[e.face]}" alt="${
+      esc(e.leader||'')}"></span>` : '';
+const weakCount=team=>TYPES.filter(at=>{const es=team.map(m=>eff(at,m));
+  return es.some(e=>e>=2)&&!es.some(e=>e<1);}).length;
+
+function moveDetail(name){
+  const d=MOVES[name];
+  if(!d) return `<details class="mv"><summary><span class="mn">${esc(name)}</span></summary></details>`;
+  const acc=d.acc>100?'—':d.acc+'%', pw=d.c==='status'?'status':(d.p<=1?'var':d.p);
+  const f=[];
+  if(d.ail) f.push(`<span class="flag f-ail">${d.ch>0?d.ch+'% ':''}${esc(d.ail)}</span>`);
+  if(d.stat) f.push(`<span class="flag f-stat">${esc(d.stat)} change</span>`);
+  if(d.pri!==0) f.push(`<span class="flag f-pri">priority ${d.pri>0?'+':''}${d.pri}</span>`);
+  const n=NOTES[name];
+  const body=n?`<p class="mvnote">${n}</p>`:(d.ail||d.stat)?`<p class="mvnote">${esc(d.d)}</p>`
+    :`<p class="mvplain">Plain attack — no secondary effect.</p>`;
+  return `<details class="mv"><summary>${TICON[d.t]?`<img src="${TICON[d.t]}" alt="${d.t}">`:''}
+    <span class="mn">${esc(name)}</span><span class="pw">${pw}${d.c!=='status'?' / '+acc:''}</span></summary>
+    <div class="mvbody"><p class="mvstat">${esc(d.t)} · ${esc(d.c)} · pow ${pw} · acc ${acc} · pp ${d.pp}</p>
+    ${f.join('')}${body}</div></details>`;
+}
+
+const SN=['HP','ATK','DEF','SPA','SPD','SPE'];
+function bars(m,gmax,tmax){
+  const raw=m.stats; if(!raw) return '';
+  const KEYS=['hp','atk','def','spa','spd','spe'];
+  const st=KEYS.map(k=>statOf(m,k));
+  const boosted=KEYS.map(k=>statMul(m,k)!==1);
+  const mx=gmax||Math.max(...st,1);
+  const tot=st.reduce((a,b)=>a+b,0), tm=tmax||tot;
+  const note=statNote(m);
+  const nat=natEffect(m.nat);
+  const natCls=i=>nat?(KEYS[i]===nat.up?' nat-up':KEYS[i]===nat.down?' nat-down':''):'';
+  return `<div class="bars">${st.map((v,i)=>`<span class="bn${natCls(i)}"${
+      natCls(i)?` title="${esc(m.nat)}: ${natCls(i)===' nat-up'?'+':'\u2212'}10% ${SN[i]}"`:''
+    }>${SN[i]}</span>
+    <span class="bt"><span class="bf" style="width:${Math.min(100,Math.max(4,Math.round(v/mx*100)))}%"></span></span>
+    <span class="bv${boosted[i]?' up':''}"${boosted[i]?` title="${esc(m.ab)}: ${raw[i]} → ${v}"`:''}>${v}${
+      boosted[i]?'<sup class="abmark">a</sup>':''}</span>`).join('')}
+    <span class="totrule"></span>
+    <span class="bn tot">TOT</span>
+    <span class="bt tot"><span class="bf" style="width:${Math.min(100,Math.max(4,Math.round(tot/tm*100)))}%"></span></span>
+    <span class="bv tot">${tot}</span></div>${
+    note?`<p class="statnote">${esc(note)}</p>`:''}`;
+}
+
+const SNAME={atk:'Atk',def:'Def',spa:'SpA',spd:'SpD',spe:'Spe',acc:'Acc',eva:'Eva'};
+// One row per slot, and only where it can do something: a Pokemon that knows
+// no stat move gets no row rather than an empty control.
+function boostRow(m){
+  const mvs=boostMoves(m); if(!mvs.length) return '';
+  const key=esc(bKey(m)), act=bState[bKey(m)]||{}, st=stagesOf(m);
+  // The tooltip must quote the EFFECTIVE change, not the move's printed one.
+  // On a Contrary holder V-create raises the stats it says it lowers, and a
+  // button reading "Spe -1" while the page got faster is worse than no
+  // tooltip at all.
+  const fx=d=>{const st=stageFx(m,d);
+    return Object.keys(st).map(k=>`${SNAME[k]} ${st[k]>0?'+':''}${st[k]}`).join(', ');};
+  const flip=m.ab==='Contrary'||m.ab==='Simple'
+    ? ` (${m.ab} is applied)` : '';
+  const btns=mvs.map(n=>{const d=MOVES[n], c=act[n]||0;
+    return `<button class="bmv${c?' on':''}" data-bmv="${key}::${esc(n)}" data-bmax="${bMax(d,m)}" title="${esc(n)}: ${
+      esc(fx(d))}${d.tg==='foe'?" to whatever you are facing":''}${esc(flip)}. Click to apply, again to stack, past the cap to clear."
+      >${esc(n)}${c>1?`<i>&times;${c}</i>`:''}</button>`;}).join('');
+  // Accuracy and evasion stages are real but the damage numbers do not model
+  // them, so they are shown greyed rather than implied to have done something.
+  const chip=(pre,k,v)=>`<span class="stg ${v>0?'up':'dn'}${k==='acc'||k==='eva'?' inert':''}"${
+    k==='acc'||k==='eva'?' title="Applied, but accuracy is not part of the damage numbers"':''
+    }>${pre}${SNAME[k]} ${v>0?'+':''}${v}</span>`;
+  const chips=Object.keys(st.self).map(k=>chip('',k,st.self[k])).join('')
+    +Object.keys(st.foe).map(k=>chip('foe ',k,st.foe[k])).join('');
+  return `<div class="boostrow"><span class="blab" title="Apply a stat change this
+    Pokémon can actually cause, and every number on the tab recomputes">what if</span>${
+    btns}${chips}${chips?`<button class="bclr" data-bclr="${key}">clear</button>`:''}</div>`;
+}
+// Boosts silently rewrite every number on the tab, so the page says so out loud
+// in one place rather than letting a +6 Attack figure pass for the real one.
+function boostBanner(){
+  if(!anyBoost()) return '';
+  const who=Object.keys(bState).filter(k=>Object.values(bState[k]).some(n=>n>0))
+    .map(k=>esc(k.split('|')[0]));
+  return `<div class="boostbar"><b>Boosts on</b><span>${who.join(', ')} —
+    damage, speed order and the matrices below all include them.</span>
+    <button class="bclr" data-bclr="*">clear all</button></div>`;
+}
+
+function monBlock(m,why,gmax,tmax){
+  const box=(head,body)=>`<span class="tipbox"><b>${esc(head)}</b>${esc(body)}</span>`;
+  const tipSpan=(label,head,body)=>
+    `<span class="tip" tabindex="0" title="${esc(head)}: ${esc(body)}">${label}${box(head,body)}</span>`;
+  const tt=t=>tipSpan(ico(t),t,
+    `Weak to ${TYPES.filter(a=>CHART[a][t]>1).join(', ')||'nothing'}. `+
+    `Resists ${TYPES.filter(a=>CHART[a][t]<1&&CHART[a][t]>0).join(', ')||'nothing'}.`);
+  // Per-slot type coverage.  A single leading letter cannot identify a type --
+  // F is Fire/Fighting/Flying, G is Ghost/Grass/Ground, D is Dark/Dragon,
+  // P is Poison/Psychic -- so 10 of 17 would collide and colour alone would be
+  // doing the identifying.  Three letters are unique across all 17 and match
+  // the type chart's own abbreviations.  Only non-neutral types are shown,
+  // because x1 is the default and listing it is noise.
+  // Every one of the 17 types, always in the same order, so the grid has the
+  // same shape on every slot and can be pattern-matched across the roster.
+  // Three-letter codes because a single leading letter collides for 10 of 17
+  // (F = fire/fighting/flying, G = ghost/grass/ground, D = dark/dragon,
+  // P = poison/psychic), which would leave colour doing the identifying.
+  const covHTML=`<div class="tcov" title="What each attacking type does to ${esc(m.name)}">${
+    TYPES.map(t=>{const e=eff(t,m);
+      const cls=e===0?'m0':e<=0.25?'m25':e<=0.5?'m5':e===1?'m1':e>=4?'m4':'m2';
+      return `<b class="${cls}" title="${esc(t)} → ${MTXT(e)}">${t.slice(0,3)}<i>${
+        MTXT(e).replace('\u00d7','')}</i></b>`;}).join('')}</div>`;
+  return `<div class="idbar">${spr(m.name,'sp')}
+    <div class="idtext"><div class="nm">${esc(m.name)} ${m.shiny?'<span class="shiny" title="shiny">&#9670;</span>':''}</div>
+      <div class="tline">${m.types.map(tt).join('')}</div>
+    </div>${covHTML}</div>
+    <div class="meta metarow"><b>${esc(m.nat)}</b> · ${ABIL[m.ab]?tipSpan(esc(m.ab),m.ab,ABIL[m.ab]):esc(m.ab)}${m.item?' · @'+(ITEMDESC[m.item]?tipSpan(esc(m.item),m.item,ITEMDESC[m.item]):esc(m.item)):''} · L${m.lvl} · ${esc(m.box)}</div>
+    ${bars(m,gmax,tmax)}
+    ${boostRow(m)}
+    <div class="movelist">${m.moves.map(moveDetail).join('')}</div>
+    ${why?`<p class="why">${why}</p>`:''}`;
+}
+
+/* ranking of my six against a given defending/attacking type set */
+// `om` is an optional real opponent.  With it, what you DEAL accounts for the
+// defender's ability; without it (the type-lookup box, where you type a typing
+// and no species) it falls back to types alone.
+function rankRows(mons,ts,om){
+  return mons.map(m=>{
+    const takes=Math.max(...ts.map(t=>eff(t,m)));
+    let best={e:0,mv:null};
+    m.moves.forEach(mv=>{const d=MOVES[mv]; if(!d||d.c==='status')return;
+      const e=om?dealTo(d.t,om):vsTypes(d.t,ts); if(e>best.e) best={e,mv};});
+    return {m,takes,deals:best.e,mv:best.mv,dmg:om?calcDamage(m,best.mv,om):null};
+  }).sort((a,b)=>a.takes-b.takes||b.deals-a.deals);
+}
+const rankHTML=rows=>`<div class="rank">${rows.map((r,i)=>`<div class="rrow${i===0?' best':''}">
+  ${spr(r.m.name)}<span class="rn">${esc(r.m.name)}</span>
+  <span class="lbl">takes</span><span class="mult ${MCLASS(r.takes)}">${MTXT(r.takes)}</span>
+  <span class="spacer"></span><span class="lbl">best hit</span>
+  <span class="mult ${MCLASS(r.deals)}">${MTXT(r.deals)}</span>
+  <span class="mvname">${r.mv?esc(r.mv):'—'}</span></div>`).join('')}</div>`;
+
+const look={a:'',b:'',name:''};
+
+function lookupPanel(mons){
+  const opts=t=>TYPES.map(x=>`<option value="${x}"${x===t?' selected':''}>${x}</option>`).join('');
+  let res='';
+  if(look.a){
+    const ts=[look.a]; if(look.b&&look.b!==look.a) ts.push(look.b);
+    res=`<p class="oppline">${look.name&&SPRITE[look.name]?spr(look.name,'big'):''}
+      <span class="lbl">facing</span>${look.name?`<b>${esc(look.name)}</b>`:''}
+      ${ts.map(ico).join('')}<b>${ts.join(' / ')}</b></p>${rankHTML(rankRows(mons,ts))}`;
+  }
+  return `<div class="panel"><div class="lookup">
+    <div class="fld"><label>look up opponent</label>
+      <input id="oppname" list="dexlist" placeholder="e.g. Skarmory" autocomplete="off" value="${esc(look.name)}"></div>
+    <div class="fld"><label>or type 1</label><select id="t1"><option value="">—</option>${opts(look.a)}</select></div>
+    <div class="fld"><label>type 2</label><select id="t2"><option value="">—</option>${opts(look.b)}</select></div>
+    <button id="clr" type="button">clear</button></div>${res}</div>`;
+}
+
+/* ============================ THE FREE-FORM CALCULATOR =====================
+   Every damage number on this page is against a DOCUMENTED fight -- a gym
+   leader, a rival, the trainers in Drayano's own file. That covers the
+   question "am I ready for what is next" and answers nothing about the
+   Pokemon you just met on a route, or the one a friend is threatening you
+   with, or the what-if you are turning over.
+
+   IT LIVES HERE, IN THE TEMPLATE, and not in a tab of its own, because
+   `calcDamage` lives here: the Gen 5 formula, the type chart, both sides'
+   abilities, the item multipliers, the weather toggles and the stat-stage
+   what-ifs. A calculator anywhere else would be a second implementation of
+   all of that, which is the drift this project spends most of its tests
+   preventing. Hosting it here also means the published sheet gets it.
+
+   THE DEFENDER'S SPREAD IS THE PAGE'S STANDING ASSUMPTION -- 31 IVs, 0 EVs,
+   neutral nature, exactly as every other opponent on this page is built,
+   because a calculator that quietly used a different one would disagree with
+   the card above it. The attacker is REAL: your own stats, straight from the
+   save.
+*/
+let calc={atk:'',def:'',lvl:50,ab:'',allAb:false};
+try{const c=JSON.parse(localStorage.getItem('bb_calc')||'{}');
+  if(c&&typeof c==='object') calc={...calc,...c};}catch(e){}
+const saveCalc=()=>{try{localStorage.setItem('bb_calc',JSON.stringify(calc));}catch(e){}};
+
+/* A defender built the way every opponent on this page is built. */
+function calcDefender(name,lvl,ab){
+  const d=DEX[name]; if(!d) return null;
+  return {name,lvl:Math.max(1,Math.min(100,lvl|0))||50,ab:ab||null,types:d.t,b:d.b};
+}
+
+function calcPanel(mons){
+  const me=mons.find(m=>m.name===calc.atk)||mons[0];
+  const om=calc.def?calcDefender(calc.def,calc.lvl,calc.ab):null;
+  /* THE ABILITIES IT COULD ACTUALLY HAVE, not all 165.
+     Naming a defender and then scrolling a list of every ability in the game
+     to find one of its two is a search through noise: the answer is a property
+     of the species and the ROM knows it. DEX[name].a carries both slots plus
+     the hidden one, from this hack's own personal table -- so Slowking offers
+     Drizzle, which is a Blaze Black change and exactly the kind of thing a
+     vanilla-shaped list would bury.
+
+     The full list stays one click away rather than being removed. This page
+     already models rigged Pokémon elsewhere, and an opponent with an ability
+     it cannot legally have is a thing you might genuinely be facing. */
+  const nat=(om&&DEX[om.name]&&DEX[om.name].a)||[];
+  const showAll=calc.allAb||!nat.length;
+  // Whatever is currently chosen stays selectable even when it is not natural,
+  // or narrowing the list would silently reset the field under you.
+  const abilList=showAll?Object.keys(ABIL).filter(a=>a&&a!=='--').sort()
+    :[...new Set([...nat,...(calc.ab?[calc.ab]:[])])];
+  const abilOpts=['<option value="">no ability</option>']
+    .concat(abilList
+      .map(a=>`<option value="${esc(a)}"${a===calc.ab?' selected':''}>${esc(a)}${
+        !showAll&&nat.indexOf(a)<0?' (not natural)':''}</option>`)).join('');
+
+  let out='';
+  if(me&&om){
+    /* Every move it has, worst to best -- the order you care about is "what
+       is my best line", and a list sorted by damage answers it directly. */
+    const rows=(me.moves||[]).map(mv=>({mv,d:calcDamage(me,mv,om)}))
+      .sort((a,b)=>((b.d&&b.d.pctLo)||-1)-((a.d&&a.d.pctLo)||-1));
+    const survives=rows.every(r=>!r.d||r.d.pctLo<100);
+    out=`<div class="calcout">
+      <p class="oppline">${SPRITE[me.name]?spr(me.name,'big'):''}
+        <span class="lbl">L${esc(me.lvl)}</span><b>${esc(me.name)}</b>
+        <span class="lbl">into</span>
+        ${SPRITE[om.name]?spr(om.name,'big'):''}
+        <span class="lbl">L${esc(om.lvl)}</span><b>${esc(om.name)}</b>
+        ${om.types.map(ico).join('')}
+        ${om.ab?`<span class="lbl">${esc(om.ab)}</span>`:''}</p>
+      <table class="calctab"><thead><tr><th>move</th><th>type</th><th>damage</th>
+        <th>%</th><th></th><th>KO</th></tr></thead><tbody>
+      ${rows.map(r=>{
+        const md=MOVES[r.mv]||{};
+        if(!r.d) return `<tr class="dim"><td><b>${esc(r.mv)}</b></td>
+          <td>${md.t?ico(md.t):''}</td><td colspan="4" class="lbl">${
+            md.c==='status'?'status move — no damage':'variable power, not modelled'}</td></tr>`;
+        return `<tr${r.d.pctLo>=100?' class="kills"':''}>
+          <td><b>${esc(r.mv)}</b></td><td>${md.t?ico(md.t):''}</td>
+          <td class="num">${r.d.lo}–${r.d.hi}</td>
+          <td class="num">${dmgTxt(r.d)}</td>
+          <td class="barcell">${hpBar(r.d)}</td>
+          <td class="lbl">${r.d.e===0?'—':esc(r.d.ko)}</td></tr>`;}).join('')}
+      </tbody></table>
+      ${survives?`<p class="calcnote">Nothing you have one-shots it. ${
+        rows.length&&rows[0].d?`Best is <b>${esc(rows[0].mv)}</b> at ${dmgTxt(rows[0].d)}.`:''}</p>`
+        :`<p class="calcnote ok">${esc(rows[0].mv)} takes it out in one.</p>`}
+      <p class="calcnote lbl">Their spread is this page's standing assumption — 31 IVs,
+        0 EVs, neutral nature — the same way every opponent above is built. Yours are
+        real, from your save. The weather and stat-stage toggles above apply here too.</p>
+    </div>`;
+  } else if(me&&!calc.def){
+    out=`<p class="calcnote lbl">Name anything in the dex and this works out every move
+      ${esc(me.name)} has against it — the same maths the fights above use, against
+      whatever you actually ran into.</p>`;
+  } else if(calc.def){
+    out=`<p class="calcnote lbl">No species called “${esc(calc.def)}”.</p>`;
+  }
+
+  return `<div class="panel calcpanel">
+    <h3 class="zsub" style="margin:0 0 10px;font-weight:700;font-size:15px">
+      Damage against anything</h3>
+    <div class="lookup">
+      <div class="fld"><label>your Pokémon</label><select id="cAtk">${
+        mons.map(m=>`<option value="${esc(m.name)}"${me&&m.name===me.name?' selected':''}>${
+          esc(m.name)} · L${esc(m.lvl)}</option>`).join('')}</select></div>
+      <div class="fld"><label>against</label>
+        <input id="cDef" list="dexlist" placeholder="e.g. Garchomp" autocomplete="off"
+          value="${esc(calc.def)}"></div>
+      <div class="fld"><label>their level</label>
+        <input id="cLvl" type="number" min="1" max="100" value="${esc(calc.lvl)}"></div>
+      <div class="fld abfld"><label>their ability</label><select id="cAb">${abilOpts}</select>
+        ${nat.length?`<button class="minibtn aball${calc.allAb?' on':''}" id="cAll" type="button"
+          title="${calc.allAb?`Show only what ${esc(om.name)} can have`
+            :'Show every ability in the game — for a rigged or hacked opponent'}">${
+          calc.allAb?`only ${esc(om.name)}'s`:'all abilities'}</button>`:''}</div>
+      <button id="cClr" type="button">clear</button></div>
+    ${out}</div>`;
+}
+
+let encIdx=0, benched={}, fmt='singles', fieldE=[], fieldM=[];
+/* HOW MANY TURNS THE BOARD LOOKS AHEAD. Persisted: it is a way of reading the
+   board rather than a question you ask once. Two is the default because it is
+   the shallowest depth at which a switch can be worth making -- at one turn a
+   switch is all cost and no reason, which is the whole point of the search. */
+let gDepth=2;
+try{const d=parseInt(localStorage.getItem('bb_gdepth'),10); if(d>=1&&d<=2) gDepth=d;}catch(e){}
+let encFilter='all', encIdxOpen=true, cleared={}, encNotes={};
+try{const c=JSON.parse(localStorage.getItem('bb_cleared')||'{}'); if(c&&typeof c==='object') cleared=c;}catch(e){}
+// PROGRESS IS KEYED ON A STABLE ID, NOT ON POSITION.
+// It used to key on the index in OPPONENTS, which meant that dropping a single
+// fight -- the Opelucid leader who is not in your version -- silently
+// re-attributed every mark after it to the wrong trainer. `key` is a slug of
+// the fight's own name, so the roster can change shape underneath your ticks.
+// Numeric keys from before this are migrated once, through the order they were
+// written against.
+const cKey=e=>(e&&e.key)||'';
+(function(){let moved=false;
+  for(const k of Object.keys(cleared)){
+    if(!/^\d+$/.test(k)) continue;
+    const e=OPPONENTS[+k]; delete cleared[k];
+    if(e&&cKey(e)){cleared[cKey(e)]=1; moved=true;}
+  }
+  if(moved){try{localStorage.setItem('bb_cleared',JSON.stringify(cleared));}catch(e){}}
+})();
+try{const n=JSON.parse(localStorage.getItem('bb_encnotes')||'{}'); if(n&&typeof n==='object') encNotes=n;}catch(e){}
+const saveProg=()=>{try{localStorage.setItem('bb_cleared',JSON.stringify(cleared));
+  localStorage.setItem('bb_encnotes',JSON.stringify(encNotes));}catch(e){}};
+// Your level, taken from whatever is actually fielded, for the gap readout.
+const myLevel=()=>{const t=TEAMS.find(x=>x.state==='fielded')||TEAMS[0];
+  if(!t) return null;
+  const ls=t.slots.map(s=>s.options[0].mon.lvl).filter(Boolean);
+  return ls.length?Math.max(...ls):null;};
+const nextFight=()=>{for(let i=0;i<OPPONENTS.length;i++) if(!cleared[cKey(OPPONENTS[i])]) return i; return -1;};
+try{const st=JSON.parse(localStorage.getItem('bb_enc')||'{}');
+  // A JUMP FROM ANOTHER TAB ARRIVES AS A KEY, NOT AN INDEX.
+  // Adventure works on the COMPLETE roster (it stores positions of its own,
+  // and AREAINDEX keys on them); this page has already dropped the Opelucid
+  // leader who is not in your cartridge. So the two lists differ in length and
+  // an index handed across meant everything after Opelucid opened the wrong
+  // fight -- Cheren 7 landed on Shauntal. Same rule as bb_cleared: pass the
+  // stable slug and resolve it here.
+  if(typeof st.key==='string'){const j=OPPONENTS.findIndex(e=>cKey(e)===st.key); if(j>=0) encIdx=j;}
+  else if(Number.isInteger(st.i)) encIdx=st.i;
+  if(typeof st.f==='string') encFilter=st.f;
+  if(typeof st.o==='boolean') encIdxOpen=st.o;
+  /* Restored as NAMES, not positions, and only up to the format's cap. What
+     is actually on this fight's roster is settled by encounterPanel, which
+     already filters both lists against it every render -- so a stale name
+     from another fight simply drops out rather than needing a guard here. */
+  if(Array.isArray(st.fe)) fieldE=st.fe.filter(x=>typeof x==='string').slice(0,2);
+  if(Array.isArray(st.fm)) fieldM=st.fm.filter(x=>typeof x==='string').slice(0,2);}catch(e){}
+/* WHO IS ON THE FIELD SURVIVES A RELOAD. The fight was remembered and so was
+   the look-ahead, but the pairing was not -- so every reload emptied the one
+   thing you had to click twice to set, and the board you were reading vanished
+   with it. Stored by NAME, and filtered against the current fight on the way
+   back in, so switching opponent cannot resurrect somebody who is not there. */
+const saveEnc=()=>{try{localStorage.setItem('bb_enc',
+  JSON.stringify({i:encIdx,f:encFilter,o:encIdxOpen,
+                  key:cKey(OPPONENTS[encIdx]||{}),fe:fieldE,fm:fieldM}));}catch(e){}};
+
+// rough stat estimate for an opponent: 31 IVs, no EVs, neutral nature
+const estStat=(base,lvl,isHP)=> isHP
+  ? Math.floor((2*base+31)*lvl/100)+lvl+10
+  : Math.floor((2*base+31)*lvl/100)+5;
+const enemyLvl=o=>{const m=String(o.l||'').match(/\d+/); return m?+m[0]:50;};
+const enemySpe=o=>{const d=DEX[o.n]; if(!d||!d.b) return null;
+  // Their ability applies as much as yours does: Swift Swim in rain, Chlorophyll
+  // in sun, Sand Rush in sand, Slow Start on the way in.
+  return Math.floor(estStat(d.b[5],enemyLvl(o),false)*abilMul(oppMon(o),'spe'));};
+
+function matchLine(me,o){
+  const om=oppMon(o), ot=om.types;
+  let best={e:0,mv:null};
+  me.moves.forEach(mv=>{const d=MOVES[mv]; if(!d||d.c==='status')return;
+    const e=dealTo(d.t,om); if(e>best.e) best={e,mv};});
+  const dmg=calcDamage(me,best.mv,om);
+  let worst={e:0,t:null};
+  ot.forEach(t=>{const e=eff(t,me); if(e>worst.e) worst={e,t};});
+  const es=enemySpe(o), ms=spdOf(me);
+  // TRICK ROOM INVERTS THIS. The speed ladder already knew; this verdict did
+  // not, so the one team the mechanic exists for was told it moved second.
+  const fast = es==null?null:(trOn()?ms<es:ms>es);
+  const verdict = worst.e>=2 && best.e<2 ? 'bad' : best.e>=2 && worst.e<1 ? 'good' : 'ok';
+  return `<div class="mline ${verdict}">
+    ${spr(o.n)}<span class="mtarget">${esc(o.n)}</span>
+    <span class="lbl">you deal</span><span class="mult ${MCLASS(best.e)}">${MTXT(best.e)}</span>
+    ${dmg?`${hpBar(dmg)}<span class="dmg">${dmgTxt(dmg)}</span>${dmg.ko?`<span class="ko ${
+      dmg.ko.startsWith('1')?'k1':dmg.ko.startsWith('2')?'k2':'kx'}">${dmg.ko}</span>`:''}`:''}
+    <span class="mvname">${best.mv?esc(best.mv):'—'}</span>
+    <span class="lbl">you take</span><span class="mult ${MCLASS(worst.e)}">${MTXT(worst.e)}</span>
+    <span class="spd ${fast===null?'':fast?'f':'s'}">${fast===null?'speed ?':fast?'▲ you first':'▼ they first'}</span>
+  </div>`;
+}
+
+// ===========================================================================
+// THE TURN AS A MATRIX GAME
+// ===========================================================================
+// Everything above this line answers "how much damage does X do to Y". That is
+// a calculation you can only use if you already know what the other side is
+// going to do -- and you do not. A turn in this game is SIMULTANEOUS and the
+// information is IMPERFECT: you and the trainer both commit, then the moves
+// resolve. So the honest object is not a number, it is a payoff matrix.
+//
+// What that buys, in order of how much it is worth:
+//
+//   "EARTHQUAKE IS SAFE" -- there is a move that is at least as good as every
+//   alternative against everything they can do. A dominant strategy. You do
+//   not have to guess, and no calculator that reports one column at a time can
+//   tell you this.
+//
+//   "NOTHING IS SAFE" -- your best guaranteed outcome, and what it costs.
+//   This is the maximin, and it is worth saying out loud that MAXIMIN IS THE
+//   NUZLOCKE'S OWN OBJECTIVE FUNCTION. A nuzlocker is not maximising expected
+//   damage, they are maximising the worst case, because a loss is permanent.
+//   The mode that already exists in this app wants exactly this number.
+//
+//   THE MIX. When the game has no pure equilibrium, the equilibrium is a
+//   probability -- and "you have to guess, here is the split" is a real
+//   answer rather than a shrug.
+//
+// The maths is exact and offline. Nothing is learned, nothing is fitted, and
+// the same fight gives the same board every time.
+// ---------------------------------------------------------------------------
+
+/* DAMAGE COMING THE OTHER WAY.
+   calcDamage() has only ever gone from you to them, so "what can they do to
+   me" has never been a number on this page -- only a type multiplier. The
+   asymmetry is real and is preserved: THEIR attack stat is estimated from base
+   stats at the page's standing 31/0/neutral assumption, YOUR defence is the
+   real one out of the save, with your stat stages and abilities applied. */
+function calcIncoming(o,mvName,me){
+  const md=MOVES[mvName]; if(!md||md.c==='status') return null;
+  if(!md.p||md.p<=1||!me||!me.stats) return null;      // variable-power moves
+  const d=DEX[o.n]; if(!d||!d.b) return null;
+  const phys=md.c==='physical';
+  const att=oppMon(o), lvl=att.lvl;
+  const A=Math.max(1,Math.floor(estStat(d.b[phys?1:3],lvl,false)*abilMul(att,phys?'atk':'spa')));
+  const D=Math.max(1,statOf(me,phys?'def':'spd'));
+  const hp=me.stats[SIDX.hp]; if(!hp) return null;
+  const e=eff(md.t,me);
+  if(e===0) return {e:0,hp,lo:0,hi:0,pctLo:0,pctHi:0,ko:null};
+  let m=e*atkMul(md.t);
+  m*= (att.types||[]).includes(md.t) ? (att.ab==='Adaptability'?2:1.5) : 1;
+  const im=ITEM_MUL[o.i]||{};
+  if(im.all) m*=im.all;
+  if(im.phys&&phys) m*=im.phys;
+  if(im.spec&&!phys) m*=im.spec;
+  if(im.se&&e>1) m*=im.se;
+  const base=Math.floor(Math.floor(Math.floor(2*lvl/5+2)*md.p*A/D)/50)+2;
+  const lo=Math.max(1,Math.floor(base*m*0.85)), hi=Math.max(1,Math.floor(base*m));
+  const koMax=Math.ceil(hp/lo), koMin=Math.ceil(hp/hi);
+  return {e,hp,lo,hi,pctLo:lo/hp*100,pctHi:hi/hp*100,
+          ko:koMin===koMax?`${koMin}HKO`:`${koMin}–${koMax}HKO`};
+}
+
+const PRIO=mv=>{const d=MOVES[mv]; return d&&d.pri||0;};
+
+/* ===========================================================================
+   THE BATTLE AS A STOCHASTIC GAME
+   ===========================================================================
+   One turn was not enough, and the giveaway was that A SWITCH COULD NEVER
+   SCORE POSITIVE. That was not a bug, it was the horizon: over a single turn a
+   switch deals nothing and takes a hit, so its payoff is <= 0 by construction.
+   Everything that makes switching correct -- you are now facing them with
+   something that walls them, and you get the next turn -- lives exactly one
+   ply past where a one-turn board can see. The same argument applies to a
+   setup move, for the same reason.
+
+   So the board is now the base case of a recursion, not the whole model. The
+   right object is a two-player zero-sum MARKOV GAME, and the classic solution
+   is Shapley's: the value of a state is the value of a matrix game whose
+   entries are the values of the successor states.
+
+       V(S, d)  =  leaf(S)                              if d = 0 or S is over
+                =  gameValue([ V(step(S,a,b), d-1) ])   otherwise
+
+   The one-turn board is V(S, 1) with the leaf being material. Everything below
+   is that sentence, made runnable.
+
+   WHAT MAKES IT TRACTABLE, given the state space is astronomically large:
+
+     - The opponent's exact roster is in the ROM, so there is no belief state
+       over what they might have.
+     - Damage is the average roll, so a joint action leads to ONE successor
+       rather than a distribution. That is the assumption that collapses the
+       chance nodes, and it is stated on the page.
+     - HP is quantised to 1/256 of a bar, which makes the state space finite
+       and the transposition table exact with respect to that abstraction.
+     - A node budget, because a search that can hang the page is not shippable.
+
+   WHAT IT STILL DOES NOT MODEL, and this matters more at depth than it did at
+   one turn: stat stages. Depth is exactly what would reveal what a Dragon
+   Dance buys, and it is not modelled, so setup moves are still valued at the
+   damage they do this turn -- which is nothing. Said out loud on the page
+   rather than left for someone to discover.
+   =========================================================================== */
+
+const HPQ=256;                                   // HP grain: 1/256 of a bar
+const qhp=x=>Math.max(0,Math.round(x*HPQ))/HPQ;
+const NODE_BUDGET=240000;                        // a search must terminate
+/* How much the leaf cares about the matchup it is leaving behind, on top of
+   raw material. This is THE ARGUABLE NUMBER in the whole feature: everything
+   else is the game's own arithmetic, and this is a judgement about how much a
+   good position is worth in Pokemon-equivalents. Deliberately small. */
+const POS_W=0.35;
+
+/* Everything the search needs, precomputed once. Damage is by far the most
+   expensive call in here and the search asks for the same numbers thousands of
+   times, so it asks once. */
+function buildSim(myTeam,theirTeam){
+  const mvM=myTeam.map(m=>(m.moves||[]).filter(mv=>MOVES[mv]));
+  const mvT=theirTeam.map(o=>(o.m||[]).filter(mv=>MOVES[mv]));
+  const fr=(d)=>!d?0:Math.min(1,((d.lo+d.hi)/2)/d.hp);
+  /* Damage at NEUTRAL stages. Stages are applied at use, in stepTurn, because
+     they are a property of the position rather than of the pairing -- and
+     because precomputing 13^5 of them is not a plan. */
+  const out=myTeam.map((m,i)=>theirTeam.map((o,j)=>
+    mvM[i].map(mv=>fr(calcDamage(m,mv,oppMon(o))))));
+  const inc=theirTeam.map((o,j)=>myTeam.map((m,i)=>
+    mvT[j].map(mv=>fr(calcIncoming(o,mv,m)))));
+  const cat=mv=>(MOVES[mv]||{}).c;
+  const stg=mv=>(MOVES[mv]||{}).st||null;
+  const tgt=mv=>(MOVES[mv]||{}).tg||'self';
+  return {myTeam,theirTeam,mvM,mvT,out,inc,
+          priM:mvM.map(l=>l.map(PRIO)), priT:mvT.map(l=>l.map(PRIO)),
+          catM:mvM.map(l=>l.map(cat)), catT:mvT.map(l=>l.map(cat)),
+          stM:mvM.map(l=>l.map(stg)), stT:mvT.map(l=>l.map(stg)),
+          tgM:mvM.map(l=>l.map(tgt)), tgT:mvT.map(l=>l.map(tgt)),
+          speM:myTeam.map(m=>spdOf(m)),
+          speT:theirTeam.map(o=>enemySpe(o))};
+}
+
+/* =========================================================================
+   STAT STAGES
+   =========================================================================
+   The gap depth made worse rather than better. Looking further ahead is
+   exactly what should reveal what a Dragon Dance buys, and while stages went
+   unmodelled a setup move was scored on the damage it does this turn -- none --
+   at every depth. It also meant Draco Meteor's -2 Sp. Atk and Close Combat's
+   defence drop were free, which flatters the moves the search likes most.
+
+   Stages live on the ACTIVE Pokemon and are lost when it switches out, which
+   is both the real rule and the thing that keeps the state space finite: a
+   branch only carries stages while something is actually set up. */
+const STAGE0={atk:0,def:0,spa:0,spd:0,spe:0};
+const SKEYS=['atk','def','spa','spd','spe'];
+const stageKey=s=>SKEYS.map(k=>s[k]).join('');
+function applyStages(cur,st){
+  if(!st) return cur;
+  const n={...cur};
+  for(const k of SKEYS) if(st[k]) n[k]=Math.max(-6,Math.min(6,n[k]+st[k]));
+  return n;
+}
+/* What a stage set does to one side's damage: the attacker's offensive stage
+   multiplies, the defender's defensive stage divides. */
+const dmgMul=(atkSt,defSt,phys)=>
+  stageMul(atkSt[phys?'atk':'spa'])/stageMul(defSt[phys?'def':'spd']);
+
+const aliveCount=h=>h.reduce((n,x)=>n+(x>0?1:0),0);
+
+/* Actions available to one side. A fainted active (-1) may only send someone
+   out, which is how a knockout is represented rather than special-cased. */
+function actsMe(sim,S){
+  const out=[];
+  if(S.mi>=0) sim.mvM[S.mi].forEach((mv,k)=>out.push({kind:'move',mv,k,pri:sim.priM[S.mi][k]}));
+  S.mh.forEach((h,i)=>{ if(h>0&&i!==S.mi) out.push({kind:'switch',i}); });
+  return out;
+}
+function actsThem(sim,S){
+  const out=[];
+  if(S.ti>=0) sim.mvT[S.ti].forEach((mv,k)=>out.push({kind:'move',mv,k,pri:sim.priT[S.ti][k]}));
+  S.th.forEach((h,j)=>{ if(h>0&&j!==S.ti) out.push({kind:'switch',i:j}); });
+  return out;
+}
+
+/* One exchange, resolved in order. Switches land before attacks, and whoever
+   faints does not get to act -- which is why turn order changes the payoff and
+   not merely the flavour. */
+/* NAMED stepTurn, NOT step. There is already a `step` in this file -- the
+   prev/next button's encounter stepper -- and although it is function-scoped
+   and shadows this one harmlessly today, two unrelated `step`s in one script
+   is a trap set for whoever next moves code between scopes. */
+function stepTurn(sim,S,a,b){
+  let mi=S.mi, ti=S.ti;
+  const mh=S.mh.slice(), th=S.th.slice();
+  /* SWITCHING OUT LOSES YOUR STAGES. The real rule, and also what stops the
+     state space compounding: a line only carries stages while something is
+     still standing there set up. */
+  let ms=S.ms, ts=S.ts;
+  if(a.kind==='switch'){ mi=a.i; ms=STAGE0; }
+  if(b.kind==='switch'){ ti=b.i; ts=STAGE0; }
+  const aAtk=a.kind==='move', bAtk=b.kind==='move';
+  if(aAtk||bAtk){
+    let meFirst;
+    if(aAtk&&!bAtk) meFirst=true;
+    else if(!aAtk&&bAtk) meFirst=false;
+    else if(a.pri!==b.pri) meFirst=a.pri>b.pri;
+    else{
+      /* Speed, with stages -- which is the whole point of an Agility or a
+         Dragon Dance and was invisible while `faster` was precomputed. A tie
+         still goes to them. */
+      const es=sim.speT[ti], mySp=sim.speM[mi];
+      if(es==null) meFirst=false;
+      else{
+        const mv=mySp*stageMul(ms.spe), tv=es*stageMul(ts.spe);
+        meFirst=trOn()?mv<tv:mv>tv;
+      }
+    }
+    const mine=()=>{ th[ti]=qhp(th[ti]-sim.out[mi][ti][a.k]
+      *dmgMul(ms,ts,sim.catM[mi][a.k]==='physical')); };
+    const theirs=()=>{ mh[mi]=qhp(mh[mi]-sim.inc[ti][mi][b.k]
+      *dmgMul(ts,ms,sim.catT[ti][b.k]==='physical')); };
+    /* Stage changes land AFTER the move that carries them -- a self-drop like
+       Draco Meteor's -2 Sp. Atk costs you the NEXT attack, not this one, and a
+       foe-drop like Growl hits whoever is standing there when it resolves. */
+    const mineSt=()=>{ const st=sim.stM[mi][a.k];
+      if(!st) return;
+      if(sim.tgM[mi][a.k]==='self') ms=applyStages(ms,st); else ts=applyStages(ts,st); };
+    const theirsSt=()=>{ const st=sim.stT[ti][b.k];
+      if(!st) return;
+      if(sim.tgT[ti][b.k]==='self') ts=applyStages(ts,st); else ms=applyStages(ms,st); };
+    if(meFirst){
+      if(aAtk){ mine(); mineSt(); }
+      if(bAtk&&th[ti]>0){ theirs(); theirsSt(); }   // a fainted attacker does not attack
+    }else{
+      if(bAtk){ theirs(); theirsSt(); }
+      if(aAtk&&mh[mi]>0){ mine(); mineSt(); }
+    }
+  }
+  if(mi>=0&&mh[mi]<=0){ mi=-1; ms=STAGE0; }
+  if(ti>=0&&th[ti]<=0){ ti=-1; ts=STAGE0; }
+  return {mi,ti,mh,th,ms,ts};
+}
+
+/* MATERIAL, in Pokemon-equivalents: how much of their team is gone, minus how
+   much of yours is. This is the unit every number on the board is printed in,
+   which is why +100 means "one whole Pokemon ahead on the exchange" and why it
+   can exceed 100 once the search is looking more than a turn ahead. */
+const material=S=>S.th.reduce((n,h)=>n+(1-h),0)-S.mh.reduce((n,h)=>n+(1-h),0);
+
+/* The horizon. Material, plus a small term for the matchup you are left in --
+   without it, a search that stops right after a switch sees only the hit taken
+   and never the reason you switched. */
+function leaf(sim,S){
+  const m=material(S);
+  if(S.mi<0||S.ti<0) return m;                   // mid-substitution: no matchup yet
+  /* Scaled by the stages standing on the board. Without this the horizon
+     cannot see a boost at all, and a Dragon Dance one turn before the leaf is
+     worth exactly nothing -- which is the bug depth was supposed to fix. */
+  const o=sim.out[S.mi][S.ti].map((v,k)=>v*dmgMul(S.ms,S.ts,sim.catM[S.mi][k]==='physical'));
+  const i=sim.inc[S.ti][S.mi].map((v,k)=>v*dmgMul(S.ts,S.ms,sim.catT[S.ti][k]==='physical'));
+  const best=l=>l.length?Math.max(...l):0;
+  return m+POS_W*Math.max(-1,Math.min(1,best(o)-best(i)));
+}
+
+/* V(S, d). The recursion at the top of this section, with a cache and a
+   budget. Returns the leaf value once the budget is spent, which degrades the
+   answer rather than hanging the tab. */
+function stateValue(sim,S,d,ctx){
+  if(d<=0||aliveCount(S.mh)===0||aliveCount(S.th)===0) return leaf(sim,S);
+  if(ctx.n>NODE_BUDGET) return leaf(sim,S);
+  const key=d+'|'+S.mi+','+S.ti+'|'+S.mh.join(',')+'|'+S.th.join(',')
+    +'|'+stageKey(S.ms)+stageKey(S.ts);
+  const hit=ctx.cache.get(key);
+  if(hit!==undefined) return hit;
+  const RA=actsMe(sim,S), RB=actsThem(sim,S);
+  if(!RA.length||!RB.length) return leaf(sim,S);
+  ctx.n+=RA.length*RB.length;
+  const A=RA.map(a=>RB.map(b=>stateValue(sim,stepTurn(sim,S,a,b),d-1,ctx)));
+  const sol=solveZeroSum(A);
+  const v=sol?sol.value:Math.max(...A.map(r=>Math.min(...r)));
+  ctx.cache.set(key,v);
+  return v;
+}
+
+/* Build the board. Rows are what YOU can do, columns are what THEY can do,
+   and each cell is how the battle stands `depth` turns later if you both pick
+   that -- measured against where it stands now, so 0 is "no better or worse". */
+function turnGame(me,o,others,theirRest,depth){
+  if(!me||!o) return null;
+  /* Clamped to what the control offers. Depth 4 spends the whole node budget
+     on a real 6v6 and then falls back to the shallow estimate in places, which
+     is a WORSE answer wearing a deeper label -- the one outcome a depth
+     control must not have. */
+  const d=Math.max(1,Math.min(3,depth|0||1));
+  /* A teammate whose moves the roster does not document is left OUT of their
+     switch options rather than treated as harmless. Including it would price
+     a switch to it at zero damage, which understates their threat -- an error
+     in the one direction this board must never make. */
+  const undocumented=(theirRest||[]).filter(x=>!(x.m||[]).filter(mv=>MOVES[mv]).length).length;
+  const theirTeam=[o].concat((theirRest||[]).filter(x=>(x.m||[]).filter(mv=>MOVES[mv]).length));
+  if(!(o.m||[]).filter(mv=>MOVES[mv]).length) return null;   // no board to build
+  const myTeam=[me].concat(others||[]);
+  const sim=buildSim(myTeam,theirTeam);
+  const S0={mi:0,ti:0,mh:myTeam.map(()=>1),th:theirTeam.map(()=>1),
+            ms:STAGE0,ts:STAGE0};
+  const rows=actsMe(sim,S0), cols=actsThem(sim,S0);
+  if(!rows.length||!cols.length) return null;
+
+  rows.forEach(r=>{ r.mon=r.kind==='switch'?myTeam[r.i].name:null;
+                    r.label=r.kind==='switch'?`switch to ${r.mon}`:r.mv; });
+  cols.forEach(c=>{ c.mon=c.kind==='switch'?theirTeam[c.i].n:null;
+                    c.label=c.kind==='switch'?`switch to ${c.mon}`:c.mv; });
+
+  const ctx={cache:new Map(),n:0};
+  const base=leaf(sim,S0);
+  const A=rows.map(a=>cols.map(b=>stateValue(sim,stepTurn(sim,S0,a,b),d-1,ctx)-base));
+  return {rows,cols,A,sim,me,o,depth:d,om:oppMon(o),
+          nodes:ctx.n,capped:ctx.n>NODE_BUDGET,undocumented,
+          myTeam,theirTeam};
+}
+
+/* Solve a zero-sum matrix game for its value and both mixed strategies.
+
+   By linear programming, via the standard reduction: shift every payoff
+   positive, solve the column player's  max 1'z  s.t.  Bz <= 1, z >= 0  by
+   simplex, and read the row player's strategy off the DUAL -- the objective
+   row under the slack columns at optimality. The value is 1/(1'z), shifted
+   back. Every b_i is 1, so the origin is feasible and no phase 1 is needed.
+
+   Returns null only if the tableau degenerates, which a game with finite
+   payoffs cannot do; the guard is there so a bug cannot spin. */
+function solveZeroSum(A){
+  const m=A.length, n=A[0].length;
+  let lo=Infinity;
+  for(const r of A) for(const v of r) lo=Math.min(lo,v);
+  const K=1-lo, B=A.map(r=>r.map(v=>v+K));
+  const W=n+m+1, T=[];
+  for(let i=0;i<m;i++){
+    const row=new Array(W).fill(0);
+    for(let j=0;j<n;j++) row[j]=B[i][j];
+    row[n+i]=1; row[W-1]=1; T.push(row);
+  }
+  const obj=new Array(W).fill(0);
+  for(let j=0;j<n;j++) obj[j]=-1;
+  const basis=[]; for(let i=0;i<m;i++) basis.push(n+i);
+  for(let g=0;g<400;g++){
+    let col=-1,best=-1e-9;
+    for(let j=0;j<W-1;j++) if(obj[j]<best){best=obj[j];col=j;}
+    if(col<0) break;                                    // optimal
+    let row=-1,ratio=Infinity;
+    for(let i=0;i<m;i++) if(T[i][col]>1e-9){
+      const r=T[i][W-1]/T[i][col];
+      if(r<ratio-1e-12){ratio=r;row=i;}
+    }
+    if(row<0) return null;                              // unbounded
+    const piv=T[row][col];
+    for(let j=0;j<W;j++) T[row][j]/=piv;
+    for(let i=0;i<m;i++) if(i!==row&&Math.abs(T[i][col])>1e-12){
+      const f=T[i][col];
+      for(let j=0;j<W;j++) T[i][j]-=f*T[row][j];
+    }
+    const f=obj[col];
+    for(let j=0;j<W;j++) obj[j]-=f*T[row][j];
+    basis[row]=col;
+  }
+  const sum=obj[W-1];
+  if(!(sum>1e-9)) return null;
+  const v=1/sum;
+  const z=new Array(n).fill(0);
+  for(let i=0;i<m;i++) if(basis[i]<n) z[basis[i]]=T[i][W-1];
+  return {value:v-K, x:Array.from({length:m},(_,i)=>Math.max(0,obj[n+i]*v)),
+          y:z.map(t=>Math.max(0,t*v))};
+}
+
+/* Read the board: the security level, whether anything dominates, and the mix. */
+function gameRead(g){
+  const {rows,cols,A}=g;
+  const mins=A.map(r=>Math.min(...r));
+  const secure=Math.max(...mins);
+  const best=mins.indexOf(secure);
+  const minimax=Math.min(...cols.map((_,j)=>Math.max(...A.map(r=>r[j]))));
+  const saddle=Math.abs(secure-minimax)<1e-9;
+  /* A DOMINANT ROW is the answer worth having: at least as good as every other
+     row against every column, so the guess does not matter. Weak dominance is
+     the right test -- a move that ties elsewhere and wins somewhere still means
+     you never need to think about it. */
+  const dom=[];
+  for(let i=0;i<rows.length;i++){
+    let ok=true;
+    for(let k=0;k<rows.length&&ok;k++){
+      if(k===i) continue;
+      for(let j=0;j<cols.length;j++) if(A[i][j]<A[k][j]-1e-9){ok=false;break;}
+    }
+    if(ok) dom.push(i);
+  }
+  return {mins,secure,best,minimax,saddle,dominant:dom.length?dom[0]:-1,dom,
+          sol:solveZeroSum(A)};
+}
+
+/* The payoff scale reuses the effectiveness colours, so a good cell here is
+   the same green as a good multiplier everywhere else on the page. Clamped at
+   one Pokemon-equivalent in either direction: past a turn the numbers run
+   further than that, and the colour would otherwise saturate and stop
+   distinguishing anything. */
+const gCls=v=>v>=0.5?'g4':v>=0.15?'g3':v>-0.15?'g2':v>-0.5?'g1':'g0';
+const pct=v=>`${v>0?'+':''}${Math.round(v*100)}`;
+/* ONE TURN OR TWO, AND NOT THREE.
+   The search handles three and finishes in 29 ms, and it was offered. The
+   verdict on it: "a bit unintuitive at that point when displayed this way",
+   which is right, and the reason is worth writing down. Three turns of
+   equilibrium play is a much stronger claim than two -- it assumes both sides
+   keep playing the mix for three turns -- and the numbers stop reading as
+   Pokemon-equivalents you can picture. It also buys little: the sweep across
+   every documented fight shows the recommendation moving at 1 -> 2 and
+   settling after. So the depth that fixed the horizon is offered, and the one
+   that only adds confidence in a bigger assumption is not. */
+const DEPTHS=[{d:1,label:'1 turn'},{d:2,label:'2 turns'}];
+
+function gamePanel(me,o,pool,theirRest){
+  const g=turnGame(me,o,(pool||[]).filter(m=>m.name!==me.name),theirRest,gDepth);
+  const picker=`<div class="navrow gdepth"><span class="lbl">look ahead</span>${
+    DEPTHS.map(x=>`<button class="minibtn${gDepth===x.d?' on':''}" data-gd="${x.d}"
+      type="button">${x.label}</button>`).join('')}</div>`;
+  if(!g) return `<div class="gpanel">${picker}<p class="note">This fight's roster does not
+    document ${esc(o.n)}'s moves, so there is no board to solve. Every gym leader,
+    Elite Four member and champion does; most route rivals do not.</p></div>`;
+  const R=gameRead(g), {rows,cols,A}=g;
+
+  /* CAN THEY TAKE YOU OUT THIS TURN. Asked separately from the payoff, because
+     it is a different question and the one that decides a nuzlocke: the board
+     can say "you come out ahead" about a turn you do not survive. Only their
+     MOVES can do it -- a switch cannot. */
+  const lethal=cols.filter(c=>c.kind==='move')
+    .map(c=>({mv:c.mv,d:calcIncoming(o,c.mv,me)}))
+    .filter(c=>c.d&&c.d.pctHi>=100)
+    .sort((a,b)=>b.d.pctLo-a.d.pctLo);
+  const certain=lethal.filter(c=>c.d.pctLo>=100);
+
+  let verdict, vcls;
+  if(R.dominant>=0){
+    /* Several rows can tie for it -- three moves that all one-shot are all
+       equally safe. Naming one would read as a claim that the others are
+       worse, so they are all named. */
+    const names=R.dom.map(i=>`<b>${esc(rows[i].label)}</b>`);
+    verdict=`${names.length>1
+      ? `${names.slice(0,-1).join(', ')} and ${names[names.length-1]} are all safe`
+      : `${names[0]} is safe`} — at least as good as anything else you could do,
+      against everything they can do.`;
+    vcls='ok';
+  }else if(R.saddle){
+    verdict=`<b>${esc(rows[R.best].label)}</b> is the move, and they have no
+      punish for it — this turn has a settled answer.`;
+    vcls='ok';
+  }else{
+    const mix=(R.sol?R.sol.x:[]).map((p,i)=>({p,i})).filter(m=>m.p>0.02)
+      .sort((a,b)=>b.p-a.p);
+    verdict=`No safe move — whatever you pick, there is something they can do to
+      punish it. The equilibrium is a mix:
+      ${mix.map(m=>`<b>${esc(rows[m.i].label)}</b> ${Math.round(m.p*100)}%`).join(' · ')}.`;
+    vcls='warn';
+  }
+
+  /* Their best reply to the row you are being pointed at. "Who would they
+     switch into" was the question the one-turn board could not even ask,
+     because their switches were not on it. */
+  const bestRow=A[R.best]||[];
+  const jWorst=bestRow.indexOf(Math.min(...bestRow));
+  const theirBest=cols[jWorst];
+
+  const head=cols.map(c=>{
+    if(c.kind==='switch') return `<th class="gsw" title="They switch to ${esc(c.mon)}">
+      ${spr(c.mon)}<span class="gmv">${esc(c.mon)}</span><span class="gacc">switch</span></th>`;
+    const d=MOVES[c.mv]||{};
+    return `<th title="${esc(c.mv)}${d.p?` · ${d.p} power`:''}${d.acc?` · ${d.acc}% accurate`:''}">
+      <span class="gmv">${esc(c.mv)}</span>${d.t?ico(d.t):''}
+      ${d.acc&&d.acc<100?`<span class="gacc">${d.acc}%</span>`:''}</th>`;}).join('');
+
+  const body=rows.map((r,i)=>{
+    const worst=Math.min(...A[i]);
+    return `<tr${Math.abs(R.mins[i]-R.secure)<1e-9?' class="gbest"':''}>
+      <th scope="row">${r.kind==='switch'?`${spr(r.mon)}<span class="gsw">switch to
+        ${esc(r.mon)}</span>`:`<span class="gmv">${esc(r.mv)}</span>${
+        MOVES[r.mv]&&MOVES[r.mv].t?ico(MOVES[r.mv].t):''}`}</th>
+      ${A[i].map((v,j)=>`<td class="${gCls(v)}${Math.abs(v-worst)<1e-9?' gworst':''}"
+        title="You ${esc(r.label)}, they ${esc(cols[j].label)} — ${pct(v)} after ${
+          g.depth} turn${g.depth>1?'s':''}${
+          Math.abs(v-worst)<1e-9?', and it is the worst they can do to that choice':''}">${
+          pct(v)}</td>`).join('')}
+      <td class="gmin ${gCls(worst)}">${pct(worst)}</td></tr>`;}).join('');
+
+  const horizon=g.depth===1?'after this turn':`${g.depth} turns from now`;
+  return `<div class="gpanel">
+    ${picker}
+    <p class="gverdict ${vcls}">${verdict}</p>
+    <p class="gsurv ${certain.length?'bad':lethal.length?'warn':'ok'}">${
+      certain.length
+        ? `<b>${esc(certain[0].mv)} takes you out this turn</b> — ${
+            certain[0].d.pctLo.toFixed(0)}–${certain[0].d.pctHi.toFixed(0)}% of your HP, no roll saves you.`
+        : lethal.length
+        ? `<b>${esc(lethal[0].mv)} can take you out</b> on a high roll — ${
+            lethal[0].d.pctLo.toFixed(0)}–${lethal[0].d.pctHi.toFixed(0)}%.`
+        : `Nothing they have takes you out this turn.`}${
+      theirBest?` Their best answer to it is <b>${esc(theirBest.label)}</b>.`:''}</p>
+    <div class="gwrap"><table class="gtab">
+      <thead><tr><th class="gcorner">you ╲ them</th>${head}<th class="gmin">worst</th></tr></thead>
+      <tbody>${body}</tbody></table></div>
+    <div class="gkey">
+      <div class="gscale"><span class="g0">−100</span><span class="g1">−50</span
+        ><span class="g2">0</span><span class="g3">+50</span><span class="g4">+100</span></div>
+      <div class="gscale gkeytxt"><span>you lose one</span><span>losing the trade</span
+        ><span>even</span><span>winning it</span><span>you take one</span></div>
+    </div>
+    <p class="gnote"><b>Reading it.</b> A row is a thing you could do; a column is
+      a thing they could do. The cell is how the battle stands <b>${horizon}</b> if
+      you both pick that, in <b>whole Pokémon</b>: +100 means you are one Pokémon
+      ahead on the exchange, −100 that you are one behind${
+      g.depth>1?', and past one turn it can run further than either':''}.
+      Read <b>across</b> a row to see how that choice can go, and read the
+      <b>worst</b> column to see how badly. The row that is ringed has the least
+      bad worst case, so picking it guarantees you at least <b>${pct(R.secure)}</b>
+      whatever they choose. Inside each row, the outlined cell is the answer they
+      would pick.</p>
+    <details class="gwhy"><summary>Why a grid, and what it assumes</summary>
+      <p class="gnote">A turn is <b>simultaneous</b>: you both commit before either
+        of you sees the other's choice. That makes it a game rather than a
+        calculation, and it is why "how much damage does this move do" is not
+        quite the question — the answer depends on what they picked. A grid is the
+        honest object, and it can say the one thing a per-move calculator cannot:
+        whether a move is right <b>regardless</b>.</p>
+      <p class="gnote">Looking further than one turn makes it a <b>Markov game</b>,
+        and the value of a position is the value of the grid whose cells are the
+        values of the positions it leads to. That recursion is the whole of the
+        depth control. It is also the only way a <b>switch</b> can ever look
+        right: over a single turn a switch deals nothing and takes a hit, so its
+        score is never positive — everything it buys you happens on the turn
+        after.</p>
+      <p class="gnote"><b>Stat stages are modelled</b>, which is what lets a
+        Dragon Dance or a Nasty Plot be worth anything: a boost rides the
+        position, scales the damage and the turn order, and is lost the moment
+        that Pokémon switches out. The cost side counts too — Draco Meteor's
+        −2 Sp. Atk and Close Combat's dropped defences are charged to the turn
+        after. <b>Not modelled:</b> status conditions, held-item triggers,
+        recoil and healing. Damage is the average roll and assumes the move
+        hits, so one joint choice leads to one position rather than a spread —
+        that is the assumption that makes the search finish. Accuracy is printed in the
+        header rather than folded in; a crit is not modelled; a speed tie goes to
+        them. ${g.undocumented?`${g.undocumented} of their team ${
+          g.undocumented===1?'has':'have'} no documented moves and ${
+          g.undocumented===1?'is':'are'} left out of their switches rather than
+          treated as harmless. `:''}Their spread is this page's standing
+        assumption — 31 IVs, 0 EVs, neutral nature — and yours is real, out of the
+        save.${g.capped?' This search hit its node budget and fell back to the shallow estimate in places.':''}</p>
+    </details>
+  </div>`;
+}
+
+function mechBar(team){
+  return `<p class="lbl" style="margin:0 0 8px">battle conditions — these change every number below</p>
+    <div class="mechbar">${(team.mech||[]).map(k=>`<button class="minibtn${mechOn[k]?' on':''}"
+      data-mech="${k}" title="${esc(MECH[k].hint)}">${esc(MECH[k].label)}</button>`).join('')
+      ||'<span class="note">No weather or room mechanics on this team.</span>'}</div>`;
+}
+
+const KIND_LABEL={gym:'gym',elite:'elite four',rival:'rival',n:'N',plasma:'plasma',champion:'champion',story:'story'};
+
+function battleIndex(){
+  const counts={};
+  OPPONENTS.forEach(e=>{counts[e.kind]=(counts[e.kind]||0)+1;});
+  const kinds=['all',...Object.keys(KIND_LABEL).filter(k=>counts[k])];
+  const filters=kinds.map(k=>`<button class="minibtn${encFilter===k?' on':''}" data-kf="${k}" type="button">${
+    k==='all'?`all ${OPPONENTS.length}`:`${KIND_LABEL[k]} ${counts[k]}`}</button>`).join('');
+
+  const cards=OPPONENTS.map((e,i)=>{
+    if(encFilter!=='all'&&e.kind!==encFilter) return '';
+    const my=myLevel();
+    const gap=(e.lvmax&&my)?e.lvmax-my:null;
+    const gapTxt=gap===null?'max lv':gap>0?`you are ${gap} under`:gap<0?`you are ${-gap} over`:'level with you';
+    const gapCls=gap===null?'':gap>=6?'gap-bad':gap>0?'gap-warn':'gap-ok';
+    const lv=e.lvmax?`<b>${e.lvmax}</b><span class="${gapCls}">${gapTxt}</span>`
+                    :`<b>—</b><span>lv n/a</span>`;
+    const sprites=e.team.map(o=>SPRITE[o.n]
+      ? `<img class="${o.variant==='no'?'no':''}" src="${SPRITE[o.n]}" alt="${esc(o.n)}" title="${esc(o.n)}${o.l?' L'+esc(o.l):''}">`
+      : '').join('');
+    const isNext=i===nextFight();
+    return `<button class="bcard${cleared[cKey(e)]?' past':''}${isNext?' next':''}" aria-current="${i===encIdx}" data-enc="${i}" type="button">
+      <div class="btop"><span class="bord">#${String(i+1).padStart(2,'0')}</span>
+        <span class="kchip k-${e.kind}">${KIND_LABEL[e.kind]}</span>
+        ${cleared[cKey(e)]?'<span class="kchip k-done">done</span>':isNext?'<span class="kchip k-next">next up</span>':''}
+        <span class="blv">${lv}</span></div>
+      <div class="bwho">${face(e)}<div><div class="bname">${esc(e.leader)}</div>
+        ${e.cls?`<div class="bcls">${esc(e.cls)}</div>`:''}
+        ${e.loc?`<div class="bloc">${esc(e.loc)}</div>`:''}</div></div>
+      <div class="bteam">${sprites}</div>
+      <span class="donebtn" data-done="${i}" role="button" tabindex="0">${
+        cleared[cKey(e)]?'✓ cleared — undo':'mark cleared'}</span></button>`;}).join('');
+
+  return `<details class="big" id="bidxwrap"${encIdxOpen?' open':''}>
+    <summary>Battle index <span class="sub">— all ${OPPONENTS.length} important fights, in story order</span></summary>
+    <div class="bigbody">
+      <p class="note" style="font-style:normal">The big number is the fight's <b>highest level</b> — treat it as
+      the level you want to be at. Click any card to load it into the planner below.</p>
+      <div class="navrow">${filters}</div>
+      <div class="bidx">${cards}</div>
+    </div></details>`;
+}
+
+// --- 2. THREAT BOARD: one card per enemy, sorted worst-first, so the fight
+// reads as "look at the red one" rather than "read six rows".  Status colour
+// always ships with a word, never colour alone.
+// --- 4 & 5. RING CHARTS.  One shared geometry helper: 17 type spokes around a
+// circle.  Single series each, so no legend box -- the title names it.
+const RING_R=104, RING_C=132;
+function ringPt(i,n,r){const a=(i/n)*Math.PI*2-Math.PI/2;
+  return [RING_C+Math.cos(a)*r, RING_C+Math.sin(a)*r];}
+function ringChart(vals,opts){
+  const n=TYPES.length, o=opts||{};
+  const scale=v=>Math.max(0.06,Math.min(1,v/(o.max||4)));
+  const pts=TYPES.map((t,i)=>ringPt(i,n,RING_R*scale(vals[t]))).map(p=>p.map(x=>x.toFixed(1)).join(',')).join(' ');
+  const rings=[0.25,0.5,0.75,1].map(f=>`<circle cx="${RING_C}" cy="${RING_C}" r="${(RING_R*f).toFixed(1)}"
+    fill="none" stroke="var(--grid)" stroke-width="1"/>`).join('');
+  const spokes=TYPES.map((t,i)=>{const [x,y]=ringPt(i,n,RING_R);
+    return `<line x1="${RING_C}" y1="${RING_C}" x2="${x.toFixed(1)}" y2="${y.toFixed(1)}"
+      stroke="var(--grid)" stroke-width="1"/>`;}).join('');
+  const labels=TYPES.map((t,i)=>{const [x,y]=ringPt(i,n,RING_R+15);
+    return `<text x="${x.toFixed(1)}" y="${(y+3).toFixed(1)}" text-anchor="middle"
+      font-size="8.5" fill="var(--axis)" font-family="ui-monospace,monospace">${t.slice(0,3)}</text>`;}).join('');
+  const dots=TYPES.map((t,i)=>{const [x,y]=ringPt(i,n,RING_R*scale(vals[t]));
+    return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="4" fill="${o.color}"
+      stroke="var(--card)" stroke-width="2"><title>${t}: ${o.fmt?o.fmt(vals[t]):vals[t]}</title></circle>`;}).join('');
+  return `<svg viewBox="0 0 264 264" role="img" class="ringsvg"
+    aria-label="${esc(o.label||'')}">${rings}${spokes}
+    <polygon points="${pts}" fill="${o.color}" fill-opacity="0.18" stroke="${o.color}" stroke-width="2"/>
+    ${dots}${labels}</svg>`;
+}
+function defenceRadar(pool){
+  const v={}; TYPES.forEach(t=>{v[t]=Math.max(...pool.map(m=>eff(t,m)),0);});
+  return ringChart(v,{color:'var(--s1)',max:4,label:'worst damage taken per type',fmt:x=>'×'+x});
+}
+// What to DO about the shape: the worst hits, and the types nobody absorbs.
+function defenceTakeaway(pool){
+  const rows=TYPES.map(t=>{
+    const worst=pool.reduce((a,m)=>eff(t,m)>eff(t,a)?m:a,pool[0]);
+    return {t,max:eff(t,worst),who:worst.name,
+            resists:pool.filter(m=>eff(t,m)<1).length};});
+  const quad=rows.filter(r=>r.max>=4).sort((a,b)=>b.max-a.max);
+  const naked=rows.filter(r=>r.max>1&&!r.resists).sort((a,b)=>b.max-a.max);
+  const safe=rows.filter(r=>r.max<=1).length;
+  const bits=[];
+  if(quad.length) bits.push(`<b>×4 danger:</b> ${quad.map(r=>`${r.t} on ${esc(r.who)}`).join(', ')} — never lead them into it.`);
+  if(naked.length) bits.push(`<b>No switch-in:</b> ${naked.slice(0,4).map(r=>r.t).join(', ')} — nothing on this six resists ${naked.length>1?'these':'it'}, so you have to out-damage ${naked.length>1?'them':'it'}.`);
+  bits.push(`${safe} of 17 types can’t hurt anyone here worse than ×1.`);
+  return `<p class="takeaway">${bits.join(' ')}</p>`;
+}
+function offenceVals(pool){
+  const v={}; TYPES.forEach(t=>{v[t]=0;});
+  pool.forEach(m=>m.moves.forEach(mv=>{const d=MOVES[mv];
+    if(!d||d.c==='status')return;
+    TYPES.forEach(t=>{const x=CHART[d.t][t]; if(x>v[t]) v[t]=x;});}));
+  return v;
+}
+function offenceRing(pool){
+  return ringChart(offenceVals(pool),{color:'var(--s2)',max:2,
+    label:'best multiplier you can hit each type for',fmt:x=>'×'+x});
+}
+function offenceTakeaway(pool){
+  const v=offenceVals(pool);
+  const cold=TYPES.filter(t=>v[t]<=0.5), flat=TYPES.filter(t=>v[t]===1);
+  const bits=[];
+  if(cold.length) bits.push(`<b>Resisted everywhere:</b> ${cold.join(', ')} — you have no move that gets past ${cold.length>1?'these':'it'}. Bring a swap or stall.`);
+  if(flat.length) bits.push(`<b>Only neutral:</b> ${flat.slice(0,6).join(', ')}${flat.length>6?` +${flat.length-6}`:''} — beatable, just slowly.`);
+  bits.push(`${TYPES.filter(t=>v[t]>=2).length} of 17 types you hit super-effectively.`);
+  return `<p class="takeaway">${bits.join(' ')}</p>`;
+}
+
+// --- 6. LEVEL CURVE.  Your level against every documented fight, in story
+// order.  Two series, so the legend is always present and both are direct-
+// labelled.  One y-axis only: both series are levels, same scale.
+function levelCurve(pool){
+  const pts=OPPONENTS.map((e,i)=>({i,lv:e.lvmax,name:e.leader,kind:e.kind}))
+                     .filter(p=>p.lv);
+  if(pts.length<2) return '';
+  const my=Math.max(...pool.map(m=>m.lvl||0),1);
+  const W=660,H=250,PL=34,PR=14,PT=14,PB=26;
+  const maxLv=Math.max(100,...pts.map(p=>p.lv));
+  const x=i=>PL+(i/(OPPONENTS.length-1))*(W-PL-PR);
+  const y=v=>PT+(1-v/maxLv)*(H-PT-PB);
+  const path=pts.map((p,k)=>`${k?'L':'M'}${x(p.i).toFixed(1)},${y(p.lv).toFixed(1)}`).join('');
+  const grid=[0,25,50,75,100].map(v=>`<line x1="${PL}" y1="${y(v).toFixed(1)}" x2="${W-PR}" y2="${y(v).toFixed(1)}"
+      stroke="var(--grid)" stroke-width="1"/>
+    <text x="${PL-6}" y="${(y(v)+3).toFixed(1)}" text-anchor="end" font-size="9"
+      fill="var(--axis)" font-family="ui-monospace,monospace">${v}</text>`).join('');
+  const dots=pts.map(p=>`<circle cx="${x(p.i).toFixed(1)}" cy="${y(p.lv).toFixed(1)}" r="4"
+      fill="var(--s2)" stroke="var(--card)" stroke-width="2">
+      <title>${esc(p.name)} — level ${p.lv}</title></circle>`).join('');
+  const first=pts[0], last=pts[pts.length-1];
+  return `<div class="curve">
+    <div class="lgnd"><span><i style="background:var(--s1)"></i>your level (${my})</span>
+      <span><i style="background:var(--s2)"></i>fight level</span></div>
+    <svg viewBox="0 0 ${W} ${H}" width="100%" role="img"
+      aria-label="your level against each fight's level, in story order">
+      ${grid}
+      <line x1="${PL}" y1="${y(my).toFixed(1)}" x2="${W-PR}" y2="${y(my).toFixed(1)}"
+        stroke="var(--s1)" stroke-width="2" stroke-dasharray="5 4"/>
+      <text x="${W-PR}" y="${(y(my)-6).toFixed(1)}" text-anchor="end" font-size="10"
+        fill="var(--s1)" font-family="ui-monospace,monospace" font-weight="700">you · ${my}</text>
+      <path d="${path}" fill="none" stroke="var(--s2)" stroke-width="2"
+        stroke-linejoin="round" stroke-linecap="round"/>
+      ${dots}
+      <text x="${x(first.i).toFixed(1)}" y="${H-8}" font-size="9" fill="var(--axis)"
+        font-family="ui-monospace,monospace">#1</text>
+      <text x="${(W-PR).toFixed(1)}" y="${H-8}" text-anchor="end" font-size="9" fill="var(--axis)"
+        font-family="ui-monospace,monospace">#${OPPONENTS.length} · ${esc(last.name)}</text>
+    </svg>
+    <p class="abkey">${pts.filter(p=>p.lv>my).length} of ${pts.length} documented fights are above your
+      current level. ${OPPONENTS.length-pts.length} more have no level in Drayano's tables.</p>
+  </div>`;
+}
+
+function threatBoard(pool,e){
+  const cards=e.team.map(o=>{
+    const om=oppMon(o), ot=om.types;
+    /* Your best answer: the (Pokémon, move) that takes the most off it. */
+    let bestOut=null;
+    pool.forEach(m=>(m.moves||[]).forEach(mv=>{
+      const d=calcDamage(m,mv,om);
+      if(d&&(!bestOut||d.pctLo>bestOut.d.pctLo)) bestOut={m,mv,d};
+    }));
+    /* WHAT IT DOES BACK, to that exact Pokémon.
+       The board used to compute a `worstIn` type multiplier against your whole
+       team and then throw it away, so a "threat board" said nothing about the
+       threat -- only about your answer. It now costs the pairing the card is
+       actually recommending: if you bring Excadrill, this is what Excadrill
+       takes. calcIncoming() did not exist when this was first written. */
+    const target=bestOut?bestOut.m:null;
+    let bestIn=null;
+    if(target) (o.m||[]).filter(mv=>MOVES[mv]).forEach(mv=>{
+      const d=calcIncoming(o,mv,target);
+      if(d&&(!bestIn||d.pctHi>bestIn.d.pctHi)) bestIn={mv,d};
+    });
+    /* Rivals and N carry no documented moves -- their rosters come from the
+       ROM's trainer table rather than Drayano's doc. Fall back to the type
+       read, which is what this board always showed, and SAY it is one. */
+    let typeIn=0;
+    if(target) ot.forEach(ty=>{const x=eff(ty,target); if(x>typeIn) typeIn=x;});
+    const es=enemySpe(o), ms=target?spdOf(target):null;
+    const first=(es==null||ms==null)?null:(trOn()?ms<es:ms>es);
+
+    const youKO=!!bestOut&&bestOut.d.pctLo>=100;
+    const you2=!!bestOut&&bestOut.d.pctLo>=50;
+    const theyKO=!!bestIn&&bestIn.d.pctHi>=100;
+    /* Worst first, and the word always carries the meaning -- colour alone
+       never does. `rank` ascends with safety so the sort is one comparison. */
+    let state,word,rank;
+    if(theyKO&&first===false){ state='bad'; word='it kills you first'; rank=0; }
+    else if(theyKO){ state='bad'; word='it can kill back'; rank=1; }
+    else if(!bestOut){ state='bad'; word='nothing connects'; rank=2; }
+    else if(!you2){ state='bad'; word='slow to kill'; rank=3; }
+    else if(!youKO){ state='warn'; word='takes two turns'; rank=4; }
+    else if(first===false){ state='warn'; word='OHKO, but second'; rank=5; }
+    else { state='ok'; word='OHKO, and first'; rank=6; }
+    return {o,om,ot,bestOut,bestIn,typeIn,first,state,word,rank};
+  }).sort((a,b)=>a.rank-b.rank);
+
+  const legend=`<div class="tlegend">
+    <span><i class="t-bad"></i>it can take one of yours out</span>
+    <span><i class="t-warn"></i>you win it, but not cleanly</span>
+    <span><i class="t-ok"></i>you knock it out and move first</span></div>`;
+
+  const koChip=(d,cls)=>d&&d.ko?`<span class="tko ${cls}">${esc(d.ko)}</span>`:'';
+
+  /* A column count that leaves no orphan row. Six as 3+3, four as 2+2, three
+     in a line; five is 3+2, which is the least bad a prime allows. */
+  const n=cards.length;
+  const cols=n<=3?Math.max(1,n):(n%3===0?3:(n%2===0?2:3));
+  return legend+`<div class="threats" style="--tcols:${cols}">${cards.map(c=>`<div class="tcard2 t-${c.state}">
+      <div class="thead">${spr(c.o.n,'osp')}
+        <div class="tid"><div class="mname">${esc(c.o.n)}</div>
+          <div class="tmeta">L${esc(c.o.l||'?')} · ${esc(c.o.a||'—')}${
+            c.o.i&&c.o.i!=='-'?' · @'+esc(c.o.i):''}</div>
+          <div class="ttypes">${c.ot.map(ico).join('')}</div></div></div>
+      <div class="tverdict k-${c.state}">${esc(c.word)}</div>
+      ${c.bestOut?`
+      <div class="tduel">
+        <div class="tside">
+          <span class="tk">you bring</span>
+          <span class="tv">${spr(c.bestOut.m.name)}<b>${esc(c.bestOut.m.name)}</b>
+            <span class="tmv">${esc(c.bestOut.mv)}</span></span>
+          <span class="tbar">${hpBar(c.bestOut.d)}<span class="dmg">${
+            dmgTxt(c.bestOut.d)}</span>${koChip(c.bestOut.d,'good')}</span>
+        </div>
+        <div class="tord ${c.first===null?'':c.first?'f':'s'}">${
+          c.first===null?'speed ?':c.first?'▲ you move first':'▼ it moves first'}</div>
+        <div class="tside">
+          <span class="tk">it answers</span>
+          ${c.bestIn?`<span class="tv"><b>${esc(c.bestIn.mv)}</b>
+              <span class="tmv">into ${esc(c.bestOut.m.name)}</span></span>
+            <span class="tbar">${hpBar(c.bestIn.d)}<span class="dmg">${
+              dmgTxt(c.bestIn.d)}</span>${koChip(c.bestIn.d,'bad')}</span>`
+            :`<span class="tv"><span class="mult ${MCLASS(c.typeIn)}">${MTXT(c.typeIn)}</span>
+              <span class="tmv">on ${esc(c.bestOut.m.name)}</span></span>
+             <span class="tbar lbl">type read only — this fight's roster does not
+               document its moves</span>`}
+        </div>
+      </div>`
+      :'<div class="tduel"><div class="tside"><span class="tk">you bring</span>'
+       +'<span class="tv"><b>nothing that connects</b></span></div></div>'}
+    </div>`).join('')}</div>`;
+}
+
+// --- 3. SPEED LADDER: both sides on ONE axis, so who-outruns-whom is spatial
+// rather than arithmetic.  Two series, so a legend is always present.
+function speedLadder(pool,e){
+  const mine=pool.map(m=>({n:m.name,s:spdOf(m),mine:true}));
+  const theirs=e.team.map(o=>{const b=(DEX[o.n]||{}).b, l=parseInt(o.l,10)||50;
+    return b?{n:o.n,s:Math.floor((2*b[5]+31)*l/100)+5,mine:false}:null;}).filter(Boolean);
+  const all=[...mine,...theirs];
+  if(!all.length) return '';
+  const hi=Math.max(...all.map(x=>x.s),1), lo=Math.min(...all.map(x=>x.s));
+  const span=Math.max(1,hi-lo);
+  const inv=trOn();
+  const rows=[...all].sort((a,b)=>inv?a.s-b.s:b.s-a.s);
+  const slowest=Math.min(...mine.map(x=>x.s));
+  const beaten=theirs.filter(t=>inv?t.s>slowest:t.s<slowest).length;
+  return `<div class="ladder">
+    <div class="lgnd"><span><i style="background:var(--s1)"></i><b>YOU</b></span>
+      <span><i style="background:var(--s2)"></i><b>THEM</b></span>
+      <span class="lbl">${inv?'Trick Room active — slowest moves first'
+        :`even your slowest outruns ${beaten} of their ${theirs.length}`}</span></div>
+    ${rows.map(x=>`<div class="lrow ${x.mine?'me':'opp'}">
+      <span class="lside">${x.mine?'YOU':'THEM'}</span>
+      <span class="lname">${spr(x.n)}${esc(x.n)}</span>
+      <span class="ltrack"><i style="width:${Math.max(3,Math.round((x.s-lo)/span*100))}%;
+        background:${x.mine?'var(--s1)':'var(--s2)'}"></i></span>
+      <span class="lval">${x.s}</span></div>`).join('')}
+  </div>`;
+}
+
+function encounterPanel(mons,team){
+  const list=OPPONENTS, e=list[Math.min(encIdx,list.length-1)];
+  const active=mons.filter(m=>!benched[m.name]);
+  const pool=active.length?active:mons;
+  const cap=fmt==='doubles'?2:1;
+  fieldE=fieldE.filter(n=>e.team.some(o=>o.n===n)).slice(0,cap);
+  fieldM=fieldM.filter(n=>pool.some(m=>m.name===n)).slice(0,cap);
+
+  const chips=mons.map(m=>`<button class="pchip${benched[m.name]?' off':''}" data-bench="${esc(m.name)}">
+     ${spr(m.name)}<span>${esc(m.name)}</span></button>`).join('');
+
+  const score=pool.map(m=>{
+    let walls=0,hits=0;
+    e.team.forEach(o=>{const d=DEX[o.n]; if(!d)return;
+      const om=oppMon(o);
+      if(Math.max(...d.t.map(t=>eff(t,m)))<1) walls++;
+      let b=0; m.moves.forEach(mv=>{const mm=MOVES[mv]; if(!mm||mm.c==='status')return;
+        b=Math.max(b,dealTo(mm.t,om));});
+      if(b>=2) hits++;});
+    return {m,walls,hits,v:hits*2+walls};
+  }).sort((a,b)=>b.v-a.v);
+
+  const theirTeam=e.team.map(o=>{
+    const om=oppMon(o), ot=om.types;
+    const rows=ot.length?rankRows(pool,ot,om):[];
+    const wall=rows[0], hit=rows.length?[...rows].sort((a,b)=>b.deals-a.deals)[0]:null;
+    return `<details class="omonD${o.variant==='no'?' dim':''}"><summary>
+        ${spr(o.n,'osp')}<span class="oname">${esc(o.n)}</span>
+        <span class="olv">${o.l?'L'+esc(o.l):''}</span>${ot.map(ico).join('')}
+        ${o.variant==='no'?'<span class="lbl">other starter</span>':''}
+        <span class="olv">${esc(o.a||'')}${o.i&&o.i!=='-'?' @'+esc(o.i):''}</span>
+        <span class="oans">${wall?`<span class="lbl">wall</span>${spr(wall.m.name)}
+          <span class="mult ${MCLASS(wall.takes)}">${MTXT(wall.takes)}</span>`:''}
+          ${hit?`<span class="lbl">hit</span>${spr(hit.m.name)}
+          <span class="mult ${MCLASS(hit.deals)}">${MTXT(hit.deals)}</span>${
+            hit.dmg?`<span class="dmg">${dmgTxt(hit.dmg)}</span>`:''}`:''}</span></summary>
+      <div class="odetail">
+        ${o.m&&o.m.length?`<p class="omoves">${o.m.map(esc).join(' · ')}</p>`:''}
+        ${rows.length?rankHTML(rows):'<p class="note">No typing data.</p>'}</div></details>`;
+  }).join('');
+
+  const eBtns=e.team.map(o=>`<button class="fbtn${fieldE.includes(o.n)?' on':''}" data-fe="${esc(o.n)}">
+      ${spr(o.n)}<span>${esc(o.n)}</span></button>`).join('');
+  const mBtns=pool.map(m=>`<button class="fbtn${fieldM.includes(m.name)?' on':''}" data-fm="${esc(m.name)}">
+      ${spr(m.name)}<span>${esc(m.name)}</span></button>`).join('');
+  const cards=fieldM.map(mn=>{const me=pool.find(x=>x.name===mn); if(!me) return '';
+    const tot=(me.stats||[0]).reduce((a,b)=>a+b,0);
+    // The same what-if control the roster carries. Evaluating a fight is
+    // exactly when you want it -- "does Dragon Dance let me outspeed this" is
+    // the question the mock exists to answer -- and boostRow() feeds the same
+    // bState, so the damage, the speed order and the matrices all move
+    // together. Empty for a Pokémon that knows no stat move.
+    return `<div class="mcard"><div class="mhead">${spr(me.name)}
+        <div><div class="mname">${esc(me.name)}</div>
+        <div class="lbl">spe ${spdOf(me)} · total ${tot}</div></div></div>
+      ${boostRow(me)}
+      ${fieldE.map(en=>{const o=e.team.find(x=>x.n===en); return o?matchLine(me,o):'';}).join('')}
+    </div>`;}).join('');
+
+  const lvTxt=e.lvmax?(e.lvmin&&e.lvmin!==e.lvmax?`L${e.lvmin}–${e.lvmax}`:`L${e.lvmax}`):'levels not documented';
+  return `<div class="panel" id="encpanel">
+    <div class="mechwrap">${mechBar(team)}</div>
+    <div class="navrow">
+      <button class="minibtn" id="encprev" type="button">◀ prev</button>
+      <select id="encsel">${list.map((x,i)=>`<option value="${i}"${i===encIdx?' selected':''}>
+        ${esc(x.leader)}${x.loc?' — '+esc(x.loc):''}</option>`).join('')}</select>
+      <button class="minibtn" id="encnext" type="button">next ▶</button>
+      <span class="lbl">${encIdx+1} of ${list.length}</span>
+    </div>
+    <p class="oppline">${face(e,'big')}<span class="kchip k-${e.kind}">${KIND_LABEL[e.kind]}</span>
+      <b>${esc(e.leader)}</b>${e.cls?`<span class="lbl">${esc(e.cls)}</span>`:''}${
+      e.loc?`<span class="lbl">${esc(e.loc)}</span>`:''}
+      <span class="mult ${e.lvmax?'m2':'m1'}">${lvTxt}</span>
+      <span class="lbl">${e.team.length} Pokémon</span>
+      ${e.type?`<span class="lbl">${esc(e.type)}</span>`:''}
+      ${e.reward?`<span class="lbl">reward ${esc(e.reward)}</span>`:''}
+</p>
+    ${e.note?`<p class="note">${e.note}</p>`:''}
+    <div class="navrow" style="margin-top:10px">
+      <span class="lbl">your notes</span>
+      <input id="encnote" value="${esc(encNotes[encIdx]||'')}" placeholder="what beat you, what to bring…"
+        style="font:14px var(--sans);flex:1;min-width:220px;padding:9px 11px;border-radius:9px;
+        border:1px solid var(--rule);background:var(--card-3);color:var(--ink)">
+      <button class="minibtn${cleared[cKey(e)]?' on':''}" id="encdone" type="button">${
+        cleared[cKey(e)]?'✓ cleared':'mark cleared'}</button>
+    </div>
+
+    <h4 class="subhead">Your six
+      <span>click any one to bench it — every number below recomputes</span></h4>
+    <div class="subbody"><div class="pchips">${chips}</div></div>
+
+    <h4 class="subhead">Most useful in this fight</h4>
+    <div class="subbody"><div class="rank">${score.map((s,i)=>`<div class="rrow${i===0?' best':''}">${spr(s.m.name)}
+      <span class="rn">${esc(s.m.name)}</span>
+      <span class="lbl">walls</span><span class="mult ${s.walls?'m5':'m1'}">${s.walls}/${e.team.length}</span>
+      <span class="spacer"></span><span class="lbl">hits hard</span>
+      <span class="mult ${s.hits?'m2':'m1'}">${s.hits}/${e.team.length}</span></div>`).join('')}</div></div>
+
+    <h4 class="subhead">Threat board
+      <span>every Pokémon they have, worst first · what you bring, what it does back, and who moves
+      first — the exchange you actually get if you follow the card</span></h4>
+    <div class="subbody">${threatBoard(pool,e)}</div>
+
+    <h4 class="subhead">Your move
+      <span>Choose ${cap===1?'one Pokémon':'two Pokémon'} on each side. You get that exact pairing
+      worked out — your hardest-hitting move, what it takes off them, who moves first — and then,
+      because neither of you can see the other's choice before committing, what is actually
+      <b>safe</b>. Use it to test a lead before you commit to one.</span></h4>
+    <div class="subbody">
+      <div class="navrow" style="margin-bottom:12px">
+        <span class="lbl">format</span>
+        <button class="minibtn${fmt==='singles'?' on':''}" data-fmt="singles" type="button">Singles</button>
+        <button class="minibtn${fmt==='doubles'?' on':''}" data-fmt="doubles" type="button">Doubles</button>
+        <span class="lbl">pick ${cap} on each side</span>
+      </div>
+      <p class="lbl">their side</p><div class="fbtns">${eBtns}</div>
+      <p class="lbl" style="margin-top:10px">your side</p><div class="fbtns">${mBtns}</div>
+      ${(fieldM.length&&fieldE.length)?`<div class="pairs">${cards}</div>`
+        :'<p class="note">Pick at least one on each side to see the plan.</p>'}
+      ${(fmt==='singles'&&fieldM.length===1&&fieldE.length===1)
+        ? gamePanel(pool.find(m=>m.name===fieldM[0]), e.team.find(x=>x.n===fieldE[0]), pool,
+            e.team.filter(x=>x.n!==fieldE[0]))
+        : (fieldM.length&&fieldE.length)
+        ? `<p class="note">${fmt==='doubles'
+            ? 'One Pokémon on each side to see what is safe. A doubles turn is a four-way simultaneous game and this does not model one — saying so beats solving the wrong game.'
+            : 'Exactly one on each side to see what is safe.'}</p>`
+        : ''}
+    </div>
+
+    <h4 class="subhead">Speed ladder
+      <span>both sides on one axis · anything below you moves after you</span></h4>
+    <div class="subbody">${speedLadder(pool,e)}</div>
+
+    <h4 class="subhead">Their team in detail
+      <span>click any one for the full per-Pokémon ranking</span></h4>
+    <div class="subbody"><div class="gbody">${theirTeam}</div></div>
+  </div>`;
+}
+
+function render(team){
+  const tid=team.id, mons=cur(team), baseWeak=weakCount(mons);
+  // one scale across every Pokemon on this tab, including swap options,
+  // so a bar means the same thing on every card
+  // Scale the bars against EFFECTIVE stats, not raw ones.  bars() renders the
+  // ability-adjusted number, so a raw maximum let Huge Power's 162 Attack draw
+  // a bar on a scale that topped out at 117 -- the bar simply ran off the end.
+  const SK=['hp','atk','def','spa','spd','spe'];
+  const effOf=o=>SK.map(k=>statOf(o.mon,k));
+  const gmax=Math.max(...team.slots.flatMap(s=>s.options.flatMap(o=>effOf(o))),1);
+  const tmax=Math.max(...team.slots.flatMap(s=>s.options.map(o=>effOf(o).reduce((a,b)=>a+b,0))),1);
+  const slots=team.slots.map((s,i)=>{
+    const ch=Math.min(pick[tid][i],s.options.length-1), m=s.options[ch].mon;
+    const branch=s.options.length>1?`<div class="branch"><p class="bl">swap this slot</p>
+      ${s.options.map((o,j)=>{
+        const test=mons.slice(); test[i]=o.mon;
+        const dw=weakCount(test)-baseWeak;
+        const cls=dw<0?'d-good':dw>0?'d-bad':'d-same';
+        const txt=j===ch?'currently selected':dw===0?'no change to team weaknesses'
+          :dw<0?`${-dw} fewer team weakness${dw===-1?'':'es'}`:`${dw} more team weakness${dw===1?'':'es'}`;
+        return `<button class="opt" aria-current="${j===ch}" data-s="${i}" data-o="${j}">
+          ${spr(o.mon.name,'sp')}<span><span class="on">${esc(o.mon.name)}</span><br>
+          <span class="od">${esc(o.mon.box)} · ${esc(o.mon.ab)}</span></span>
+          ${o.badge?`<span class="badge">${esc(o.badge)}</span>`:(j===0?'<span class="badge">default</span>':'')}
+          </button><span class="delta ${cls}">${txt}</span>
+          ${o.note?`<p class="optnote">${o.note}</p>`:''}
+          ${o.rigged?`<div class="rigged"><span class="rlab">Engineered</span><span>${o.rigged}</span></div>`:''}`;}).join('')}</div>`:'';
+    return `<div class="slot"><div class="card">
+      <div class="top"><span class="num">SLOT ${i+1}</span><span class="chip ${s.role}">${s.role}</span></div>
+      ${monBlock(m,s.why,gmax,tmax)}</div>${branch}</div>`;
+  }).join('');
+
+  const tgrid=TYPES.map(t=>{
+    const rows=rankRows(mons,[t]);
+    const wall=rows[0], hit=[...rows].sort((a,b)=>b.deals-a.deals)[0];
+    return `<details class="tcard"><summary>${ico(t)}<span class="tn">${t}</span>
+      <span class="pair">${spr(wall.m.name)}
+        <span class="mult ${MCLASS(wall.takes)}">${MTXT(wall.takes)}</span></span></summary>
+      <div class="tbody">${rankHTML(rows)}</div></details>`;}).join('');
+
+  const spd=mons.map(m=>({m,s:spdOf(m),base:m.stats?m.stats[5]:0}));
+  spd.sort((a,b)=>trOn()?a.s-b.s:b.s-a.s);
+
+  const mat=`<div class="matwrap"><table class="mat"><thead><tr><th></th>
+    ${mons.map(m=>`<th>${spr(m.name)}<span class="hn">${esc(m.name)}</span></th>`).join('')}</tr></thead>
+    <tbody>${TYPES.map(at=>`<tr><td class="tl">${ico(at)}${at}</td>
+      ${mons.map(m=>{const e=eff(at,m), ab=effAbil(at,m);
+        return `<td><span class="cell ${MCLASS(e)}"${ab?` title="${esc(ab)}"`:''}>${MTXT(e)}${
+          ab?'<sup class="abmark">a</sup>':''}</span></td>`;}).join('')}
+    </tr>`).join('')}</tbody></table></div>`;
+
+  document.getElementById('view').innerHTML=`
+   <div class="wrap">
+    <section class="zone" style="border-top:none;margin-top:0;padding-top:0">
+      <div class="panel strip"><h3>${esc(team.name)}</h3>
+      <p class="whereline">
+        <span class="lbl">core</span>
+        <b class="st-${esc(team.state||'')}">${team.state==='fielded'?'in your party'
+          :team.inParty?`${team.inParty} of ${team.coreN} in party, rest in ${esc((team.coreBoxes||[]).join(' + '))}`
+          :esc((team.coreBoxes||[]).join(' + ')||'not in the save')}</b>
+        ${(team.swapBoxes||[]).length?`<span class="lbl">swaps</span><b>${esc(team.swapBoxes.join(' + '))}</b>`:''}
+        <span id="fieldslot"></span></p>
+      <p class="tag">${esc(team.tagline)}</p>
+      <div class="pilot">${team.pilot.map(p=>`<div><dt>${esc(p.k)}</dt><dd>${p.v}</dd></div>`).join('')}</div>
+      ${team.rigged?`<div class="teamrig"><span class="rlab">Engineered team</span><span>${team.rigged}</span></div>`:''}
+      ${team.warn?`<p class="warnbar">${team.warn}</p>`:''}</div>
+    </section>
+    <section class="zone"><div class="zhead"><span class="znum">01</span><h2>Roster &amp; swaps</h2>
+      <span class="zsub">click any swap card to put it in the slot — everything below recomputes</span></div>
+      ${boostBanner()}
+      <div class="roster">${slots}</div></section>
+   </div>
+   <section class="zone alt"><div class="wrap" style="padding:0">
+     <div class="zhead"><span class="znum">02</span><h2>Combat reference</h2>
+       <span class="zsub">for when you do not know what is coming</span></div>
+     ${lookupPanel(mons)}
+     ${calcPanel(mons)}
+     <div style="display:flex;align-items:baseline;gap:14px;margin:22px 0 10px;flex-wrap:wrap">
+       <h3 class="zsub" style="margin:0;font-weight:700;font-size:15px">Every type — the sprite is your best switch-in; open for the full ranking</h3>
+       <button id="expall" type="button" class="minibtn">expand all</button></div>
+     <div class="tgrid" id="tgrid">${tgrid}</div>
+     <h3 class="zsub" style="margin:22px 0 10px;font-weight:700;font-size:15px">Full damage-taken matrix</h3>
+     ${mat}
+     ${(()=>{const used=[...new Set(mons.map(m=>m.ab)
+        .filter(a=>a==='Wonder Guard'||ABS_IMMUNE[a]||ABS_HALVE[a]||ABS_FILTER.has(a)))];
+       return used.length?`<p class="abkey">Cells marked <sup class="abmark">a</sup> are set by an
+         <b>ability</b>, not by typing — hover for which. In play here:
+         <b>${used.map(esc).join('</b>, <b>')}</b>.
+         ${mons.some(m=>m.ab==='Wonder Guard')?' <b>Wonder Guard</b> zeroes everything that is not '
+           +'super-effective, so most of that column is a genuine ×0.':''}</p>`:'';})()}
+
+     <h3 class="zsub" style="margin:22px 0 10px;font-weight:700;font-size:15px">Turn order</h3>
+     <div class="panel" style="margin-top:14px">
+       ${mechBar(team)}
+       <div class="speed" style="margin-top:12px">${spd.map((x,i)=>`${i?'<span class="arrow">›</span>':''}
+         <span class="sp">${spr(x.m.name)}<span class="n">${esc(x.m.name)}</span>
+         <span class="v">${x.s}${x.s!==x.base?` <span class="lbl">(${x.base})</span>`:''}</span></span>`).join('')}</div></div>
+
+   </div></section>
+   <div class="wrap">
+    <section class="zone"><div class="zhead"><span class="znum">03</span><h2>Known opponents</h2>
+      <span class="zsub">perfect information — pick a fight and test line-ups against it</span></div>
+      <div class="panel" style="margin-bottom:14px">
+        <h3 class="zsub" style="margin:0 0 4px;font-weight:700;font-size:15px">Level curve</h3>
+        ${levelCurve(mons)}
+      </div>
+      ${battleIndex()}
+      ${encounterPanel(mons,team)}
+    </section>
+    <section class="zone"><div class="zhead"><span class="znum">04</span><h2>Reference</h2>
+      <span class="zsub">mechanics you only need occasionally</span></div>
+      <details class="big"><summary>What this playthrough is gated on
+        <span class="sub">— why some documented fights are not on this page</span></summary>
+        <div class="bigbody"><div class="glos">${(D.GATES||[]).map(g=>
+          `<div><dt>${esc(g[0])}</dt><dd>${g[1]}</dd></div>`).join('')}</div></div></details>
+      <details class="big"><summary>Field effects
+        <span class="sub">— weather, rooms, screens and hazards, and who of yours can set each</span></summary>
+        <div class="bigbody">
+          <p class="note" style="font-style:normal">Gen 5 values, and several are not what people
+          remember: weather set by an <b>ability</b> is permanent here — Gen 6 put it on a five-turn
+          clock. Every move and ability named below is checked against the ROM at build time.
+          The toggles in <b>02 Combat reference</b> apply rain, sun, sand and Trick Room to every
+          number on that tab.</p>
+          <div class="glos">${(D.FIELD||[]).map(f=>`<div>
+            <dt>${esc(f.name)} <span class="lbl">${esc(f.kind)}</span></dt>
+            <dd>${f.text}
+              <div class="fieldset">
+                <span class="lbl">set by</span>
+                ${f.setters.map(m=>`<span class="mvchip">${esc(m)}</span>`).join('')}
+                ${f.abilities.map(a=>`<span class="mvchip ab">${esc(a)}</span>`).join('')}
+              </div>
+              <div class="fieldset">
+                ${f.who.length
+                  ? `<span class="lbl">yours</span>${f.who.map(n=>spr(n)).join('')}`
+                  : '<span class="lbl">nobody you own can set this</span>'}
+              </div>
+            </dd></div>`).join('')}</div>
+        </div></details>
+      <details class="big"><summary>Status conditions <span class="sub">— what each actually does</span></summary>
+        <div class="bigbody"><div class="glos">${STATUS.map(s=>`<div><dt>${s[0]}</dt><dd>${s[1]}</dd></div>`).join('')}</div></div></details>
+      <details class="big"><summary>Where you are standing
+        <span class="sub">— wild encounters in ${esc(HERE.loc||'?')}</span></summary>
+        <div class="bigbody">
+          ${HERE.rows&&HERE.rows.length?`
+          <p class="note" style="font-style:normal">Straight from the encounter tables.
+          ${HERE.hasSurf?'':'<b>No HM03</b>, so surf rows are unreachable and marked. '}
+          ${HERE.hasRod?'You have the Fishing Rod, so fishing rows are live.':'<b>No rod</b>, so fishing rows are marked.'}</p>
+          ${HERE.rows.map(r=>`<div class="encrow${r.gated?' gated':''}">
+            <span class="lbl">${esc(r.method)}${r.gated?' · locked':''}</span>
+            <div class="bteam">${r.mons.map(x=>{const n=SPNAME[x.id];
+              return n?`<span class="encmon" title="${esc(n)} ${x.pct}%">${spr(n)}<i>${x.pct}%</i></span>`:'';}).join('')}</div>
+          </div>`).join('')}`
+          :'<p class="note">No encounter table matched this location.</p>'}
+        </div></details>
+      <details class="big"><summary>Your TMs
+        <span class="sub">— and which of your six can learn each</span></summary>
+        <div class="bigbody">
+          <p class="note" style="font-style:normal">Compatibility is the ROM's own per-species TM list,
+          so this is "can actually be taught", not a guess. The count on the right is how many of the
+          ${BAGTM.length?BAGTM[0].owned:0} species you own could learn it.</p>
+          <div class="rank">${BAGTM.map(t=>`<div class="rrow${t.party.length?'':' dim'}">
+            <span class="rn">${esc(t.slot)}</span><span class="mvname">${esc(t.move)}</span>
+            <span class="spacer"></span>
+            ${t.party.length?t.party.map(n=>spr(n)).join(''):'<span class="lbl">none of your six</span>'}
+            <span class="lbl">${t.n} owned</span></div>`).join('')}</div>
+        </div></details>
+      <details class="big"><summary>Find a Pokémon
+        <span class="sub">— search all ${BOXED.length} in your party and boxes</span></summary>
+        <div class="bigbody">
+          <div class="navrow"><input id="boxq" placeholder="name, nickname, ability or type…"
+            style="font:15px var(--sans);flex:1;min-width:220px;padding:10px 12px;border-radius:9px;
+            border:1px solid var(--rule);background:var(--card-3);color:var(--ink)"></div>
+          <div id="boxres" class="rank" style="margin-top:10px"></div>
+        </div></details>
+      <details class="big"><summary>Type chart <span class="sub">— the full Gen 5 table, attacker down the side</span></summary>
+        <div class="bigbody">
+          <p class="note" style="font-style:normal">Gen 5, so <b>Steel still resists Ghost and Dark</b> and
+          Fairy does not exist. Blank cells are ×1.</p>
+          <div class="matwrap"><table class="mat"><thead><tr><th></th>
+            ${TYPES.map(t=>`<th>${ico(t)}<span class="hn">${t.slice(0,3)}</span></th>`).join('')}
+          </tr></thead><tbody>
+            ${TYPES.map(a=>`<tr><td class="tl">${ico(a)}${a}</td>${
+              TYPES.map(d=>{const v=CHART[a][d];
+                const cl=v===0?'m0':v===0.5?'m5':v===2?'m2':'m1';
+                return `<td>${v===1?'<span style="color:var(--ink-faint)">·</span>'
+                  :`<span class="mult ${cl}">${v===0?'0':v===0.5?'½':'2'}</span>`}</td>`;}).join('')
+            }</tr>`).join('')}
+          </tbody></table></div>
+        </div></details>
+    </section>
+   </div>
+   <datalist id="dexlist">${Object.keys(DEX).map(n=>`<option value="${esc(n)}">`).join('')}</datalist>`;
+
+  document.querySelectorAll('.opt').forEach(b=>b.onclick=()=>{
+    pick[tid][+b.dataset.s]=+b.dataset.o; save(); render(team);});
+  const ni=document.getElementById('oppname');
+  ni.oninput=()=>{const v=ni.value.trim(), d=DEX[v];
+    if(d){look.a=d.t[0]; look.b=d.t[1]||''; look.name=v; render(team);}};
+  document.getElementById('t1').onchange=e=>{look.a=e.target.value; look.name=''; render(team);};
+  document.getElementById('t2').onchange=e=>{look.b=e.target.value; look.name=''; render(team);};
+  document.getElementById('clr').onclick=()=>{look.a=look.b=look.name=''; render(team);};
+
+  /* THE CALCULATOR. A full re-render per keystroke would be wrong here for the
+     same reason it is wrong everywhere else -- it recreates the <input> and
+     drops the caret -- so the defender name only redraws once it NAMES
+     something, which is also when there is anything new to show. */
+  const cd=document.getElementById('cDef');
+  if(cd){
+    cd.oninput=()=>{const v=cd.value.trim();
+      calc.def=v;
+      /* Changing species drops an ability the new one cannot have. Keeping it
+         would quietly model a Garchomp with Regenerator, which is the sort of
+         wrong answer that looks like a right one. The `all abilities` escape
+         hatch is how you say you meant it. */
+      const na=(DEX[v]&&DEX[v].a)||[];
+      if(!calc.allAb&&calc.ab&&na.length&&na.indexOf(calc.ab)<0) calc.ab='';
+      saveCalc();
+      if(!v||DEX[v]) render(team);};
+    document.getElementById('cAtk').onchange=e=>{calc.atk=e.target.value; saveCalc(); render(team);};
+    document.getElementById('cAb').onchange=e=>{calc.ab=e.target.value; saveCalc(); render(team);};
+    const ca=document.getElementById('cAll');
+    if(ca) ca.onclick=()=>{calc.allAb=!calc.allAb; saveCalc(); render(team);};
+    const cl=document.getElementById('cLvl');
+    cl.onchange=()=>{calc.lvl=Math.max(1,Math.min(100,+cl.value||50)); saveCalc(); render(team);};
+    document.getElementById('cClr').onclick=()=>{
+      calc.def=''; calc.ab=''; calc.lvl=50; saveCalc(); render(team);};
+  }
+  // Click applies the move once more; clicking past its cap clears it, so a
+  // control that only ever goes up is not a trap.
+  document.querySelectorAll('[data-bmv]').forEach(b=>b.onclick=()=>{
+    const i=b.dataset.bmv.lastIndexOf('::');
+    const k=b.dataset.bmv.slice(0,i), mv=b.dataset.bmv.slice(i+2);
+    const a=bState[k]||(bState[k]={});
+    const n=(a[mv]||0)+1;
+    // The cap depends on the Pokemon, not just the move -- Simple halves it --
+    // and this handler only has the key, so boostRow() puts it on the button.
+    a[mv]=n>(+b.dataset.bmax||1)?0:n;
+    render(team);});
+  document.querySelectorAll('[data-bclr]').forEach(b=>b.onclick=()=>{
+    if(b.dataset.bclr==='*') Object.keys(bState).forEach(k=>delete bState[k]);
+    else delete bState[b.dataset.bclr];
+    render(team);});
+  document.querySelectorAll('[data-mech]').forEach(b=>b.onclick=()=>{
+    const k=b.dataset.mech; mechOn[k]=!mechOn[k]; render(team);});
+  const es=document.getElementById('encsel');
+  if(es) es.onchange=e=>{encIdx=+e.target.value; fieldE=[]; saveEnc(); render(team);};
+  const step=d=>{encIdx=(encIdx+d+OPPONENTS.length)%OPPONENTS.length; fieldE=[]; saveEnc(); render(team);};
+  document.querySelectorAll('[data-enc]').forEach(b=>b.onclick=()=>{
+    encIdx=+b.dataset.enc; fieldE=[]; saveEnc(); render(team);
+    const p=document.getElementById('encpanel');
+    if(p) p.scrollIntoView({behavior:'smooth',block:'start'});});
+  document.querySelectorAll('[data-done]').forEach(b=>b.onclick=ev=>{
+    ev.stopPropagation();
+    const k=cKey(OPPONENTS[+b.dataset.done]); cleared[k]=!cleared[k]; saveProg(); render(team);});
+  const ed=document.getElementById('encdone');
+  if(ed) ed.onclick=()=>{const k=cKey(OPPONENTS[encIdx]); cleared[k]=!cleared[k]; saveProg(); render(team);};
+  const en=document.getElementById('encnote');
+  if(en) en.oninput=()=>{encNotes[encIdx]=en.value; saveProg();};
+  document.querySelectorAll('[data-kf]').forEach(b=>b.onclick=()=>{
+    encFilter=b.dataset.kf; saveEnc(); render(team);});
+  const bq=document.getElementById('boxq'), br=document.getElementById('boxres');
+  if(bq&&br){
+    const draw=()=>{
+      const q=bq.value.trim().toLowerCase();
+      if(!q){br.innerHTML='<p class="note">Type to search.</p>';return;}
+      const hits=BOXED.filter(x=>
+        x.n.toLowerCase().includes(q)||String(x.k).toLowerCase().includes(q)||
+        String(x.a).toLowerCase().includes(q)||(x.t||[]).some(t=>t.includes(q))).slice(0,60);
+      br.innerHTML=hits.length?hits.map(x=>`<div class="rrow">${spr(x.n)}
+        <span class="rn">${esc(x.n)}</span>
+        <span class="mvname">${esc(x.k&&x.k!==x.n.toUpperCase()?x.k:'')}</span>
+        <span class="lbl">${esc(x.a||'')}</span>
+        <span class="spacer"></span>
+        <span class="lbl">L${x.l}</span><span class="mult m1">${esc(x.b)}</span></div>`).join('')
+        :'<p class="note">Nothing matches.</p>';
+    };
+    bq.oninput=draw; draw();
+  }
+  const bw=document.getElementById('bidxwrap');
+  if(bw) bw.ontoggle=()=>{encIdxOpen=bw.open; saveEnc();};
+  const pv=document.getElementById('encprev'), nx=document.getElementById('encnext');
+  if(pv) pv.onclick=()=>step(-1);
+  if(nx) nx.onclick=()=>step(1);
+  document.querySelectorAll('[data-gd]').forEach(b=>b.onclick=()=>{
+    gDepth=parseInt(b.dataset.gd,10)||2;
+    try{localStorage.setItem('bb_gdepth',String(gDepth));}catch(e){}
+    render(team);});
+  document.querySelectorAll('[data-fmt]').forEach(b=>b.onclick=()=>{
+    fmt=b.dataset.fmt; fieldE=fieldE.slice(0,fmt==='doubles'?2:1);
+    fieldM=fieldM.slice(0,fmt==='doubles'?2:1); render(team);});
+  const toggleField=(arr,val)=>{const cap=fmt==='doubles'?2:1;
+    const i=arr.indexOf(val);
+    if(i>=0) arr.splice(i,1); else {arr.push(val); while(arr.length>cap) arr.shift();}};
+  document.querySelectorAll('[data-fe]').forEach(b=>b.onclick=()=>{
+    toggleField(fieldE,b.dataset.fe); render(team);});
+  document.querySelectorAll('[data-fm]').forEach(b=>b.onclick=()=>{
+    toggleField(fieldM,b.dataset.fm); render(team);});
+  document.querySelectorAll('[data-bench]').forEach(b=>b.onclick=()=>{
+    const n=b.dataset.bench; benched[n]=!benched[n]; render(team);});
+  const ea=document.getElementById('expall');
+  if(ea) ea.onclick=()=>{const g=document.getElementById('tgrid');
+    const anyClosed=[...g.querySelectorAll('details')].some(d=>!d.open);
+    g.querySelectorAll('details').forEach(d=>d.open=anyClosed);
+    ea.textContent=anyClosed?'collapse all':'expand all';};
+  wireTips();
+}
+
+function wireTips(){}   // tooltips are pure CSS now — nothing to wire
+
+const tabs=document.getElementById('tabs');
+
+// Tab order is user-controlled: picking a team moves it to the front and the
+// order persists, so the roster you are actually running is always first.
+let tabOrder=[];
+try{const o=JSON.parse(localStorage.getItem('bb_taborder')||'[]');
+  if(Array.isArray(o)) tabOrder=o.filter(x=>typeof x==='string');}catch(e){}
+
+function orderedTeams(){
+  const byId=Object.fromEntries(TEAMS.map(t=>[t.id,t]));
+  const seen=new Set(), out=[];
+  tabOrder.forEach(id=>{if(byId[id]&&!seen.has(id)){out.push(byId[id]);seen.add(id);}});
+  TEAMS.forEach(t=>{if(!seen.has(t.id)){out.push(t);seen.add(t.id);}});
+  return out;
+}
+
+function buildTabs(activeId){
+  tabs.innerHTML='';
+  orderedTeams().forEach(t=>{
+    const b=document.createElement('button');
+    b.type='button'; b.setAttribute('role','tab');
+    b.innerHTML=`${esc(t.name)}`
+      +`<span class="loc st-${esc(t.state||'')}">${esc(t.where)}</span>`;
+    b.setAttribute('aria-selected', t.id===activeId?'true':'false');
+    b.onclick=()=>{
+      tabOrder=[t.id, ...orderedTeams().map(x=>x.id).filter(i=>i!==t.id)];
+      try{localStorage.setItem('bb_taborder',JSON.stringify(tabOrder));}catch(e){}
+      buildTabs(t.id); render(t);
+      tabs.scrollIntoView({behavior:'smooth',block:'nearest'});
+    };
+    tabs.appendChild(b);
+  });
+}
+
+const first=orderedTeams()[0];
+// NO TEAMS IS A REAL STATE, NOT A CRASH. Teams come from the team store now,
+// and a fresh checkout has none -- this used to read `first.id` and take the
+// whole page down with it, encounter data and all. Everything below the
+// roster works without a team, so the roster says what to do and the rest of
+// the page carries on.
+if(first){ buildTabs(first.id); render(first); }
+else {
+  // Written into the tab strip itself rather than beside it: that is where a
+  // team would have been, and it needs no parent node -- which the stubbed DOM
+  // the verifier runs this under does not have.
+  tabs.removeAttribute('role');
+  tabs.innerHTML='<p class="noteams"><b>No teams yet.</b> Build one in the '
+    +'<b>Team Builder</b> and save it as a core — it shows up here as a tab, with '
+    +'damage numbers, speed order and matchup planning against every documented '
+    +'fight. The reference and opponent sections below work without one.</p>';
+}
+</script>

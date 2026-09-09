@@ -1,0 +1,54 @@
+/* pick.css -- the shared "which Pokémon?" chooser. */
+.pk-modal { position: fixed; inset: 0; z-index: 240; background: rgba(10,14,20,.55);
+  display: flex; align-items: flex-start; justify-content: center; padding: 5vh 16px;
+  overflow-y: auto; }
+.pk-sheet { background: var(--card); border: 1px solid var(--rule); border-radius: 14px;
+  box-shadow: 0 20px 60px rgba(0,0,0,.35); width: min(520px, 100%); padding: 20px 22px 18px;
+  display: flex; flex-direction: column; gap: 10px; }
+.pk-narrow { width: min(420px, 100%); }
+.pk-sheet h3 { margin: 0; font-size: 18px; }
+.pk-sub { margin: 0; font-size: 12px; color: var(--ink-faint); line-height: 1.5; }
+.pk-search { font: inherit; font-size: 13px; padding: 6px 10px; border: 1px solid var(--rule);
+  border-radius: 8px; background: var(--card-3); color: var(--ink); }
+.pk-search:focus { outline: 2px solid var(--ember); outline-offset: -1px; }
+
+.pk-list { display: flex; flex-direction: column; gap: 3px; max-height: 52vh; overflow-y: auto; }
+.pk-list > * { flex: none; }          /* a flex column shrinks before it scrolls */
+.pk-row { display: flex; gap: 10px; align-items: center; width: 100%; text-align: left;
+  font: inherit; padding: 5px 9px; border-radius: 8px; cursor: pointer;
+  border: 1px solid transparent; background: none; color: var(--ink); }
+.pk-row:hover { background: var(--card-2); border-color: var(--ember); }
+.pk-row.party { background: var(--card-3); }
+.pk-row img { width: 44px; height: 44px; flex: none; }
+.pk-noicon, .pk-slotnum { width: 44px; height: 44px; flex: none; display: flex;
+  align-items: center; justify-content: center; border-radius: 8px; background: var(--card-2);
+  font-weight: 700; color: var(--ink-faint); }
+.pk-body { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+.pk-name { font-size: 14px; font-weight: 650; }
+.pk-sub2 { font-size: 11px; color: var(--ink-faint); overflow: hidden;
+  text-overflow: ellipsis; white-space: nowrap; }
+.pk-empty { text-align: center; color: var(--ink-faint); font-size: 13px; padding: 18px 8px; margin: 0; }
+.pk-btn { font: inherit; font-size: 12.5px; padding: 5px 11px; border-radius: 7px; cursor: pointer;
+  border: 1px solid var(--rule); background: var(--card-3); color: var(--ink); }
+.pk-btn:hover { border-color: var(--ember); color: var(--ember); }
+.pk-foot { display: flex; gap: 8px; border-top: 1px solid var(--rule-soft); padding-top: 12px; }
+
+/* The "show everything" escape hatch. Default is the legal list; this is one
+   click away and marks what it is showing. */
+/* A segmented control on its own line. As a pill beside the search box it was
+   easy to miss, and the whole point is being findable when the legal list does
+   not have what you want. */
+.pk-seg { display: flex; gap: 3px; padding: 3px; border-radius: 10px;
+  background: var(--card-3); border: 1px solid var(--rule); }
+.pk-segbtn { flex: 1; display: flex; gap: 6px; align-items: baseline; justify-content: center;
+  font: inherit; font-size: 12px; padding: 6px 10px; border-radius: 7px; cursor: pointer;
+  border: 1px solid transparent; background: none; color: var(--ink-soft); }
+.pk-segbtn:hover { background: var(--card-2); }
+.pk-segbtn i { font-style: normal; font-size: 10.5px; opacity: .7;
+  font-variant-numeric: tabular-nums; }
+.pk-segbtn.on { background: var(--card); border-color: var(--ember); color: var(--ember);
+  font-weight: 650; box-shadow: var(--shadow); }
+.pk-segbtn.on:last-child { border-color: var(--x2); color: var(--x2); }
+.pk-illegal { flex: none; font-size: 9px; font-weight: 800; letter-spacing: .05em;
+  text-transform: uppercase; padding: 2px 6px; border-radius: 4px;
+  background: var(--x2b); color: var(--x2); }

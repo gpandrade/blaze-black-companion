@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+# refresh -- re-read the save and rebuild the team sheet.
+#
+# Run this after levelling, evolving, or reorganising the PC.  It only READS
+# the save; nothing here writes to it.  The rebuilt page is state/team_sheet.html
+# -- Claude still has to publish it to the artifact URL, but running this first
+# means the file is already current when you ask.
+set -euo pipefail
+cd "$(dirname "$0")"
+
+if tasklist.exe 2>/dev/null | grep -qi melon; then
+  echo "melonDS is running. Save in game first, then close it, or the read may"
+  echo "catch a half-flushed .sav.  (Reading is safe; the data may just be stale.)"
+fi
+
+python3 parse_save.py
+python3 parse_bag.py
+python3 build_sheet.py
+echo
+echo "state/team_sheet.html rebuilt. Ask Claude to publish it."

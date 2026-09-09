@@ -1,0 +1,1697 @@
+{
+ "meta": {
+  "generated_at": "2026-08-14T03:44:25+00:00",
+  "rom": {
+   "bytes": 268435456,
+   "title": "POKEMON B  ",
+   "game_code": "IRBO",
+   "narc_files": {
+    "personal": 669,
+    "learnsets": 668,
+    "evolutions": 668,
+    "moves": 560
+   },
+   "entry_sizes": [
+    56,
+    60,
+    1300
+   ]
+  },
+  "vanilla_rom": {
+   "bytes": 268435456,
+   "title": "POKEMON B",
+   "game_code": "IRBO",
+   "narc_files": {
+    "personal": 669,
+    "learnsets": 668,
+    "evolutions": 668,
+    "moves": 560
+   },
+   "entry_sizes": [
+    56,
+    60,
+    1300
+   ]
+  },
+  "narcs": {
+   "personal": "a/0/1/6",
+   "learnsets": "a/0/1/8",
+   "evolutions": "a/0/1/9",
+   "moves": "a/0/2/1"
+  },
+  "field_offsets_reference": "Universal Pokemon Randomizer ZX, BW1",
+  "layout_proved_against": "vanilla-rom",
+  "type_id_order": [
+   "normal",
+   "fighting",
+   "flying",
+   "poison",
+   "ground",
+   "rock",
+   "bug",
+   "ghost",
+   "steel",
+   "fire",
+   "water",
+   "grass",
+   "electric",
+   "psychic",
+   "ice",
+   "dragon",
+   "dark"
+  ],
+  "stat_key_order": [
+   "hp",
+   "atk",
+   "def",
+   "spa",
+   "spd",
+   "spe"
+  ],
+  "species_count": 10,
+  "move_count": 559,
+  "warnings": [],
+  "trimmed_for_publication": "Cut to the species in tests/fixture.sav; see tools/make_fixture.py"
+ },
+ "species": {
+  "16": {
+   "base_stats": {
+    "hp": 40,
+    "atk": 45,
+    "def": 40,
+    "spa": 35,
+    "spd": 35,
+    "spe": 56
+   },
+   "bst": 251,
+   "types": [
+    "normal",
+    "flying"
+   ],
+   "type_ids": [
+    0,
+    2
+   ],
+   "ability_ids": [
+    145,
+    77,
+    145
+   ],
+   "catch_rate": 255,
+   "base_exp": 50,
+   "ev_yield": {
+    "hp": 0,
+    "atk": 0,
+    "def": 0,
+    "spa": 0,
+    "spd": 0,
+    "spe": 1
+   },
+   "gender_ratio": 127,
+   "hatch_cycles": 15,
+   "base_friendship": 70,
+   "egg_groups": [
+    4,
+    4
+   ],
+   "growth_curve_id": 3,
+   "growth_curve": "medium-slow",
+   "tmhm": [
+    "TM06",
+    "TM10",
+    "TM11",
+    "TM17",
+    "TM18",
+    "TM21",
+    "TM27",
+    "TM32",
+    "TM40",
+    "TM42",
+    "TM44",
+    "TM45",
+    "TM46",
+    "TM48",
+    "TM62",
+    "TM83",
+    "TM87",
+    "TM88",
+    "TM89",
+    "TM90",
+    "HM02"
+   ],
+   "entry_bytes": 60,
+   "name": "Pidgey",
+   "hidden_ability": "Big Pecks",
+   "abilities": [
+    "Big Pecks",
+    "Tangled Feet"
+   ],
+   "learnset": [
+    {
+     "level": 1,
+     "move_id": 33,
+     "move": "Tackle"
+    },
+    {
+     "level": 1,
+     "move_id": 16,
+     "move": "Gust"
+    },
+    {
+     "level": 1,
+     "move_id": 13,
+     "move": "Razor Wind"
+    },
+    {
+     "level": 5,
+     "move_id": 28,
+     "move": "Sand Attack"
+    },
+    {
+     "level": 9,
+     "move_id": 365,
+     "move": "Pluck"
+    },
+    {
+     "level": 11,
+     "move_id": 98,
+     "move": "Quick Attack"
+    },
+    {
+     "level": 13,
+     "move_id": 185,
+     "move": "Feint Attack"
+    },
+    {
+     "level": 15,
+     "move_id": 18,
+     "move": "Whirlwind"
+    },
+    {
+     "level": 17,
+     "move_id": 369,
+     "move": "U-turn"
+    },
+    {
+     "level": 19,
+     "move_id": 189,
+     "move": "Mud-Slap"
+    },
+    {
+     "level": 21,
+     "move_id": 239,
+     "move": "Twister"
+    },
+    {
+     "level": 25,
+     "move_id": 297,
+     "move": "Feather Dance"
+    },
+    {
+     "level": 29,
+     "move_id": 97,
+     "move": "Agility"
+    },
+    {
+     "level": 33,
+     "move_id": 17,
+     "move": "Wing Attack"
+    },
+    {
+     "level": 37,
+     "move_id": 355,
+     "move": "Roost"
+    },
+    {
+     "level": 41,
+     "move_id": 366,
+     "move": "Tailwind"
+    },
+    {
+     "level": 45,
+     "move_id": 119,
+     "move": "Mirror Move"
+    },
+    {
+     "level": 49,
+     "move_id": 403,
+     "move": "Air Slash"
+    },
+    {
+     "level": 53,
+     "move_id": 542,
+     "move": "Hurricane"
+    },
+    {
+     "level": 57,
+     "move_id": 413,
+     "move": "Brave Bird"
+    }
+   ],
+   "evolutions": [
+    {
+     "method_id": 4,
+     "method": "level-up",
+     "parameter": 18,
+     "into_id": 17,
+     "into": "Pidgeotto"
+    }
+   ]
+  },
+  "17": {
+   "base_stats": {
+    "hp": 63,
+    "atk": 60,
+    "def": 55,
+    "spa": 50,
+    "spd": 50,
+    "spe": 71
+   },
+   "bst": 349,
+   "types": [
+    "normal",
+    "flying"
+   ],
+   "type_ids": [
+    0,
+    2
+   ],
+   "ability_ids": [
+    145,
+    77,
+    145
+   ],
+   "catch_rate": 120,
+   "base_exp": 122,
+   "ev_yield": {
+    "hp": 0,
+    "atk": 0,
+    "def": 0,
+    "spa": 0,
+    "spd": 0,
+    "spe": 2
+   },
+   "gender_ratio": 127,
+   "hatch_cycles": 15,
+   "base_friendship": 70,
+   "egg_groups": [
+    4,
+    4
+   ],
+   "growth_curve_id": 3,
+   "growth_curve": "medium-slow",
+   "tmhm": [
+    "TM06",
+    "TM10",
+    "TM11",
+    "TM17",
+    "TM18",
+    "TM21",
+    "TM27",
+    "TM32",
+    "TM40",
+    "TM42",
+    "TM44",
+    "TM45",
+    "TM46",
+    "TM48",
+    "TM62",
+    "TM83",
+    "TM87",
+    "TM88",
+    "TM89",
+    "TM90",
+    "HM02"
+   ],
+   "entry_bytes": 60,
+   "name": "Pidgeotto",
+   "hidden_ability": "Big Pecks",
+   "abilities": [
+    "Big Pecks",
+    "Tangled Feet"
+   ],
+   "learnset": [
+    {
+     "level": 1,
+     "move_id": 33,
+     "move": "Tackle"
+    },
+    {
+     "level": 1,
+     "move_id": 28,
+     "move": "Sand Attack"
+    },
+    {
+     "level": 1,
+     "move_id": 16,
+     "move": "Gust"
+    },
+    {
+     "level": 1,
+     "move_id": 13,
+     "move": "Razor Wind"
+    },
+    {
+     "level": 5,
+     "move_id": 28,
+     "move": "Sand Attack"
+    },
+    {
+     "level": 9,
+     "move_id": 365,
+     "move": "Pluck"
+    },
+    {
+     "level": 11,
+     "move_id": 98,
+     "move": "Quick Attack"
+    },
+    {
+     "level": 13,
+     "move_id": 185,
+     "move": "Feint Attack"
+    },
+    {
+     "level": 15,
+     "move_id": 18,
+     "move": "Whirlwind"
+    },
+    {
+     "level": 17,
+     "move_id": 369,
+     "move": "U-turn"
+    },
+    {
+     "level": 18,
+     "move_id": 512,
+     "move": "Acrobatics"
+    },
+    {
+     "level": 20,
+     "move_id": 211,
+     "move": "Steel Wing"
+    },
+    {
+     "level": 22,
+     "move_id": 239,
+     "move": "Twister"
+    },
+    {
+     "level": 27,
+     "move_id": 297,
+     "move": "Feather Dance"
+    },
+    {
+     "level": 32,
+     "move_id": 97,
+     "move": "Agility"
+    },
+    {
+     "level": 37,
+     "move_id": 17,
+     "move": "Wing Attack"
+    },
+    {
+     "level": 42,
+     "move_id": 355,
+     "move": "Roost"
+    },
+    {
+     "level": 47,
+     "move_id": 366,
+     "move": "Tailwind"
+    },
+    {
+     "level": 52,
+     "move_id": 119,
+     "move": "Mirror Move"
+    },
+    {
+     "level": 57,
+     "move_id": 403,
+     "move": "Air Slash"
+    },
+    {
+     "level": 62,
+     "move_id": 542,
+     "move": "Hurricane"
+    },
+    {
+     "level": 57,
+     "move_id": 413,
+     "move": "Brave Bird"
+    }
+   ],
+   "evolutions": [
+    {
+     "method_id": 4,
+     "method": "level-up",
+     "parameter": 36,
+     "into_id": 18,
+     "into": "Pidgeot"
+    }
+   ]
+  },
+  "161": {
+   "base_stats": {
+    "hp": 35,
+    "atk": 46,
+    "def": 34,
+    "spa": 35,
+    "spd": 45,
+    "spe": 20
+   },
+   "bst": 215,
+   "types": [
+    "normal"
+   ],
+   "type_ids": [
+    0,
+    0
+   ],
+   "ability_ids": [
+    119,
+    51,
+    119
+   ],
+   "catch_rate": 255,
+   "base_exp": 43,
+   "ev_yield": {
+    "hp": 0,
+    "atk": 1,
+    "def": 0,
+    "spa": 0,
+    "spd": 0,
+    "spe": 0
+   },
+   "gender_ratio": 127,
+   "hatch_cycles": 15,
+   "base_friendship": 70,
+   "egg_groups": [
+    5,
+    5
+   ],
+   "growth_curve_id": 0,
+   "growth_curve": "medium-fast",
+   "tmhm": [
+    "TM01",
+    "TM06",
+    "TM10",
+    "TM11",
+    "TM13",
+    "TM17",
+    "TM18",
+    "TM21",
+    "TM22",
+    "TM24",
+    "TM27",
+    "TM28",
+    "TM30",
+    "TM31",
+    "TM32",
+    "TM35",
+    "TM42",
+    "TM44",
+    "TM45",
+    "TM46",
+    "TM48",
+    "TM49",
+    "TM56",
+    "TM57",
+    "TM65",
+    "TM67",
+    "TM83",
+    "TM86",
+    "TM87",
+    "TM89",
+    "TM90",
+    "HM01",
+    "HM03"
+   ],
+   "entry_bytes": 60,
+   "name": "Sentret",
+   "hidden_ability": "Frisk",
+   "abilities": [
+    "Frisk",
+    "Keen Eye"
+   ],
+   "learnset": [
+    {
+     "level": 1,
+     "move_id": 146,
+     "move": "Dizzy Punch"
+    },
+    {
+     "level": 1,
+     "move_id": 10,
+     "move": "Scratch"
+    },
+    {
+     "level": 1,
+     "move_id": 193,
+     "move": "Foresight"
+    },
+    {
+     "level": 4,
+     "move_id": 111,
+     "move": "Defense Curl"
+    },
+    {
+     "level": 7,
+     "move_id": 98,
+     "move": "Quick Attack"
+    },
+    {
+     "level": 13,
+     "move_id": 154,
+     "move": "Fury Swipes"
+    },
+    {
+     "level": 16,
+     "move_id": 270,
+     "move": "Helping Hand"
+    },
+    {
+     "level": 19,
+     "move_id": 266,
+     "move": "Follow Me"
+    },
+    {
+     "level": 22,
+     "move_id": 162,
+     "move": "Super Fang"
+    },
+    {
+     "level": 25,
+     "move_id": 21,
+     "move": "Slam"
+    },
+    {
+     "level": 28,
+     "move_id": 156,
+     "move": "Rest"
+    },
+    {
+     "level": 31,
+     "move_id": 389,
+     "move": "Sucker Punch"
+    },
+    {
+     "level": 36,
+     "move_id": 133,
+     "move": "Amnesia"
+    },
+    {
+     "level": 39,
+     "move_id": 226,
+     "move": "Baton Pass"
+    },
+    {
+     "level": 42,
+     "move_id": 382,
+     "move": "Me First"
+    },
+    {
+     "level": 47,
+     "move_id": 304,
+     "move": "Hyper Voice"
+    }
+   ],
+   "evolutions": [
+    {
+     "method_id": 4,
+     "method": "level-up",
+     "parameter": 15,
+     "into_id": 162,
+     "into": "Furret"
+    }
+   ]
+  },
+  "162": {
+   "base_stats": {
+    "hp": 85,
+    "atk": 86,
+    "def": 64,
+    "spa": 45,
+    "spd": 55,
+    "spe": 100
+   },
+   "bst": 435,
+   "types": [
+    "normal"
+   ],
+   "type_ids": [
+    0,
+    0
+   ],
+   "ability_ids": [
+    119,
+    51,
+    119
+   ],
+   "catch_rate": 90,
+   "base_exp": 145,
+   "ev_yield": {
+    "hp": 0,
+    "atk": 0,
+    "def": 0,
+    "spa": 0,
+    "spd": 0,
+    "spe": 2
+   },
+   "gender_ratio": 127,
+   "hatch_cycles": 15,
+   "base_friendship": 70,
+   "egg_groups": [
+    5,
+    5
+   ],
+   "growth_curve_id": 0,
+   "growth_curve": "medium-fast",
+   "tmhm": [
+    "TM01",
+    "TM06",
+    "TM10",
+    "TM11",
+    "TM13",
+    "TM14",
+    "TM15",
+    "TM17",
+    "TM18",
+    "TM21",
+    "TM22",
+    "TM24",
+    "TM25",
+    "TM27",
+    "TM28",
+    "TM30",
+    "TM31",
+    "TM32",
+    "TM35",
+    "TM42",
+    "TM44",
+    "TM45",
+    "TM46",
+    "TM48",
+    "TM49",
+    "TM52",
+    "TM56",
+    "TM57",
+    "TM65",
+    "TM67",
+    "TM68",
+    "TM83",
+    "TM86",
+    "TM87",
+    "TM89",
+    "TM90",
+    "TM94",
+    "HM01",
+    "HM03",
+    "HM04"
+   ],
+   "entry_bytes": 60,
+   "name": "Furret",
+   "hidden_ability": "Frisk",
+   "abilities": [
+    "Frisk",
+    "Keen Eye"
+   ],
+   "learnset": [
+    {
+     "level": 1,
+     "move_id": 10,
+     "move": "Scratch"
+    },
+    {
+     "level": 1,
+     "move_id": 193,
+     "move": "Foresight"
+    },
+    {
+     "level": 4,
+     "move_id": 111,
+     "move": "Defense Curl"
+    },
+    {
+     "level": 7,
+     "move_id": 98,
+     "move": "Quick Attack"
+    },
+    {
+     "level": 13,
+     "move_id": 154,
+     "move": "Fury Swipes"
+    },
+    {
+     "level": 17,
+     "move_id": 270,
+     "move": "Helping Hand"
+    },
+    {
+     "level": 21,
+     "move_id": 266,
+     "move": "Follow Me"
+    },
+    {
+     "level": 25,
+     "move_id": 162,
+     "move": "Super Fang"
+    },
+    {
+     "level": 28,
+     "move_id": 21,
+     "move": "Slam"
+    },
+    {
+     "level": 32,
+     "move_id": 156,
+     "move": "Rest"
+    },
+    {
+     "level": 36,
+     "move_id": 389,
+     "move": "Sucker Punch"
+    },
+    {
+     "level": 42,
+     "move_id": 133,
+     "move": "Amnesia"
+    },
+    {
+     "level": 46,
+     "move_id": 226,
+     "move": "Baton Pass"
+    },
+    {
+     "level": 50,
+     "move_id": 382,
+     "move": "Me First"
+    },
+    {
+     "level": 56,
+     "move_id": 304,
+     "move": "Hyper Voice"
+    }
+   ],
+   "evolutions": []
+  },
+  "396": {
+   "base_stats": {
+    "hp": 40,
+    "atk": 55,
+    "def": 30,
+    "spa": 30,
+    "spd": 30,
+    "spe": 60
+   },
+   "bst": 245,
+   "types": [
+    "normal",
+    "flying"
+   ],
+   "type_ids": [
+    0,
+    2
+   ],
+   "ability_ids": [
+    51,
+    51,
+    51
+   ],
+   "catch_rate": 255,
+   "base_exp": 49,
+   "ev_yield": {
+    "hp": 0,
+    "atk": 0,
+    "def": 0,
+    "spa": 0,
+    "spd": 0,
+    "spe": 1
+   },
+   "gender_ratio": 127,
+   "hatch_cycles": 15,
+   "base_friendship": 70,
+   "egg_groups": [
+    4,
+    4
+   ],
+   "growth_curve_id": 3,
+   "growth_curve": "medium-slow",
+   "tmhm": [
+    "TM06",
+    "TM10",
+    "TM11",
+    "TM17",
+    "TM18",
+    "TM21",
+    "TM27",
+    "TM32",
+    "TM40",
+    "TM42",
+    "TM44",
+    "TM45",
+    "TM46",
+    "TM48",
+    "TM49",
+    "TM62",
+    "TM83",
+    "TM87",
+    "TM88",
+    "TM89",
+    "TM90",
+    "HM02"
+   ],
+   "entry_bytes": 60,
+   "name": "Starly",
+   "hidden_ability": "Keen Eye",
+   "abilities": [
+    "Keen Eye",
+    "Keen Eye"
+   ],
+   "learnset": [
+    {
+     "level": 1,
+     "move_id": 33,
+     "move": "Tackle"
+    },
+    {
+     "level": 1,
+     "move_id": 45,
+     "move": "Growl"
+    },
+    {
+     "level": 5,
+     "move_id": 98,
+     "move": "Quick Attack"
+    },
+    {
+     "level": 9,
+     "move_id": 17,
+     "move": "Wing Attack"
+    },
+    {
+     "level": 13,
+     "move_id": 104,
+     "move": "Double Team"
+    },
+    {
+     "level": 17,
+     "move_id": 283,
+     "move": "Endeavor"
+    },
+    {
+     "level": 21,
+     "move_id": 18,
+     "move": "Whirlwind"
+    },
+    {
+     "level": 25,
+     "move_id": 332,
+     "move": "Aerial Ace"
+    },
+    {
+     "level": 29,
+     "move_id": 36,
+     "move": "Take Down"
+    },
+    {
+     "level": 33,
+     "move_id": 97,
+     "move": "Agility"
+    },
+    {
+     "level": 37,
+     "move_id": 413,
+     "move": "Brave Bird"
+    },
+    {
+     "level": 41,
+     "move_id": 515,
+     "move": "Final Gambit"
+    },
+    {
+     "level": 45,
+     "move_id": 38,
+     "move": "Double-Edge"
+    }
+   ],
+   "evolutions": [
+    {
+     "method_id": 4,
+     "method": "level-up",
+     "parameter": 14,
+     "into_id": 397,
+     "into": "Staravia"
+    }
+   ]
+  },
+  "397": {
+   "base_stats": {
+    "hp": 55,
+    "atk": 75,
+    "def": 50,
+    "spa": 40,
+    "spd": 40,
+    "spe": 80
+   },
+   "bst": 340,
+   "types": [
+    "normal",
+    "flying"
+   ],
+   "type_ids": [
+    0,
+    2
+   ],
+   "ability_ids": [
+    22,
+    120,
+    120
+   ],
+   "catch_rate": 120,
+   "base_exp": 119,
+   "ev_yield": {
+    "hp": 0,
+    "atk": 0,
+    "def": 0,
+    "spa": 0,
+    "spd": 0,
+    "spe": 2
+   },
+   "gender_ratio": 127,
+   "hatch_cycles": 15,
+   "base_friendship": 70,
+   "egg_groups": [
+    4,
+    4
+   ],
+   "growth_curve_id": 3,
+   "growth_curve": "medium-slow",
+   "tmhm": [
+    "TM06",
+    "TM10",
+    "TM11",
+    "TM17",
+    "TM18",
+    "TM21",
+    "TM27",
+    "TM32",
+    "TM40",
+    "TM42",
+    "TM44",
+    "TM45",
+    "TM46",
+    "TM48",
+    "TM49",
+    "TM62",
+    "TM67",
+    "TM83",
+    "TM87",
+    "TM88",
+    "TM89",
+    "TM90",
+    "HM02"
+   ],
+   "entry_bytes": 60,
+   "name": "Staravia",
+   "hidden_ability": "Reckless",
+   "abilities": [
+    "Intimidate",
+    "Reckless"
+   ],
+   "learnset": [
+    {
+     "level": 1,
+     "move_id": 33,
+     "move": "Tackle"
+    },
+    {
+     "level": 1,
+     "move_id": 45,
+     "move": "Growl"
+    },
+    {
+     "level": 1,
+     "move_id": 98,
+     "move": "Quick Attack"
+    },
+    {
+     "level": 5,
+     "move_id": 98,
+     "move": "Quick Attack"
+    },
+    {
+     "level": 9,
+     "move_id": 17,
+     "move": "Wing Attack"
+    },
+    {
+     "level": 13,
+     "move_id": 104,
+     "move": "Double Team"
+    },
+    {
+     "level": 18,
+     "move_id": 283,
+     "move": "Endeavor"
+    },
+    {
+     "level": 23,
+     "move_id": 18,
+     "move": "Whirlwind"
+    },
+    {
+     "level": 28,
+     "move_id": 332,
+     "move": "Aerial Ace"
+    },
+    {
+     "level": 33,
+     "move_id": 36,
+     "move": "Take Down"
+    },
+    {
+     "level": 38,
+     "move_id": 97,
+     "move": "Agility"
+    },
+    {
+     "level": 43,
+     "move_id": 413,
+     "move": "Brave Bird"
+    },
+    {
+     "level": 48,
+     "move_id": 515,
+     "move": "Final Gambit"
+    },
+    {
+     "level": 53,
+     "move_id": 38,
+     "move": "Double-Edge"
+    }
+   ],
+   "evolutions": [
+    {
+     "method_id": 4,
+     "method": "level-up",
+     "parameter": 34,
+     "into_id": 398,
+     "into": "Staraptor"
+    }
+   ]
+  },
+  "401": {
+   "base_stats": {
+    "hp": 37,
+    "atk": 25,
+    "def": 41,
+    "spa": 25,
+    "spd": 41,
+    "spe": 25
+   },
+   "bst": 194,
+   "types": [
+    "bug"
+   ],
+   "type_ids": [
+    6,
+    6
+   ],
+   "ability_ids": [
+    61,
+    50,
+    50
+   ],
+   "catch_rate": 255,
+   "base_exp": 39,
+   "ev_yield": {
+    "hp": 0,
+    "atk": 0,
+    "def": 1,
+    "spa": 0,
+    "spd": 0,
+    "spe": 0
+   },
+   "gender_ratio": 127,
+   "hatch_cycles": 15,
+   "base_friendship": 70,
+   "egg_groups": [
+    3,
+    3
+   ],
+   "growth_curve_id": 3,
+   "growth_curve": "medium-slow",
+   "tmhm": [],
+   "entry_bytes": 60,
+   "name": "Kricketot",
+   "hidden_ability": "Run Away",
+   "abilities": [
+    "Shed Skin",
+    "Run Away"
+   ],
+   "learnset": [
+    {
+     "level": 1,
+     "move_id": 45,
+     "move": "Growl"
+    },
+    {
+     "level": 1,
+     "move_id": 117,
+     "move": "Bide"
+    },
+    {
+     "level": 1,
+     "move_id": 522,
+     "move": "Struggle Bug"
+    },
+    {
+     "level": 1,
+     "move_id": 450,
+     "move": "Bug Bite"
+    }
+   ],
+   "evolutions": [
+    {
+     "method_id": 4,
+     "method": "level-up",
+     "parameter": 10,
+     "into_id": 402,
+     "into": "Kricketune"
+    }
+   ]
+  },
+  "402": {
+   "base_stats": {
+    "hp": 77,
+    "atk": 104,
+    "def": 51,
+    "spa": 55,
+    "spd": 51,
+    "spe": 87
+   },
+   "bst": 425,
+   "types": [
+    "bug"
+   ],
+   "type_ids": [
+    6,
+    6
+   ],
+   "ability_ids": [
+    68,
+    101,
+    101
+   ],
+   "catch_rate": 45,
+   "base_exp": 158,
+   "ev_yield": {
+    "hp": 0,
+    "atk": 2,
+    "def": 0,
+    "spa": 0,
+    "spd": 0,
+    "spe": 0
+   },
+   "gender_ratio": 127,
+   "hatch_cycles": 15,
+   "base_friendship": 70,
+   "egg_groups": [
+    3,
+    3
+   ],
+   "growth_curve_id": 3,
+   "growth_curve": "medium-slow",
+   "tmhm": [
+    "TM01",
+    "TM06",
+    "TM10",
+    "TM11",
+    "TM12",
+    "TM15",
+    "TM17",
+    "TM18",
+    "TM21",
+    "TM27",
+    "TM31",
+    "TM32",
+    "TM40",
+    "TM42",
+    "TM44",
+    "TM45",
+    "TM48",
+    "TM49",
+    "TM54",
+    "TM68",
+    "TM70",
+    "TM75",
+    "TM76",
+    "TM81",
+    "TM87",
+    "TM90",
+    "TM94",
+    "HM01",
+    "HM04"
+   ],
+   "entry_bytes": 60,
+   "name": "Kricketune",
+   "hidden_ability": "Technician",
+   "abilities": [
+    "Swarm",
+    "Technician"
+   ],
+   "learnset": [
+    {
+     "level": 1,
+     "move_id": 45,
+     "move": "Growl"
+    },
+    {
+     "level": 1,
+     "move_id": 117,
+     "move": "Bide"
+    },
+    {
+     "level": 10,
+     "move_id": 210,
+     "move": "Fury Cutter"
+    },
+    {
+     "level": 14,
+     "move_id": 141,
+     "move": "Leech Life"
+    },
+    {
+     "level": 18,
+     "move_id": 47,
+     "move": "Sing"
+    },
+    {
+     "level": 22,
+     "move_id": 116,
+     "move": "Focus Energy"
+    },
+    {
+     "level": 26,
+     "move_id": 163,
+     "move": "Slash"
+    },
+    {
+     "level": 30,
+     "move_id": 404,
+     "move": "X-Scissor"
+    },
+    {
+     "level": 34,
+     "move_id": 103,
+     "move": "Screech"
+    },
+    {
+     "level": 38,
+     "move_id": 269,
+     "move": "Taunt"
+    },
+    {
+     "level": 42,
+     "move_id": 400,
+     "move": "Night Slash"
+    },
+    {
+     "level": 46,
+     "move_id": 405,
+     "move": "Bug Buzz"
+    },
+    {
+     "level": 50,
+     "move_id": 195,
+     "move": "Perish Song"
+    }
+   ],
+   "evolutions": []
+  },
+  "501": {
+   "base_stats": {
+    "hp": 55,
+    "atk": 55,
+    "def": 45,
+    "spa": 63,
+    "spd": 45,
+    "spe": 45
+   },
+   "bst": 308,
+   "types": [
+    "water"
+   ],
+   "type_ids": [
+    10,
+    10
+   ],
+   "ability_ids": [
+    67,
+    72,
+    75
+   ],
+   "catch_rate": 45,
+   "base_exp": 50,
+   "ev_yield": {
+    "hp": 0,
+    "atk": 0,
+    "def": 0,
+    "spa": 1,
+    "spd": 0,
+    "spe": 0
+   },
+   "gender_ratio": 31,
+   "hatch_cycles": 20,
+   "base_friendship": 70,
+   "egg_groups": [
+    5,
+    5
+   ],
+   "growth_curve_id": 3,
+   "growth_curve": "medium-slow",
+   "tmhm": [
+    "TM06",
+    "TM07",
+    "TM10",
+    "TM12",
+    "TM13",
+    "TM14",
+    "TM17",
+    "TM18",
+    "TM21",
+    "TM27",
+    "TM28",
+    "TM32",
+    "TM40",
+    "TM42",
+    "TM44",
+    "TM45",
+    "TM48",
+    "TM54",
+    "TM55",
+    "TM56",
+    "TM67",
+    "TM75",
+    "TM81",
+    "TM86",
+    "TM87",
+    "TM90",
+    "TM94",
+    "HM01",
+    "HM03",
+    "HM05",
+    "HM06"
+   ],
+   "entry_bytes": 60,
+   "name": "Oshawott",
+   "hidden_ability": "Shell Armor",
+   "abilities": [
+    "Torrent",
+    "Vital Spirit"
+   ],
+   "learnset": [
+    {
+     "level": 1,
+     "move_id": 33,
+     "move": "Tackle"
+    },
+    {
+     "level": 5,
+     "move_id": 39,
+     "move": "Tail Whip"
+    },
+    {
+     "level": 7,
+     "move_id": 55,
+     "move": "Water Gun"
+    },
+    {
+     "level": 11,
+     "move_id": 346,
+     "move": "Water Sport"
+    },
+    {
+     "level": 13,
+     "move_id": 116,
+     "move": "Focus Energy"
+    },
+    {
+     "level": 17,
+     "move_id": 534,
+     "move": "Razor Shell"
+    },
+    {
+     "level": 19,
+     "move_id": 210,
+     "move": "Fury Cutter"
+    },
+    {
+     "level": 23,
+     "move_id": 352,
+     "move": "Water Pulse"
+    },
+    {
+     "level": 25,
+     "move_id": 279,
+     "move": "Revenge"
+    },
+    {
+     "level": 29,
+     "move_id": 453,
+     "move": "Aqua Jet"
+    },
+    {
+     "level": 31,
+     "move_id": 227,
+     "move": "Encore"
+    },
+    {
+     "level": 35,
+     "move_id": 401,
+     "move": "Aqua Tail"
+    },
+    {
+     "level": 37,
+     "move_id": 514,
+     "move": "Retaliate"
+    },
+    {
+     "level": 41,
+     "move_id": 14,
+     "move": "Swords Dance"
+    },
+    {
+     "level": 43,
+     "move_id": 56,
+     "move": "Hydro Pump"
+    }
+   ],
+   "evolutions": [
+    {
+     "method_id": 4,
+     "method": "level-up",
+     "parameter": 17,
+     "into_id": 502,
+     "into": "Dewott"
+    }
+   ]
+  },
+  "502": {
+   "base_stats": {
+    "hp": 75,
+    "atk": 75,
+    "def": 60,
+    "spa": 83,
+    "spd": 60,
+    "spe": 60
+   },
+   "bst": 413,
+   "types": [
+    "water",
+    "fighting"
+   ],
+   "type_ids": [
+    10,
+    1
+   ],
+   "ability_ids": [
+    67,
+    72,
+    75
+   ],
+   "catch_rate": 45,
+   "base_exp": 145,
+   "ev_yield": {
+    "hp": 0,
+    "atk": 0,
+    "def": 0,
+    "spa": 2,
+    "spd": 0,
+    "spe": 0
+   },
+   "gender_ratio": 31,
+   "hatch_cycles": 20,
+   "base_friendship": 70,
+   "egg_groups": [
+    5,
+    5
+   ],
+   "growth_curve_id": 3,
+   "growth_curve": "medium-slow",
+   "tmhm": [
+    "TM06",
+    "TM07",
+    "TM10",
+    "TM12",
+    "TM13",
+    "TM14",
+    "TM17",
+    "TM18",
+    "TM21",
+    "TM27",
+    "TM28",
+    "TM32",
+    "TM40",
+    "TM42",
+    "TM44",
+    "TM45",
+    "TM48",
+    "TM54",
+    "TM55",
+    "TM56",
+    "TM67",
+    "TM75",
+    "TM81",
+    "TM86",
+    "TM87",
+    "TM90",
+    "TM94",
+    "HM01",
+    "HM03",
+    "HM05",
+    "HM06"
+   ],
+   "entry_bytes": 60,
+   "name": "Dewott",
+   "hidden_ability": "Shell Armor",
+   "abilities": [
+    "Torrent",
+    "Vital Spirit"
+   ],
+   "learnset": [
+    {
+     "level": 1,
+     "move_id": 33,
+     "move": "Tackle"
+    },
+    {
+     "level": 1,
+     "move_id": 39,
+     "move": "Tail Whip"
+    },
+    {
+     "level": 1,
+     "move_id": 55,
+     "move": "Water Gun"
+    },
+    {
+     "level": 1,
+     "move_id": 346,
+     "move": "Water Sport"
+    },
+    {
+     "level": 5,
+     "move_id": 39,
+     "move": "Tail Whip"
+    },
+    {
+     "level": 7,
+     "move_id": 55,
+     "move": "Water Gun"
+    },
+    {
+     "level": 11,
+     "move_id": 346,
+     "move": "Water Sport"
+    },
+    {
+     "level": 13,
+     "move_id": 116,
+     "move": "Focus Energy"
+    },
+    {
+     "level": 17,
+     "move_id": 534,
+     "move": "Razor Shell"
+    },
+    {
+     "level": 17,
+     "move_id": 2,
+     "move": "Karate Chop"
+    },
+    {
+     "level": 20,
+     "move_id": 210,
+     "move": "Fury Cutter"
+    },
+    {
+     "level": 25,
+     "move_id": 352,
+     "move": "Water Pulse"
+    },
+    {
+     "level": 28,
+     "move_id": 279,
+     "move": "Revenge"
+    },
+    {
+     "level": 33,
+     "move_id": 453,
+     "move": "Aqua Jet"
+    },
+    {
+     "level": 36,
+     "move_id": 227,
+     "move": "Encore"
+    },
+    {
+     "level": 41,
+     "move_id": 401,
+     "move": "Aqua Tail"
+    },
+    {
+     "level": 44,
+     "move_id": 514,
+     "move": "Retaliate"
+    },
+    {
+     "level": 49,
+     "move_id": 14,
+     "move": "Swords Dance"
+    },
+    {
+     "level": 52,
+     "move_id": 56,
+     "move": "Hydro Pump"
+    },
+    {
+     "level": 55,
+     "move_id": 370,
+     "move": "Close Combat"
+    }
+   ],
+   "evolutions": [
+    {
+     "method_id": 4,
+     "method": "level-up",
+     "parameter": 36,
+     "into_id": 503,
+     "into": "Samurott"
+    }
+   ]
+  }
+ }
+}

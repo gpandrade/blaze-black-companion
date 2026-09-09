@@ -1,0 +1,10 @@
+{
+  "_comment": "Copy me to companion.config.json and fill in your own paths. That file is gitignored -- a save path is personal.",
+  "save": "/path/to/pokemon_blaze_black.sav",
+  "_rom": "Your patched Blaze Black ROM. Needed once, by ./setup, to extract the game's own tables. Never modified.",
+  "rom": "/path/to/pokemon_blaze_black.nds",
+  "_vanilla_rom": "Optional. An unmodified Pokemon Black ROM, used only to prove the extractor's field offsets and to diff hack-vs-vanilla.",
+  "vanilla_rom": "/path/to/pokemon_black.nds",
+  "_backups": "Optional. Where pre-install backups go. Defaults to save_backups/ in this repo.",
+  "backups": "save_backups"
+}

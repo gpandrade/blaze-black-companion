@@ -1,0 +1,230 @@
+#!/usr/bin/env bash
+# setup -- get a fresh clone ready to run.
+#
+# The repo deliberately ships no game data. ROM tables, sprites and encounter
+# text are the game's own content, and none of it is ours to redistribute --
+# so this fetches what can be fetched and extracts the rest from YOUR ROM.
+#
+#     ./setup
+#     ./setup --rom /path/to/blaze_black.nds --vanilla /path/to/black.nds
+#
+# It is safe to re-run: every step checks whether it is already done.
+set -euo pipefail
+cd "$(dirname "$0")"
+
+WIKI_REPO="https://github.com/AkeemAllen/blaze-black-wiki.git"
+ROM=""; VANILLA=""; SAVE=""; SKIP_WIKI=0
+
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --rom) ROM="$2"; shift 2 ;;
+    --vanilla) VANILLA="$2"; shift 2 ;;
+    --save) SAVE="$2"; shift 2 ;;
+    --no-wiki) SKIP_WIKI=1; shift ;;
+    -h|--help) awk 'NR>1 && /^#/ {sub(/^# ?/,""); print; next} NR>1 {exit}' "$0"; exit 0 ;;
+    *) echo "setup: unknown option $1" >&2; exit 2 ;;
+  esac
+done
+
+say()  { printf '\n\033[1m%s\033[0m\n' "$*"; }
+ok()   { printf '  \033[32m✓\033[0m %s\n' "$*"; }
+warn() { printf '  \033[33m!\033[0m %s\n' "$*"; }
+die()  { printf '  \033[31m✗\033[0m %s\n' "$*" >&2; exit 1; }
+
+# --------------------------------------------------------------- prerequisites
+say "Checking prerequisites"
+command -v python3 >/dev/null || die "python3 not found"
+command -v node    >/dev/null || die "node not found (needed for the app and its tests)"
+ok "python3 $(python3 -c 'import sys;print(".".join(map(str,sys.version_info[:3])))')"
+ok "node $(node --version)"
+command -v git >/dev/null && ok "git $(git --version | awk '{print $3}')" || warn "git not found — the wiki step will be skipped"
+
+# ---------------------------------------------------------------------- wiki
+# Encounter tables, trainer rosters and all 649 sprites live here. It is a
+# separate read-only clone rather than vendored content: 232 MB, someone
+# else's work, and updated independently.
+if [ "$SKIP_WIKI" = 0 ] && command -v git >/dev/null; then
+  say "Reference wiki"
+  if [ -d wiki/.git ]; then
+    ok "already cloned — $(find wiki/docs/img/pokemon -name '*.png' 2>/dev/null | wc -l) sprites"
+    git -C wiki pull --ff-only --quiet 2>/dev/null && ok "up to date" || warn "could not pull; keeping what is here"
+  else
+    echo "  cloning $WIKI_REPO (this is the big one, ~232 MB)"
+    git clone --depth 1 "$WIKI_REPO" wiki || die "clone failed — clone it to ./wiki yourself and re-run"
+    ok "cloned"
+  fi
+  [ -d wiki/docs/img/pokemon ] || warn "wiki/docs/img/pokemon missing — sprites will not render"
+fi
+
+# ------------------------------------------------------------------ the map
+# The region artwork. Fetched rather than committed: it is someone else's art,
+# and the same reasoning that keeps the ROM tables and the wiki clone out of
+# git applies to it.
+say "Region map"
+MAP_URL="https://raw.githubusercontent.com/krisnadwia/PokemonRegions/master/assets/images/unova_region.jpg"
+if [ -s app/img/unova.jpg ]; then
+  ok "app/img/unova.jpg already here ($(du -h app/img/unova.jpg | cut -f1))"
+else
+  mkdir -p app/img
+  if curl -fsSL -o app/img/unova.jpg "$MAP_URL"; then
+    ok "fetched app/img/unova.jpg ($(du -h app/img/unova.jpg | cut -f1))"
+  else
+    rm -f app/img/unova.jpg
+    warn "could not fetch the region map. The Adventure tab works without it —"
+    warn "it just has no picture. Drop any Unova map at app/img/unova.jpg."
+  fi
+fi
+
+# find_rom is DEFINED HERE, above the config block, because the config block
+# is its first caller. It used to sit thirty lines further down, next to the
+# ROM search that also uses it -- which reads tidier and is wrong: bash
+# resolves a function at call time, so the save lookup below died with
+# "find_rom: command not found" on the FIRST command a new user ever ran.
+# `|| true` swallowed the failure, so it was never fatal and never noticed --
+# it only meant save auto-detection silently never worked, on a clean clone,
+# which is the one machine nobody tests on.
+find_rom() {  # $1 = pattern, echoes the first match under common locations
+  for d in "$HOME" /mnt/c/Users/*/Saved\ Games /mnt/c/Users/*/Downloads .; do
+    [ -d "$d" ] || continue
+    f=$(find "$d" -maxdepth 2 -iname "$1" -print -quit 2>/dev/null || true)
+    [ -n "$f" ] && { echo "$f"; return; }
+  done
+}
+
+# ----------------------------------------------------------------------- ROM
+# EVERY PATH IS RESOLVED BEFORE THE CONFIG IS WRITTEN, and the config is
+# written before anything reads a ROM. Both halves of that are load-bearing and
+# each was learned the same way, from a clean clone.
+#
+# paths.py resolves the ROM and the save for every tool out of this file. Write
+# the config afterwards and build_static, ncgr and build_sheet each fall back
+# to ./game/<name> and die with "ROM not found" -- invisible on any machine
+# where that old hardcoded default happened to exist.
+#
+# But writing it first is not enough on its own: it has to be written with the
+# paths ALREADY FOUND. The ROM and vanilla lookups used to run thirty lines
+# below this block, so on the auto-detect path -- a new user running a bare
+# `./setup`, which is what the README tells them to do -- the config was
+# written with a save and NO rom. The extractors survived it, because setup
+# hands them --rom explicitly. build_static.py does not take --rom: it asks
+# paths.py, got nothing, and died on ./game/pokemon_blaze_black.nds AFTER
+# every extraction step had already printed a tick. Passing --rom and
+# --vanilla hid it completely, which is why it survived the last clean-clone
+# pass. So: find everything, THEN write, THEN use.
+[ -n "$SAVE" ]    || SAVE=$(find_rom '*blaze*black*.sav' || true)
+[ -n "$ROM" ]     || ROM=$(find_rom '*blaze*black*.nds' || true)
+[ -n "$VANILLA" ] || VANILLA=$(find_rom 'pokemon_black.nds' || true)
+
+if [ ! -f companion.config.json ]; then
+  python3 - "${SAVE:-}" "${ROM:-}" "${VANILLA:-}" <<'CFG'
+import json, sys, pathlib
+save, rom, vanilla = (sys.argv + ["", "", ""])[1:4]
+cfg = {"backups": "save_backups"}
+if save:    cfg["save"] = save
+if rom:     cfg["rom"] = rom
+if vanilla: cfg["vanilla_rom"] = vanilla
+pathlib.Path("companion.config.json").write_text(json.dumps(cfg, indent=2) + "\n")
+CFG
+  if [ -n "${SAVE:-}" ]; then
+    ok "companion.config.json -> $SAVE"
+  else
+    warn "no .sav found -- edit companion.config.json, or drag one onto the page"
+  fi
+else
+  ok "companion.config.json exists"
+  # An EXISTING config is the authority on where the ROM is -- setup must not
+  # quietly use a different one it happened to find on disk. Without this, a
+  # re-run with a config pointing at ROM A would extract from ROM B.
+  eval "$(python3 - <<'RD'
+import json, pathlib, shlex
+try:
+    cfg = json.loads(pathlib.Path("companion.config.json").read_text())
+except (OSError, ValueError):
+    cfg = {}
+for var, key in (("ROM", "rom"), ("VANILLA", "vanilla_rom")):
+    if cfg.get(key):
+        print(f"{var}={shlex.quote(str(cfg[key]))}")
+RD
+)"
+fi
+
+say "ROM tables"
+
+if [ -f state/personal.json ] && [ -f state/items.json ] && [ -f state/trainers.json ]; then
+  ok "state/personal.json, items.json and trainers.json already built"
+elif [ -n "$ROM" ] && [ -f "$ROM" ]; then
+  ok "hack ROM: $ROM"
+  # THE VANILLA ROM IS REQUIRED, and the README used to call it optional.
+  # extract_personal.py LOOKS like it supports going without: there is an else
+  # branch that probes the hack's own tables and labels the proof "hack-rom (no
+  # vanilla ROM available)". That branch cannot succeed. Its probe constants
+  # are VANILLA values -- #501 Oshawott base_exp 28 -- and raising base_exp for
+  # 38 weak species is one of the things the hack DOES, so the probe reads 50,
+  # mismatches, and the extractor correctly refuses to emit. Checked, not
+  # assumed: running it that way fails with
+  #     hack: #501 layout probe (50, ...) != (28, ...)
+  # So the choice is not "optional or required" -- it is "required, or fix the
+  # probe to use fields the hack cannot change". Until someone does the latter,
+  # this says required, because a documented option that always fails is worse
+  # than one that was never offered.
+  if [ -z "$VANILLA" ] || [ ! -f "$VANILLA" ]; then
+    warn "no unmodified Pokémon Black ROM found — and one is required."
+    warn "The extractor proves its field offsets against a known-good table"
+    warn "before it will emit anything, and it refuses rather than guess."
+    warn ""
+    warn "Pass one with:  ./setup --vanilla /path/to/pokemon_black.nds"
+    warn "It is read only, never modified, and is also what produces the"
+    warn "hack-vs-vanilla diff the Pokédex shows as change badges."
+    exit 1
+  fi
+  ok "vanilla ROM: $VANILLA (used to PROVE the field offsets before trusting them)"
+  python3 extract_personal.py --rom "$ROM" --vanilla "$VANILLA"
+  python3 extract_items.py    --rom "$ROM" --vanilla "$VANILLA"
+  # Trainer classes, rosters and the 95 portraits. Depends on personal.json
+  # for species names, so it runs after it.
+  python3 extract_trainers.py --rom "$ROM" --vanilla "$VANILLA"
+  # 649 party icons (32x32). Needs the wiki clone, which is how the
+  # per-species palette is chosen -- see icon_palette_for().
+  python3 tools/ncgr.py icons --rom "$ROM"
+  # The eight gym badges for the trainer card. Their arrangement comes from
+  # the ROM's own cell bank, not from a guessed stride -- see
+  # notes/rom-graphics.md.
+  python3 tools/ncgr.py badges --rom "$ROM"
+else
+  warn "no Blaze Black ROM found. Pass --rom /path/to/rom.nds"
+  warn "Nothing here ships game data: the tables come out of your own ROM."
+  exit 1
+fi
+
+# -------------------------------------------------------------- app data
+say "App data"
+python3 build_static.py
+ok "app/data/static.json built"
+
+# ---------------------------------------------------------------- your save
+say "Your save"
+if [ -f companion.config.json ]; then
+  say "Shipped rosters"
+  if node tools/adopt_layout.mjs 2>/dev/null; then
+    ok "team store ready"
+  else
+    warn "could not seed the shipped rosters — the app will do it on first run"
+  fi
+fi
+
+# ------------------------------------------------------------------- verify
+say "Checking it works"
+if node tools/verify_app.mjs >/dev/null 2>&1; then
+  ok "the app renders a real save end to end"
+else
+  warn "tools/verify_app.mjs did not pass — run it directly to see why"
+fi
+
+say "Ready"
+cat <<'MSG'
+  ./serve          then open http://127.0.0.1:8080/app/
+  ./test-all       run every check
+
+  Nothing leaves your machine: the server binds localhost, and the save is
+  decoded in the browser tab.
+MSG

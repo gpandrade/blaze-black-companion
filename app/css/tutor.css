@@ -1,0 +1,137 @@
+/*
+ * tutor.css -- Slowking.
+ *
+ * =========================================================================
+ * HAZEL IS THE GAME'S OWN ART; THE CHROME AROUND THEM IS TOKENS
+ * =========================================================================
+ * The sprite is the ROM's Scientist — see the long note in tutor.js for why
+ * two hand-drawn mascots came first and why neither survived review.
+ * It is a bitmap, so nothing here may rotate or scale it: an emote is a
+ * whole-pixel translation. Everything AROUND the sprite — badge, bubble,
+ * buttons, ring — is tokens all the way down, as usual.
+ *
+ * =========================================================================
+ * THE RULE A MASCOT LIVES OR DIES BY
+ * =========================================================================
+ * It must not move unless it is saying something. A looping idle is what made
+ * Clippy intolerable. There is now NO ambient motion at all: the sprite is the
+ * cartridge's own still, so it cannot blink, and every move it makes fires
+ * once, on a transition Slowking is actually part of.
+ */
+
+/* Bottom LEFT: the Poké Balls are bottom right, and a mascot standing on the
+   easter egg would be the first bug reported. */
+.tu-root { position: fixed; left: 16px; bottom: 16px; z-index: 71;
+  display: flex; align-items: flex-end; gap: 10px;
+  transition: left .28s cubic-bezier(.2,.7,.3,1), top .28s cubic-bezier(.2,.7,.3,1); }
+
+/* WHILE THE TOUR IS RUNNING HAZEL LEAVES THE CORNER and stands next to the
+   thing being pointed at — tutor.js works out which side of it fits. Reading a
+   sentence in one corner and then hunting the far side of a dimmed page for
+   what it described was the single worst thing about the first tour. */
+.tu-root.tu-anchored { bottom: auto; }
+
+/* HAZEL STANDS ON A BADGE, and that is not decoration.
+   A sprite dropped straight onto the patterned ground has the page showing
+   through every transparent pixel around the outline. A card-coloured pad
+   gives it the same clean surface every other element in the app gets, in all
+   four palettes, and it is what the badge's own hop reads against. */
+.tu-me, .tu-bubble { position: relative; z-index: 2; }
+/* 56x88 IS THE SPRITE'S SHAPE, not a round number. Both candidates stand in a
+   square canvas with a lot of air either side — Slowking is 44x68 of a 96x96
+   sheet, the ROM's Scientist 34x75 of 80x80 — so a square badge renders the
+   character at a third of the space and it looks tiny. The badge is cut to
+   that ~2:3 silhouette and `object-fit: cover` clips the margin rather than
+   scaling the figure down into it. No per-sprite offsets: both are centred. */
+.tu-me { flex: none; width: 56px; height: 88px; padding: 0; overflow: hidden; cursor: pointer;
+  line-height: 0; border-radius: 14px 14px 12px 12px;
+  background: var(--card); border: 1px solid var(--rule);
+  box-shadow: var(--shadow), var(--rim); }
+.tu-me:hover { border-color: var(--ember); }
+.tu-me:focus-visible { outline: 2px solid var(--ember); outline-offset: 3px; }
+
+/* ------------------------------------------------------------- the drawing */
+/* The cartridge's own sprite, scaled up hard and kept chunky — the same
+   treatment the Poké Ball easter egg gives its guests, and for the same
+   reason: an outline drawn by the people who drew the game reads as a
+   character, and one drawn here does not. */
+/* NO ZOOM, AND THAT IS LOAD-BEARING. Scaling to 118% fills the badge nicely
+   with Slowking, which has 14 rows of margin above and below — and cuts the
+   FEET off the Scientist, whose sprite runs to row 79 of 80. Trainer portraits
+   have already shipped twice with their feet mangled (notes/rom-graphics.md);
+   buying a
+   few pixels on the mascot by re-shipping that on the fallback is not a trade.
+   1:1, anchored by `cover`, works for any centred sprite. */
+.tu-fig { display: block; width: 100%; height: 100%; object-fit: cover;
+  image-rendering: pixelated; }
+
+/* NO ART IS A REAL STATE. `./setup` extracts the portraits from the player's
+   own ROM, so a fresh clone has none — and a broken-image glyph in the corner
+   would be the same "looks bad" failure by another route. The badge draws a
+   Poké Ball instead: two halves, a band, a button. */
+.tu-me.tu-noface { background:
+  radial-gradient(circle at 50% 52%, var(--card) 0 5px, var(--ink-soft) 5px 7px, transparent 7px),
+  linear-gradient(var(--ink-soft) 0 0) 50% 52% / 100% 2px no-repeat,
+  linear-gradient(var(--ember) 0 50%, var(--card) 50% 100%); }
+
+/* AN EMOTE IS A WHOLE-PIXEL MOVE, and that is the whole vocabulary.
+   The sprite is a bitmap: `rotate` and `scale` resample it into mush, and
+   redrawing it is not on offer — it belongs to the cartridge, not to this
+   file. Rest, lean, hop. Three gestures done honestly beat five poses drawn
+   by someone who cannot draw, which is what the two before it were. */
+.tu-me { transition: transform .3s cubic-bezier(.2,.7,.3,1); }
+.tu-me.tu-talk, .tu-me.tu-point, .tu-me.tu-think { transform: translateY(-2px); }
+.tu-me.tu-cheer { transform: translateY(-7px); }
+.tu-touring .tu-me.tu-idle { transform: translateY(-2px); }
+
+/* --------------------------------------------------------------- the bubble */
+.tu-bubble { max-width: 340px; padding: 13px 15px; border-radius: 13px;
+  background: var(--card); border: 1px solid var(--rule);
+  box-shadow: var(--shadow), var(--rim); --notch: 10px;
+  clip-path: polygon(
+    0 var(--notch), var(--notch) 0, 100% 0,
+    100% calc(100% - var(--notch)), calc(100% - var(--notch)) 100%, 0 100%); }
+.tu-title { margin: 0 0 5px; font-size: 14px; font-weight: 750; color: var(--ink); }
+.tu-text { margin: 0; font-size: 12.5px; line-height: 1.55; color: var(--ink-soft); }
+.tu-text b { color: var(--ink); }
+.tu-acts { display: flex; gap: 7px; margin-top: 11px; flex-wrap: wrap; }
+.tu-btn { font: inherit; font-size: 12px; font-weight: 600; padding: 5px 11px;
+  cursor: pointer; border-radius: 7px; border: 1px solid var(--rule);
+  background: var(--card-3); color: var(--ink-soft); }
+.tu-btn:hover { border-color: var(--ember); color: var(--ember); }
+/* The primary is the measured filled pair, never --ember plus a white. */
+.tu-btn.go { background: var(--fx-go-bg); border-color: var(--fx-go-bg);
+  color: var(--fx-go-ink); }
+.tu-btn.go:hover { background: var(--fx-go-bg-hover); border-color: var(--fx-go-bg-hover);
+  color: var(--fx-go-ink); }
+
+/* -------------------------------------------------------------- the spotlight */
+/* A ring around what Slowking is pointing at, and everything else dimmed by one
+   enormous shadow rather than four positioned panels.
+   POINTER-EVENTS: NONE IS NOT OPTIONAL. It covers the whole viewport, and a
+   full-area layer taking clicks has broken this app twice — here it would
+   swallow the very button the tour is telling you to press. */
+/* THE Z-INDEX HERE IS MEASURED AGAINST ITS SIBLINGS, NOT AGAINST THE APP.
+   .tu-root already lifts this whole subtree above the page, so what 68 actually
+   did was beat the bubble's `auto` — the dim layer painted over the very
+   sentence it existed to spotlight. The bubble and Slowking sit above it now. */
+.tu-spot { position: fixed; z-index: 1; pointer-events: none; border-radius: 10px;
+  border: 2px solid var(--ember);
+  box-shadow: 0 0 0 9999px color-mix(in srgb, var(--ground) 62%, transparent);
+  transition: left .25s ease, top .25s ease, width .25s ease, height .25s ease; }
+
+@media (prefers-reduced-motion: reduce) {
+  .tu-me, .tu-spot, .tu-root { transition: none; }
+}
+
+/* On a phone the bubble cannot sit beside a figure and still hold a sentence,
+   so it goes above, and Slowking shrinks out of the way. */
+@media (max-width: 620px) {
+  /* The children are [spot, me, bubble], so a plain column stacks Slowking above
+     the speech, which is the right way round. `right` stays set, so an anchored
+     root with an inline `left` simply stretches to the width of the screen —
+     which is what you want on a phone anyway. */
+  .tu-root { flex-direction: column; align-items: flex-start; right: 16px; }
+  .tu-bubble { max-width: none; width: 100%; }
+  .tu-me { width: 48px; height: 60px; }
+}

@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+# test-js -- regenerate the Python ground truth, then check the JS port against it.
+#
+# READ-ONLY with respect to the live save: the corpus is tests/fixture.sav plus
+# the newest file in save_backups/, and every write-path check runs in memory.
+set -euo pipefail
+cd "$(dirname "$0")"
+
+python3 tests/dump_pk5_truth.py
+node tests/test_pk5.mjs

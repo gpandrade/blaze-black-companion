@@ -1,0 +1,35 @@
+MIT License
+
+Copyright (c) 2026 the Blaze Black companion contributors
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+---
+
+The MIT licence above covers THIS SOFTWARE ONLY.
+
+It does not and cannot cover Pokémon, Pokémon Black/White, or Pokémon Blaze
+Black. No game code, ROM, sprite, or data table from any of them is included
+in this repository -- see "What this repository does not contain" in the
+README. Everything of that kind is read at setup time out of a copy you
+already own, on your machine, and never leaves it.
+
+Nor does it cover the contents of docs/, which are text conversions of
+Drayano's own documentation for Blaze Black, included with thanks and with
+credit. Those remain his.

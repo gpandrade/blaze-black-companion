@@ -1,0 +1,15 @@
+<!doctype html><meta charset="utf-8"><title>tour</title>
+<style>html,body{margin:0;background:#111} iframe{width:1200px;height:820px;border:0;display:block}</style>
+<iframe src="/app/"></iframe>
+<script>
+const f = document.querySelector('iframe');
+const N = Number(new URLSearchParams(location.search).get('n') || 1);
+f.onload = () => {
+  const d = f.contentDocument;
+  const step = () => {
+    const b = [...d.querySelectorAll('.tu-btn')].find(x => /^(Next|Done)$/.test(x.textContent));
+    if (b) b.click();
+  };
+  for (let i = 0; i < N; i++) setTimeout(step, 1200 + i * 500);
+};
+</script>

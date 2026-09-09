@@ -1,0 +1,545 @@
+{
+  "party": [
+    {
+      "slot": 1,
+      "species_id": 501,
+      "species": "Oshawott",
+      "nickname": "Oshawott",
+      "is_nicknamed": false,
+      "is_egg": false,
+      "level": 10,
+      "level_source": "stored",
+      "level_confidence": "exact",
+      "exp": 659,
+      "exp_curve": "medium-slow",
+      "exp_curve_source": "rom",
+      "exp_curve_candidates": [
+        "medium-slow"
+      ],
+      "nature": "Rash",
+      "nature_id": 19,
+      "ability": "Vital Spirit",
+      "ability_id": 72,
+      "held_item": null,
+      "moves": [
+        {
+          "id": 33,
+          "name": "Tackle",
+          "learned_at_level": 1
+        },
+        {
+          "id": 39,
+          "name": "Tail Whip",
+          "learned_at_level": 5
+        },
+        {
+          "id": 55,
+          "name": "Water Gun",
+          "learned_at_level": 7
+        }
+      ],
+      "ivs": {
+        "hp": 18,
+        "atk": 14,
+        "def": 29,
+        "spa": 11,
+        "spd": 17,
+        "spe": 10
+      },
+      "evs": {
+        "hp": 1,
+        "atk": 1,
+        "def": 0,
+        "spa": 0,
+        "spd": 0,
+        "spe": 4
+      },
+      "types": [
+        "water"
+      ],
+      "species_abilities": [
+        "Torrent",
+        "Vital Spirit"
+      ],
+      "hidden_ability": "Shell Armor",
+      "data_source": "rom",
+      "stats": {
+        "hp": 32,
+        "atk": 17,
+        "def": 16,
+        "spa": 19,
+        "spd": 13,
+        "spe": 15
+      },
+      "current_hp": 22,
+      "base_stats_source": "rom",
+      "stats_check": "ok"
+    },
+    {
+      "slot": 2,
+      "species_id": 396,
+      "species": "Starly",
+      "nickname": "Starly",
+      "is_nicknamed": false,
+      "is_egg": false,
+      "level": 7,
+      "level_source": "stored",
+      "level_confidence": "exact",
+      "exp": 308,
+      "exp_curve": "medium-slow",
+      "exp_curve_source": "rom",
+      "exp_curve_candidates": [
+        "medium-slow"
+      ],
+      "nature": "Brave",
+      "nature_id": 2,
+      "ability": "Keen Eye",
+      "ability_id": 51,
+      "held_item": null,
+      "moves": [
+        {
+          "id": 33,
+          "name": "Tackle",
+          "learned_at_level": 1
+        },
+        {
+          "id": 45,
+          "name": "Growl",
+          "learned_at_level": 1
+        },
+        {
+          "id": 98,
+          "name": "Quick Attack",
+          "learned_at_level": 5
+        }
+      ],
+      "ivs": {
+        "hp": 8,
+        "atk": 2,
+        "def": 30,
+        "spa": 12,
+        "spd": 1,
+        "spe": 28
+      },
+      "evs": {
+        "hp": 0,
+        "atk": 1,
+        "def": 1,
+        "spa": 0,
+        "spd": 0,
+        "spe": 0
+      },
+      "types": [
+        "normal",
+        "flying"
+      ],
+      "species_abilities": [
+        "Keen Eye",
+        "Keen Eye"
+      ],
+      "hidden_ability": "Keen Eye",
+      "data_source": "rom",
+      "stats": {
+        "hp": 23,
+        "atk": 13,
+        "def": 11,
+        "spa": 10,
+        "spd": 9,
+        "spe": 13
+      },
+      "current_hp": 23,
+      "base_stats_source": "rom",
+      "stats_check": "ok"
+    },
+    {
+      "slot": 3,
+      "species_id": 161,
+      "species": "Sentret",
+      "nickname": "Sentret",
+      "is_nicknamed": false,
+      "is_egg": false,
+      "level": 6,
+      "level_source": "stored",
+      "level_confidence": "exact",
+      "exp": 320,
+      "exp_curve": "medium-fast",
+      "exp_curve_source": "rom",
+      "exp_curve_candidates": [
+        "medium-fast"
+      ],
+      "nature": "Bold",
+      "nature_id": 5,
+      "ability": "Frisk",
+      "ability_id": 119,
+      "held_item": null,
+      "moves": [
+        {
+          "id": 146,
+          "name": "Dizzy Punch",
+          "learned_at_level": 1
+        },
+        {
+          "id": 10,
+          "name": "Scratch",
+          "learned_at_level": 1
+        },
+        {
+          "id": 193,
+          "name": "Foresight",
+          "learned_at_level": 1
+        },
+        {
+          "id": 111,
+          "name": "Defense Curl",
+          "learned_at_level": 4
+        }
+      ],
+      "ivs": {
+        "hp": 16,
+        "atk": 31,
+        "def": 29,
+        "spa": 27,
+        "spd": 5,
+        "spe": 23
+      },
+      "evs": {
+        "hp": 0,
+        "atk": 0,
+        "def": 0,
+        "spa": 0,
+        "spd": 0,
+        "spe": 2
+      },
+      "types": [
+        "normal"
+      ],
+      "species_abilities": [
+        "Frisk",
+        "Keen Eye"
+      ],
+      "hidden_ability": "Frisk",
+      "data_source": "rom",
+      "stats": {
+        "hp": 21,
+        "atk": 10,
+        "def": 11,
+        "spa": 10,
+        "spd": 10,
+        "spe": 8
+      },
+      "current_hp": 7,
+      "base_stats_source": "rom",
+      "stats_check": "ok"
+    },
+    {
+      "slot": 4,
+      "species_id": 16,
+      "species": "Pidgey",
+      "nickname": "Pidgey",
+      "is_nicknamed": false,
+      "is_egg": false,
+      "level": 10,
+      "level_source": "stored",
+      "level_confidence": "exact",
+      "exp": 657,
+      "exp_curve": "medium-slow",
+      "exp_curve_source": "rom",
+      "exp_curve_candidates": [
+        "medium-slow"
+      ],
+      "nature": "Careful",
+      "nature_id": 23,
+      "ability": "Tangled Feet",
+      "ability_id": 77,
+      "held_item": null,
+      "moves": [
+        {
+          "id": 365,
+          "name": "Pluck",
+          "learned_at_level": 9
+        },
+        {
+          "id": 16,
+          "name": "Gust",
+          "learned_at_level": 1
+        },
+        {
+          "id": 13,
+          "name": "Razor Wind",
+          "learned_at_level": 1
+        },
+        {
+          "id": 28,
+          "name": "Sand Attack",
+          "learned_at_level": 5
+        }
+      ],
+      "ivs": {
+        "hp": 17,
+        "atk": 11,
+        "def": 17,
+        "spa": 0,
+        "spd": 30,
+        "spe": 30
+      },
+      "evs": {
+        "hp": 2,
+        "atk": 2,
+        "def": 0,
+        "spa": 0,
+        "spd": 0,
+        "spe": 2
+      },
+      "types": [
+        "normal",
+        "flying"
+      ],
+      "species_abilities": [
+        "Big Pecks",
+        "Tangled Feet"
+      ],
+      "hidden_ability": "Big Pecks",
+      "data_source": "rom",
+      "stats": {
+        "hp": 29,
+        "atk": 15,
+        "def": 14,
+        "spa": 10,
+        "spd": 16,
+        "spe": 19
+      },
+      "current_hp": 29,
+      "base_stats_source": "rom",
+      "stats_check": "ok"
+    },
+    {
+      "slot": 5,
+      "species_id": 401,
+      "species": "Kricketot",
+      "nickname": "Kricketot",
+      "is_nicknamed": false,
+      "is_egg": false,
+      "level": 8,
+      "level_source": "stored",
+      "level_confidence": "exact",
+      "exp": 314,
+      "exp_curve": "medium-slow",
+      "exp_curve_source": "rom",
+      "exp_curve_candidates": [
+        "medium-slow"
+      ],
+      "nature": "Bashful",
+      "nature_id": 18,
+      "ability": "Run Away",
+      "ability_id": 50,
+      "held_item": null,
+      "moves": [
+        {
+          "id": 45,
+          "name": "Growl",
+          "learned_at_level": 1
+        },
+        {
+          "id": 117,
+          "name": "Bide",
+          "learned_at_level": 1
+        },
+        {
+          "id": 522,
+          "name": "Struggle Bug",
+          "learned_at_level": 1
+        },
+        {
+          "id": 450,
+          "name": "Bug Bite",
+          "learned_at_level": 1
+        }
+      ],
+      "ivs": {
+        "hp": 21,
+        "atk": 15,
+        "def": 1,
+        "spa": 8,
+        "spd": 21,
+        "spe": 4
+      },
+      "evs": {
+        "hp": 0,
+        "atk": 0,
+        "def": 0,
+        "spa": 0,
+        "spd": 0,
+        "spe": 0
+      },
+      "types": [
+        "bug"
+      ],
+      "species_abilities": [
+        "Shed Skin",
+        "Run Away"
+      ],
+      "hidden_ability": "Run Away",
+      "data_source": "rom",
+      "stats": {
+        "hp": 25,
+        "atk": 10,
+        "def": 11,
+        "spa": 9,
+        "spd": 13,
+        "spe": 9
+      },
+      "current_hp": 25,
+      "base_stats_source": "rom",
+      "stats_check": "ok"
+    }
+  ],
+  "boxes": [
+    {
+      "box": 1,
+      "name": "BOX 1",
+      "count": 0,
+      "pokemon": []
+    },
+    {
+      "box": 2,
+      "name": "BOX 2",
+      "count": 0,
+      "pokemon": []
+    },
+    {
+      "box": 3,
+      "name": "BOX 3",
+      "count": 0,
+      "pokemon": []
+    },
+    {
+      "box": 4,
+      "name": "BOX 4",
+      "count": 0,
+      "pokemon": []
+    },
+    {
+      "box": 5,
+      "name": "BOX 5",
+      "count": 0,
+      "pokemon": []
+    },
+    {
+      "box": 6,
+      "name": "BOX 6",
+      "count": 0,
+      "pokemon": []
+    },
+    {
+      "box": 7,
+      "name": "BOX 7",
+      "count": 0,
+      "pokemon": []
+    },
+    {
+      "box": 8,
+      "name": "BOX 8",
+      "count": 0,
+      "pokemon": []
+    },
+    {
+      "box": 9,
+      "name": "BOX 9",
+      "count": 0,
+      "pokemon": []
+    },
+    {
+      "box": 10,
+      "name": "BOX 10",
+      "count": 0,
+      "pokemon": []
+    },
+    {
+      "box": 11,
+      "name": "BOX 11",
+      "count": 0,
+      "pokemon": []
+    },
+    {
+      "box": 12,
+      "name": "BOX 12",
+      "count": 0,
+      "pokemon": []
+    },
+    {
+      "box": 13,
+      "name": "BOX 13",
+      "count": 0,
+      "pokemon": []
+    },
+    {
+      "box": 14,
+      "name": "BOX 14",
+      "count": 0,
+      "pokemon": []
+    },
+    {
+      "box": 15,
+      "name": "BOX 15",
+      "count": 0,
+      "pokemon": []
+    },
+    {
+      "box": 16,
+      "name": "BOX 16",
+      "count": 0,
+      "pokemon": []
+    },
+    {
+      "box": 17,
+      "name": "BOX 17",
+      "count": 0,
+      "pokemon": []
+    },
+    {
+      "box": 18,
+      "name": "BOX 18",
+      "count": 0,
+      "pokemon": []
+    },
+    {
+      "box": 19,
+      "name": "BOX 19",
+      "count": 0,
+      "pokemon": []
+    },
+    {
+      "box": 20,
+      "name": "BOX 20",
+      "count": 0,
+      "pokemon": []
+    },
+    {
+      "box": 21,
+      "name": "BOX 21",
+      "count": 0,
+      "pokemon": []
+    },
+    {
+      "box": 22,
+      "name": "BOX 22",
+      "count": 0,
+      "pokemon": []
+    },
+    {
+      "box": 23,
+      "name": "BOX 23",
+      "count": 0,
+      "pokemon": []
+    },
+    {
+      "box": 24,
+      "name": "BOX 24",
+      "count": 0,
+      "pokemon": []
+    }
+  ],
+  "box_total": 0,
+  "party_count_declared": 5,
+  "slot_used": 0
+}
