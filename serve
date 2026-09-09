@@ -94,7 +94,16 @@ MAX_UPLOAD = SAVE_SIZE + 1024
 
 # The static serving scope -- see WHAT IT SERVES in the docstring above.
 # app/ is the companion, js/ the save layer it imports from (and demo.html).
-PUBLIC_DIRS = (ROOT / "app", ROOT / "js")
+#
+# wiki/docs/img IS SERVED, and leaving it out broke 1,109 of the app's 1,854
+# images: build_static.py emits sprite PATHS, and the Pokemon sprites (649),
+# item icons (443) and type icons (17) all live in the wiki clone, not under
+# app/img/. Only the trainer portraits and party icons are ours. The symptom
+# was precise and easy to misread -- opponent portraits rendered, every
+# Pokemon was blank -- because those two happen to sit on opposite sides of
+# the line. The scope is wiki/docs/img and not wiki/, deliberately: the clone
+# is 232 MB of markdown and its own .git, and none of that is the app's.
+PUBLIC_DIRS = (ROOT / "app", ROOT / "js", ROOT / "wiki" / "docs" / "img")
 # sheet_template.html is fetched whole by the battle tab; the three tables are
 # what js/demo.html loads through Tables.fetch('../state/'). The app itself
 # needs no state/ file -- it reads app/data/static.json -- so nothing else in

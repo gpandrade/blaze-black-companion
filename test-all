@@ -98,6 +98,10 @@ echo "── js: app renders a real save end to end"
 node tools/verify_app.mjs
 
 echo
+echo "── py: every image the app asks for is one the server will send"
+python3 tools/verify_assets.py
+
+echo
 echo "── rom: NDS graphics decoder (skipped without the ROM or the wiki)"
 set +e
 python3 tools/ncgr.py selftest
