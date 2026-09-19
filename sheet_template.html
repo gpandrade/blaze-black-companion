@@ -767,17 +767,32 @@
    Borrows the card surface rather than inventing one, and the open board is
    indented by a rule so four stacked boards still read as a list. */
 .gpair{margin-top:2px}
-.pairgame{margin:8px 0 0;border:1px solid var(--rule);border-radius:8px;
-  background:var(--card-3);overflow:hidden}
-.pairgame>summary{cursor:pointer;font-size:12px;font-weight:700;
-  color:var(--ink);padding:7px 10px;list-style:none;
-  display:flex;align-items:center;gap:6px}
-.pairgame>summary::-webkit-details-marker{display:none}
-.pairgame>summary::before{content:"\25B8";font-size:10px;color:var(--ink-faint);
-  transition:transform .12s}
-.pairgame[open]>summary::before{transform:rotate(90deg)}
-.pairgame[open]>summary{border-bottom:1px solid var(--rule)}
-.pairgame>.gpanel{padding:8px 10px 10px}
+/* The pairing picker: one button per matchup, laid out to mirror the fight.
+   --pcols is however many of THEIRS are fielded, so two-on-two is a 2x2 and
+   anything else still lines up by column instead of wrapping arbitrarily. */
+.pairgrid{display:grid;grid-template-columns:repeat(var(--pcols,2),minmax(0,1fr));
+  gap:7px;margin:8px 0 10px}
+.pairbtn{display:flex;align-items:center;justify-content:center;gap:4px;
+  flex-wrap:wrap;background:var(--card);border:2px solid var(--rule);
+  border-radius:9px;padding:6px 8px;cursor:pointer;font:inherit;
+  color:var(--ink);min-width:0}
+.pairbtn img{width:34px;height:34px;flex:none}
+.pairbtn .pvs{font-family:var(--mono);font-size:9px;font-weight:700;
+  letter-spacing:.06em;text-transform:uppercase;color:var(--ink-faint)}
+.pairbtn .pnm{flex-basis:100%;text-align:center;font-size:10px;font-weight:700;
+  line-height:1.25;color:var(--ink-soft);overflow-wrap:anywhere}
+.pairbtn .pnm i{font-style:normal;font-weight:400;color:var(--ink-faint)}
+.pairbtn:hover{border-color:var(--ember)}
+.pairbtn.on{border-color:var(--ember);background:var(--ember-soft)}
+.pairbtn.on .pnm{color:var(--ink)}
+.pairgame{border-top:1px solid var(--rule);padding-top:8px}
+/* Rotation is the one format whose difference is a TRAP rather than a detail:
+   the board is exact and the conclusion you would draw from it is wrong,
+   because they rotate for free. Carries the warning tint the page already
+   uses for "this number is not the whole story". */
+.rotnote{border-left:3px solid var(--x2);background:var(--x2b);color:var(--x2);
+  padding:7px 10px;border-radius:0 7px 7px 0;margin:8px 0 10px}
+.rotnote b{color:var(--x2)}
 .gwhy{margin:10px 0 0}
 .gwhy>summary{cursor:pointer;font-size:11px;font-weight:700;color:var(--ink-soft);
   list-style:none;display:inline-flex;align-items:center;gap:6px;
@@ -1354,6 +1369,9 @@ const isRotation=(e)=>/rotation/i.test(String(e&&e.type||'').split('/')[0]);
    you are on that fight -- otherwise the buttons do nothing and read as
    broken -- but changing fights re-derives. */
 let fmtFor=null;
+/* Which of the doubles pairings is on screen. Reset with the fight, like the
+   fielded names, so a stale index cannot point at a matchup that is not here. */
+let pairIdx=0;
 /* HOW MANY TURNS THE BOARD LOOKS AHEAD. Persisted: it is a way of reading the
    board rather than a question you ask once. Two is the default because it is
    the shallowest depth at which a switch can be worth making -- at one turn a
@@ -2312,10 +2330,24 @@ function pairBoards(pool,e,mineNames,theirNames){
   if(!mine.length||!theirs.length) return '';
   const pairs=[];
   for(const me of mine) for(const o of theirs) pairs.push([me,o]);
-  const cards=pairs.map(([me,o],i)=>`<details class="pairgame"${i===0?' open':''}>
-      <summary><b>${esc(me.name)}</b> vs <b>${esc(o.n)}</b></summary>
-      ${gamePanel(me,o,pool,e.team.filter(x=>x.n!==o.n),false)}
-    </details>`).join('');
+  /* A PICKER ABOVE THE BOARD, NOT FOLDS BELOW IT.
+     These were four <details>, first one open. The other three sat under a
+     solved grid tall enough to push them off screen, so the view read as "one
+     board" and the remaining three matchups -- half the information in a
+     doubles fight -- were there but unfindable. A row of choices you can see
+     is not the same as a row of choices you can reach.
+     Laid out as sprite-vs-sprite so the pairing is legible without reading,
+     and kept in a 2x2 so it maps onto the two-against-two it describes.
+     Persistent, so you can flick between matchups while deciding a lead
+     instead of opening and closing them. */
+  if(pairIdx>=pairs.length) pairIdx=0;
+  const tabs=pairs.map(([me,o],i)=>`<button class="pairbtn${i===pairIdx?' on':''}"
+      data-pair="${i}" type="button">
+      ${spr(me.name)}<span class="pvs">vs</span>${spr(o.n)}
+      <span class="pnm">${esc(me.name)} <i>vs</i> ${esc(o.n)}</span></button>`).join('');
+  const [pm,po]=pairs[pairIdx];
+  const cards=`<div class="pairgrid" style="--pcols:${theirs.length}">${tabs}</div>
+    <div class="pairgame">${gamePanel(pm,po,pool,e.team.filter(x=>x.n!==po.n),false)}</div>`;
   return `<div class="gpair">
     ${depthPicker()}
     <p class="note"><b>${pairs.length} one-on-one boards, not a doubles solver.</b>
@@ -2330,14 +2362,18 @@ function pairBoards(pool,e,mineNames,theirNames){
     ${cards}</div>`;
 }
 
-function encounterPanel(mons,team){
-  const list=OPPONENTS, e=list[Math.min(encIdx,list.length-1)];
+function encounterPanel(mons,team,idx){
+  /* `idx` is a PARAMETER with the page's own encIdx as the default -- the same
+     fix pairBoards needed. Reading the global outright meant a check could
+     only ever inspect whichever fight the page happened to be on, so asserting
+     anything about a specific one silently tested fight zero instead. */
+  const list=OPPONENTS, e=list[Math.min(idx==null?encIdx:idx,list.length-1)];
   // Derive the format from the fight the FIRST time this fight is rendered.
   // Guarded on the key rather than done unconditionally, so toggling Singles
   // on a double battle -- to reason about one pairing -- survives the redraw
   // that the toggle itself triggers.
   const ekey=cKey(e);
-  if(fmtFor!==ekey){ fmt=fmtOf(e); fmtFor=ekey; fieldE=[]; fieldM=[]; }
+  if(fmtFor!==ekey){ fmt=fmtOf(e); fmtFor=ekey; fieldE=[]; fieldM=[]; pairIdx=0; }
   const active=mons.filter(m=>!benched[m.name]);
   const pool=active.length?active:mons;
   const cap=fmt==='doubles'?2:1;
@@ -2456,6 +2492,14 @@ function encounterPanel(mons,team){
       <p class="lbl" style="margin-top:10px">your side</p><div class="fbtns">${mBtns}</div>
       ${(fieldM.length&&fieldE.length)?`<div class="pairs">${cards}</div>`
         :'<p class="note">Pick at least one on each side to see the plan.</p>'}
+      ${isRotation(e)?`<p class="note rotnote"><b>This is a Rotation Battle.</b>
+        Only one Pokémon per side is on the field at a time, so the board below is
+        exactly right for the pairing you are looking at — this is a singles turn,
+        not a doubles one. What it does <b>not</b> model is the rotation itself:
+        they field <b>three</b>, and swapping between them costs them
+        <b>no turn at all</b>, where a switch would. So treat "they are locked into
+        this" as false — check the other two on their side before you commit to a
+        lead, because they can answer you for free and you cannot.</p>`:''}
       ${(fmt==='singles'&&fieldM.length===1&&fieldE.length===1)
         ? gamePanel(pool.find(m=>m.name===fieldM[0]), e.team.find(x=>x.n===fieldE[0]), pool,
             e.team.filter(x=>x.n!==fieldE[0]))
@@ -2766,13 +2810,9 @@ function render(team){
   document.querySelectorAll('[data-fmt]').forEach(b=>b.onclick=()=>{
     fmt=b.dataset.fmt; fieldE=fieldE.slice(0,fmt==='doubles'?2:1);
     fieldM=fieldM.slice(0,fmt==='doubles'?2:1); render(team);});
-  /* ONE PAIRING OPEN AT A TIME. Four expanded grids is a wall, and the whole
-     reason these are folds. Native <details> has no exclusivity, so closing
-     the siblings is done here rather than by hoping people close them. */
-  document.querySelectorAll('details.pairgame').forEach(d=>d.addEventListener('toggle',()=>{
-    if(!d.open) return;
-    document.querySelectorAll('details.pairgame').forEach(o=>{if(o!==d) o.open=false;});
-  }));
+  /* Switching pairing is a redraw, like every other control on this panel. */
+  document.querySelectorAll('[data-pair]').forEach(b=>b.onclick=()=>{
+    pairIdx=+b.dataset.pair; render(team);});
   const toggleField=(arr,val)=>{const cap=fmt==='doubles'?2:1;
     const i=arr.indexOf(val);
     if(i>=0) arr.splice(i,1); else {arr.push(val); while(arr.length>cap) arr.shift();}};

@@ -1041,6 +1041,27 @@ fs.unlinkSync(tmp);
       // the correction: only one Pokemon per side is ever ON the field, so the
       // one-on-one board is exactly right and lumping it with doubles cost
       // four fights a usable board.
+      // The rotation warning is a WARNING, not a label. It has to say the thing
+      // that changes your decision -- they rotate for free -- rather than just
+      // naming the format, which the toggle row already does.
+      {
+        const rot = M.OPPONENTS.find((x) => M.isRotation(x) && x.team.length);
+        if (rot) {
+          const idx = M.OPPONENTS.indexOf(rot);
+          const panel = M.encounterPanel(mons, M.TEAMS[0], idx);
+          // BOTH the warning surface and the words in it. Checking only for
+          // the class let a mutant that cut the text to "Rotation." pass --
+          // which is precisely the bare label this replaced.
+          ok('a rotation battle warns, not just labels',
+            /rotnote/.test(panel) && /This is a Rotation Battle/i.test(panel),
+            rot.leader);
+          ok('...and says the thing that changes your lead',
+            /no turn at all|costs? them\s*<b>no turn/i.test(panel),
+            'rotating is free and switching is not — that is the whole trap');
+          ok('...while still saying the board itself is right',
+            /exactly right/i.test(panel));
+        }
+      }
       ok('a double battle opens as doubles', M.fmtOf({ type: 'Double Battle' }) === 'doubles');
       ok('...a triple battle too', M.fmtOf({ type: 'Triple Battle' }) === 'doubles');
       ok('...but a rotation battle is singles',
@@ -1059,13 +1080,22 @@ fs.unlinkSync(tmp);
         const before = M.gDepth;
         const made = M.pairBoards(mons.slice(0, 2), dbl,
           mons.slice(0, 2).map((m) => m.name), dbl.team.slice(0, 2).map((x) => x.n));
-        const n = (made.match(/class="pairgame"/g) || []).length;
-        // FOUR, not "0 or 4". The first version of this accepted zero, which
-        // is what it got -- pairBoards read the fielded names off page globals
-        // the check never set, so it rendered nothing and the test agreed.
-        ok('doubles renders one board per pairing', n === 4, `${n} boards`);
-        ok('...with exactly one open to start',
-          (made.match(/<details class="pairgame" open>/g) || []).length <= 1);
+        // A PICKER ABOVE THE BOARD, not folds below it. Four <details> meant
+        // three matchups sat under a full grid, off screen, present but
+        // unfindable -- so the count that matters is buttons, and where they
+        // are relative to the board.
+        const btns = (made.match(/class="pairbtn/g) || []).length;
+        const boards = (made.match(/class="pairgame"/g) || []).length;
+        ok('doubles offers one button per pairing', btns === 4, `${btns} buttons`);
+        ok('...and renders exactly one board at a time', boards === 1, `${boards} boards`);
+        ok('...with exactly one pairing selected',
+          (made.match(/class="pairbtn on"/g) || []).length === 1);
+        // The whole point of the change: reachable without scrolling past a grid.
+        ok('...and the picker comes BEFORE the board it drives',
+          made.indexOf('pairbtn') < made.indexOf('class="pairgame"'),
+          'a choice below a solved grid is a choice nobody finds');
+        ok('...laid out to mirror the fight, not wrapped arbitrarily',
+          /--pcols:2/.test(made), 'two of theirs fielded means two columns');
         ok('...one depth control above them, not four',
           (made.match(/data-gd="1"/g) || []).length <= 1);
         ok('...and it names what the decomposition drops',
