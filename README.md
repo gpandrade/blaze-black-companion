@@ -9,8 +9,34 @@ base-stat lines, 18 typings and 46 moves**. Every guide, wiki, damage
 calculator and type chart on the internet is therefore confidently wrong about
 this game, and wrong in ways that lose fights: Steel still resists Ghost and
 Dark here, Fairy does not exist, Blizzard is 120 and not 110, trade evolutions
-are gone. So nothing here is answered from memory or scraped from a wiki. Every
-number comes out of the tables in your own cartridge, or out of your own save.
+are gone. So nothing here is answered from memory.
+
+### Where every number comes from
+
+Not everything can come out of the cartridge, so the rule is a **strict
+priority order** instead: a lower source is used only for what no higher source
+can answer, and never to override one. Every mechanical number — the kind that
+decides a fight — comes from the top two.
+
+| | Source | What it answers |
+|---|---|---|
+| 1 | **Your ROM** | Base stats, both types, all three abilities, growth curves, base EXP, catch rates, egg groups, level-up learnsets, TM/HM compatibility, evolution methods. Move power, accuracy, PP, type, category, priority. Item names, descriptions and prices. Zones, trainer classes, and the portraits, party icons and badges decoded out of the cartridge's own graphics banks. |
+| 2 | **Your save** | What you actually own, and where — levels, stats, natures, IVs, EVs, held items, bag, position, Pokédex. |
+| 3 | **Drayano's docs** (`docs/`) | Story-fight rosters — gym leaders, Elite Four, N, rivals, with levels, items, natures and movesets — plus field-item locations and legendary encounter levels. His own writing about his own hack, and the ROM's tables do not encode any of it. |
+| 4 | **The wiki** | Wild encounter tables, per-route trainer summaries, and the artwork: 649 Pokémon sprites, 443 item icons, 17 type icons. |
+
+The wiki sits last for a reason, and it is worth knowing if you contribute:
+it was generated from a **modern** Pokémon dataset, so it is contaminated
+wherever the games changed after Gen 5. Its type-effectiveness tables use the
+Gen 6 chart, 22 species are typed Fairy, and **63 moves carry the wrong
+power** — 22% of every power cell. So it is used for two things it cannot be
+wrong about (encounters and trainers are hack-authored, and a modern dataset
+has nothing to say about them) and for pictures. Every mechanical value it
+offers is ignored in favour of the ROM.
+
+When sources genuinely conflict, the tool says so rather than quietly picking
+one. Four evolutions where Drayano's docs and the ROM bytes disagree carry a
+standing disclaimer in the Pokédex instead of an answer.
 
 Nothing is uploaded. There is no account, no telemetry and no network call
 after setup.
@@ -145,6 +171,61 @@ edit.
 The JavaScript is dependency-free ES modules. There is no bundler, no
 `node_modules`, and no build.
 
+### Tested on exactly one setup
+
+This is one person's tool that got big enough to be worth sharing, and it has
+only ever run on the machine it was written on: **Windows 11 with WSL2
+(Ubuntu), Python 3.14, Node 22, melonDS, Firefox and Chrome, against a US
+Blaze Black v3.1 Full patch.** Everything above is what that machine happens to
+have, not a matrix anybody verified.
+
+Nothing here is *meant* to be fussy — it is standard-library Python, ES
+modules, and a `.sav` whose format has not changed since 2010 — so a different
+distro, emulator or browser will very likely be fine. But "very likely" is the
+honest word. If you are the first person to run this on macOS, or against a
+European ROM, or under mGBA-for-DS, you are running it somewhere it has never
+been run, and an issue is genuinely useful.
+
+The two places that would break first, if anything does: `./setup` shells out
+to `find` and `curl` and guesses at Windows-side paths under `/mnt/c`, and
+`./serve` detects a running emulator by calling `tasklist.exe`, which only
+exists under WSL — elsewhere it silently decides no emulator is running, which
+is the safe direction but not a check.
+
+### Phones and tablets: untested, possibly fine
+
+**There was no mobile pass and no responsive design work.** Nothing below
+720px has been looked at on real hardware, and a couple of the dense surfaces —
+the Factory's 30-slot box grid, the battle tab's matrix board — are wide by
+nature and will need horizontal scrolling at best.
+
+That said, it is probably closer to working than "no mobile pass" suggests,
+because narrow-screen rules got written along the way whenever a layout
+visibly broke on a resized desktop window. There are **21 `max-width`
+breakpoints across nine files**, and the most common one is 620px — phone
+width — with seven rules, plus three more at 560px. The shell carries a
+viewport meta tag, and layout is flexbox and grid throughout (210 `display:
+flex`, 55 `display: grid`).
+
+What was *not* done is the part that makes that reliable. Sizing is
+overwhelmingly in pixels rather than `rem` — 2,179 px values against 109 rem,
+with six of the twelve stylesheets using no `rem` at all — so the interface
+does not scale with a phone's larger default font, and there are 83 fixed
+pixel widths that cannot reflow. None of it has been opened on real hardware.
+
+So: the frame will probably hold and the contents may well overflow it. The
+Pokédex and the published team sheet are the surfaces most likely to be usable
+as-is; the Factory's box grid and the battle matrix are the least.
+
+The friction is not really CSS anyway: `./serve` wants a filesystem path to
+your `.sav`, and getting a save file onto a phone is the part nobody accepts.
+The realistic mobile surfaces are the **published team sheet** (a standalone
+HTML file you can host or open anywhere) and the **Pokédex tab**, which is the
+only one that needs no save at all.
+
+If you want it to work on a phone, that is a very reasonable thing to fix and
+a good first contribution. It was left undone on purpose, not overlooked.
+
 ---
 
 ## Tests
@@ -204,9 +285,10 @@ included under `docs/` with thanks — see above. Pokémon is Nintendo /
 Creatures / GAME FREAK. This project is an unaffiliated fan tool, is not
 endorsed by any of them, and ships none of their game content.
 
-Encounter tables and sprites come from the
-[blaze-black-wiki](https://github.com/AkeemAllen/blaze-black-wiki), cloned at
-setup time rather than vendored. The ROM decoding follows the field mapping
-used by the Universal Pokémon Randomizer ZX.
+Wild encounter tables, per-route trainer summaries and all the artwork come
+from the [blaze-black-wiki](https://github.com/AkeemAllen/blaze-black-wiki),
+cloned at setup time rather than vendored — see the source table at the top
+for what is and is not taken from it. The ROM decoding follows the field
+mapping used by the Universal Pokémon Randomizer ZX.
 
 The code is MIT licensed — see [LICENSE](LICENSE).
