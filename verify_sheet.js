@@ -128,7 +128,8 @@ const tmp = path.join(require("os").tmpdir(), `sheet_probe_${process.pid}.js`);
 fs.writeFileSync(tmp, script + "\n;module.exports={render,TEAMS,cur,monBlock,encounterPanel,statOf," +
   "levelCurve,speedLadder,threatBoard,bState,stagesOf,boostMoves,bMax,calcDamage,MOVES," +
   "OPPONENTS,boostBanner,bKey,stageMul,oppMon,boostRow,stageFx,battleIndex,TRFACE,D,abilMul,matchLine,mechOn,DEX,enemySpe," +
-  "calcPanel,calcDefender,calc,turnGame,solveZeroSum,gameRead,gamePanel,calcIncoming,oppMon,spdOf,enemySpe,gDepth,stageMul,buildSim,stepTurn,leaf,applyStages,dmgMul,STAGE0,threatBoard};");
+  "calcPanel,calcDefender,calc,turnGame,solveZeroSum,gameRead,gamePanel,calcIncoming,oppMon,spdOf,enemySpe,gDepth,stageMul,buildSim,stepTurn,leaf,applyStages,dmgMul,STAGE0,threatBoard," +
+  "pairBoards,fmtOf,isRotation,depthPicker};");
 let M;
 try {
   M = require(tmp);
@@ -1034,8 +1035,51 @@ fs.unlinkSync(tmp);
           !!positive, positive || 'no switch scored above zero anywhere — the leaf is material only');
       }
 
+      // ---- the format comes from the fight, and rotation is not doubles ----
+      // 16 of 36 story fights are multi-Pokemon formats and the page used to
+      // default every one of them to Singles. Rotation is the correction to
+      // the correction: only one Pokemon per side is ever ON the field, so the
+      // one-on-one board is exactly right and lumping it with doubles cost
+      // four fights a usable board.
+      ok('a double battle opens as doubles', M.fmtOf({ type: 'Double Battle' }) === 'doubles');
+      ok('...a triple battle too', M.fmtOf({ type: 'Triple Battle' }) === 'doubles');
+      ok('...but a rotation battle is singles',
+        M.fmtOf({ type: 'Rotation Battle' }) === 'singles', 'one active per side');
+      ok('...and is flagged so it can say why', M.isRotation({ type: 'Rotation Battle' }) === true);
+      // The compound strings name the fight you walk into FIRST.
+      ok('a compound type reads the fight you are in, not the rematch',
+        M.fmtOf({ type: 'Double Battle (Initial) / Single Battle (Rematch)' }) === 'doubles'
+        && M.fmtOf({ type: 'Rotation Battle (First Fight) / Triple Battle (Rematch)' }) === 'singles');
+      ok('...and an undocumented type falls back to singles',
+        M.fmtOf({}) === 'singles' && M.fmtOf({ type: '' }) === 'singles');
+
+      // ---- doubles renders one board per pairing --------------------------
+      const dbl = M.OPPONENTS.find((x) => /double/i.test(x.type || '') && x.team.length >= 2);
+      if (dbl && mons.length >= 2) {
+        const before = M.gDepth;
+        const made = M.pairBoards(mons.slice(0, 2), dbl,
+          mons.slice(0, 2).map((m) => m.name), dbl.team.slice(0, 2).map((x) => x.n));
+        const n = (made.match(/class="pairgame"/g) || []).length;
+        // FOUR, not "0 or 4". The first version of this accepted zero, which
+        // is what it got -- pairBoards read the fielded names off page globals
+        // the check never set, so it rendered nothing and the test agreed.
+        ok('doubles renders one board per pairing', n === 4, `${n} boards`);
+        ok('...with exactly one open to start',
+          (made.match(/<details class="pairgame" open>/g) || []).length <= 1);
+        ok('...one depth control above them, not four',
+          (made.match(/data-gd="1"/g) || []).length <= 1);
+        ok('...and it names what the decomposition drops',
+          /redirection/i.test(made) && /spread/i.test(made) && /not a doubles solver/i.test(made),
+          'a simplification that does not say what it simplifies is a lie');
+        ok('...without claiming to solve the turn', !/value of the turn is/i.test(made));
+        M.gDepth = before;
+      }
+
       const panel = M.gamePanel(me, o, mons, rest);
       ok('the panel renders', /gtab/.test(panel) && /gverdict/.test(panel));
+      ok('...and a board can omit the hoisted depth control',
+        !/data-gd="1"/.test(M.gamePanel(me, o, mons, rest, false)),
+        'the doubles view renders one picker above four boards');
       ok('...and offers the depth control', /data-gd="1"/.test(panel) && /data-gd="2"/.test(panel));
       // Three turns was offered and withdrawn: the search handles it, but three
       // turns of equilibrium play is a much stronger claim than two and the

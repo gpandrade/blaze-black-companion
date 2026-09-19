@@ -763,6 +763,21 @@
 .gkeytxt>span:first-child,.gkeytxt>span:last-child{color:var(--ink-soft)}
 /* The framing and the caveats are for the first read and the sceptical read,
    not for every visit -- so they fold away. */
+/* The doubles pairing view: one fold per matchup, one open at a time.
+   Borrows the card surface rather than inventing one, and the open board is
+   indented by a rule so four stacked boards still read as a list. */
+.gpair{margin-top:2px}
+.pairgame{margin:8px 0 0;border:1px solid var(--rule);border-radius:8px;
+  background:var(--card-3);overflow:hidden}
+.pairgame>summary{cursor:pointer;font-size:12px;font-weight:700;
+  color:var(--ink);padding:7px 10px;list-style:none;
+  display:flex;align-items:center;gap:6px}
+.pairgame>summary::-webkit-details-marker{display:none}
+.pairgame>summary::before{content:"\25B8";font-size:10px;color:var(--ink-faint);
+  transition:transform .12s}
+.pairgame[open]>summary::before{transform:rotate(90deg)}
+.pairgame[open]>summary{border-bottom:1px solid var(--rule)}
+.pairgame>.gpanel{padding:8px 10px 10px}
 .gwhy{margin:10px 0 0}
 .gwhy>summary{cursor:pointer;font-size:11px;font-weight:700;color:var(--ink-soft);
   list-style:none;display:inline-flex;align-items:center;gap:6px;
@@ -1326,8 +1341,15 @@ let encIdx=0, benched={}, fmt='singles', fieldE=[], fieldM=[];
    Rotation put more than two on the field and this page caps at two, so they
    take the wider setting and the real type is printed beside it rather than
    rounded away. */
-const fmtOf=(e)=>/double|triple|rotation/i.test(String(e&&e.type||'').split('/')[0])
+/* ROTATION IS SINGLES. Only one Pokemon per side is ever ON the field in a
+   rotation battle -- you spin between three rather than fielding three -- so
+   the one-on-one board is exactly the right model and the only thing it misses
+   is that rotating is cheaper than switching. Lumping it in with doubles cost
+   four fights a usable board, Drayden and Cheren 4 among them, and replaced
+   them with a note apologising for not modelling a game they are not playing. */
+const fmtOf=(e)=>/double|triple/i.test(String(e&&e.type||'').split('/')[0])
   ? 'doubles' : 'singles';
+const isRotation=(e)=>/rotation/i.test(String(e&&e.type||'').split('/')[0]);
 /* Which fight `fmt` was last derived for. A manual toggle has to stick while
    you are on that fight -- otherwise the buttons do nothing and read as
    broken -- but changing fights re-derives. */
@@ -1841,11 +1863,15 @@ const pct=v=>`${v>0?'+':''}${Math.round(v*100)}`;
    that only adds confidence in a bigger assumption is not. */
 const DEPTHS=[{d:1,label:'1 turn'},{d:2,label:'2 turns'}];
 
-function gamePanel(me,o,pool,theirRest){
+/* The look-ahead control, hoisted out of gamePanel so the doubles view can
+   render one above four boards instead of four identical copies of it. */
+const depthPicker=()=>`<div class="navrow gdepth"><span class="lbl">look ahead</span>${
+  DEPTHS.map(x=>`<button class="minibtn${gDepth===x.d?' on':''}" data-gd="${x.d}"
+    type="button">${x.label}</button>`).join('')}</div>`;
+
+function gamePanel(me,o,pool,theirRest,withPicker=true){
   const g=turnGame(me,o,(pool||[]).filter(m=>m.name!==me.name),theirRest,gDepth);
-  const picker=`<div class="navrow gdepth"><span class="lbl">look ahead</span>${
-    DEPTHS.map(x=>`<button class="minibtn${gDepth===x.d?' on':''}" data-gd="${x.d}"
-      type="button">${x.label}</button>`).join('')}</div>`;
+  const picker=withPicker?depthPicker():'';
   if(!g) return `<div class="gpanel">${picker}<p class="note">This fight's roster does not
     document ${esc(o.n)}'s moves, so there is no board to solve. Every gym leader,
     Elite Four member and champion does; most route rivals do not.</p></div>`;
@@ -2260,6 +2286,50 @@ function speedLadder(pool,e){
   </div>`;
 }
 
+/* DOUBLES, AS THE PAIRINGS RATHER THAN AS ONE GAME.
+   A real doubles turn is a single simultaneous game over joint actions: each
+   side moves two Pokemon at once, so the grid is every pair of your actions
+   against every pair of theirs. That is roughly 20,000 cells at one turn of
+   look-ahead and 400 million at two, and it would still be WRONG without
+   modelling spread damage, redirection and ally-targeting -- which is why
+   this page used to refuse and say so.
+
+   Refusing is still the honest answer to "solve my doubles turn". It is a
+   poor answer to the question people actually have, which is "how does each
+   of mine do against each of theirs". That decomposes into four ordinary
+   one-on-one games, and those this page already solves exactly.
+
+   So: four boards, and a disclaimer that names what the decomposition drops
+   rather than implying the product of four games is the real one. Folded, one
+   open at a time, because four full grids at once is not a tool. */
+function pairBoards(pool,e,mineNames,theirNames){
+  /* The fielded names are PARAMETERS with the globals as the default. They
+     were read straight off fieldM/fieldE, which made this untestable without
+     driving the whole page: the check called it, got nothing back, and passed
+     because the assertion allowed zero boards. Both halves of that were wrong. */
+  const mine=(mineNames||fieldM).map(n=>pool.find(m=>m.name===n)).filter(Boolean);
+  const theirs=(theirNames||fieldE).map(n=>e.team.find(x=>x.n===n)).filter(Boolean);
+  if(!mine.length||!theirs.length) return '';
+  const pairs=[];
+  for(const me of mine) for(const o of theirs) pairs.push([me,o]);
+  const cards=pairs.map(([me,o],i)=>`<details class="pairgame"${i===0?' open':''}>
+      <summary><b>${esc(me.name)}</b> vs <b>${esc(o.n)}</b></summary>
+      ${gamePanel(me,o,pool,e.team.filter(x=>x.n!==o.n),false)}
+    </details>`).join('');
+  return `<div class="gpair">
+    ${depthPicker()}
+    <p class="note"><b>${pairs.length} one-on-one boards, not a doubles solver.</b>
+      Each board below is the exact simultaneous game for that pairing, solved the
+      same way as a singles turn. What this does <b>not</b> model is everything that
+      makes doubles its own game: spread moves hitting both your Pokémon at 75%,
+      redirection (Follow Me, Lightning Rod, Storm Drain), ally-targeting support
+      like Helping Hand, Wide Guard, and the fact that your two choices are made
+      together rather than independently. Treat each board as "how does this one
+      fare against that one", which is the question worth asking before you lead —
+      not as the value of the turn.</p>
+    ${cards}</div>`;
+}
+
 function encounterPanel(mons,team){
   const list=OPPONENTS, e=list[Math.min(encIdx,list.length-1)];
   // Derive the format from the fight the FIRST time this fight is rendered.
@@ -2389,10 +2459,10 @@ function encounterPanel(mons,team){
       ${(fmt==='singles'&&fieldM.length===1&&fieldE.length===1)
         ? gamePanel(pool.find(m=>m.name===fieldM[0]), e.team.find(x=>x.n===fieldE[0]), pool,
             e.team.filter(x=>x.n!==fieldE[0]))
+        : (fmt==='doubles'&&fieldM.length&&fieldE.length)
+        ? pairBoards(pool,e)
         : (fieldM.length&&fieldE.length)
-        ? `<p class="note">${fmt==='doubles'
-            ? 'One Pokémon on each side to see what is safe. A doubles turn is a four-way simultaneous game and this does not model one — saying so beats solving the wrong game.'
-            : 'Exactly one on each side to see what is safe.'}</p>`
+        ? '<p class="note">Exactly one on each side to see what is safe.</p>'
         : ''}
     </div>
 
@@ -2696,6 +2766,13 @@ function render(team){
   document.querySelectorAll('[data-fmt]').forEach(b=>b.onclick=()=>{
     fmt=b.dataset.fmt; fieldE=fieldE.slice(0,fmt==='doubles'?2:1);
     fieldM=fieldM.slice(0,fmt==='doubles'?2:1); render(team);});
+  /* ONE PAIRING OPEN AT A TIME. Four expanded grids is a wall, and the whole
+     reason these are folds. Native <details> has no exclusivity, so closing
+     the siblings is done here rather than by hoping people close them. */
+  document.querySelectorAll('details.pairgame').forEach(d=>d.addEventListener('toggle',()=>{
+    if(!d.open) return;
+    document.querySelectorAll('details.pairgame').forEach(o=>{if(o!==d) o.open=false;});
+  }));
   const toggleField=(arr,val)=>{const cap=fmt==='doubles'?2:1;
     const i=arr.indexOf(val);
     if(i>=0) arr.splice(i,1); else {arr.push(val); while(arr.length>cap) arr.shift();}};
