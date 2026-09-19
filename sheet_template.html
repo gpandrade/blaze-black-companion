@@ -1314,6 +1314,24 @@ function calcPanel(mons){
 }
 
 let encIdx=0, benched={}, fmt='singles', fieldE=[], fieldM=[];
+/* THE FIGHT ALREADY KNOWS WHAT FORMAT IT IS, so stop asking.
+   Every opponent record carries Drayano's own `type` -- "Single Battle",
+   "Double Battle", "Triple Battle", "Rotation Battle", and a few compound
+   ones like "Double Battle (Initial) / Single Battle (Rematch)" where the
+   first named type is the fight you are walking into. Making you pick the
+   format by hand meant the default was wrong for every multi-Pokemon fight in
+   the game, silently: a singles board against a double battle is not a
+   caveat, it is the wrong question answered confidently.
+   Compound strings are read up to the first slash for that reason. Triple and
+   Rotation put more than two on the field and this page caps at two, so they
+   take the wider setting and the real type is printed beside it rather than
+   rounded away. */
+const fmtOf=(e)=>/double|triple|rotation/i.test(String(e&&e.type||'').split('/')[0])
+  ? 'doubles' : 'singles';
+/* Which fight `fmt` was last derived for. A manual toggle has to stick while
+   you are on that fight -- otherwise the buttons do nothing and read as
+   broken -- but changing fights re-derives. */
+let fmtFor=null;
 /* HOW MANY TURNS THE BOARD LOOKS AHEAD. Persisted: it is a way of reading the
    board rather than a question you ask once. Two is the default because it is
    the shallowest depth at which a switch can be worth making -- at one turn a
@@ -2244,6 +2262,12 @@ function speedLadder(pool,e){
 
 function encounterPanel(mons,team){
   const list=OPPONENTS, e=list[Math.min(encIdx,list.length-1)];
+  // Derive the format from the fight the FIRST time this fight is rendered.
+  // Guarded on the key rather than done unconditionally, so toggling Singles
+  // on a double battle -- to reason about one pairing -- survives the redraw
+  // that the toggle itself triggers.
+  const ekey=cKey(e);
+  if(fmtFor!==ekey){ fmt=fmtOf(e); fmtFor=ekey; fieldE=[]; fieldM=[]; }
   const active=mons.filter(m=>!benched[m.name]);
   const pool=active.length?active:mons;
   const cap=fmt==='doubles'?2:1;
@@ -2356,6 +2380,7 @@ function encounterPanel(mons,team){
         <button class="minibtn${fmt==='singles'?' on':''}" data-fmt="singles" type="button">Singles</button>
         <button class="minibtn${fmt==='doubles'?' on':''}" data-fmt="doubles" type="button">Doubles</button>
         <span class="lbl">pick ${cap} on each side</span>
+        ${e.type?`<span class="lbl" style="margin-left:auto">this fight is a <b>${esc(e.type)}</b></span>`:''}
       </div>
       <p class="lbl">their side</p><div class="fbtns">${eBtns}</div>
       <p class="lbl" style="margin-top:10px">your side</p><div class="fbtns">${mBtns}</div>

@@ -1228,11 +1228,56 @@ def rom_rosters():
         if not t.get('name') or not t.get('team'):
             continue
         team = [(m['species'], m['level']) for m in t['team']]
-        out.setdefault(t['name'], []).append((max(l for _s, l in team), team))
+        # The raw records ride along beside the (species, level) pairs the
+        # matching uses, because the ROM carries MOVES and HELD ITEMS too and
+        # the doc does not always. Kept parallel rather than folded into the
+        # pairs so the set comprehensions in rom_variant stay readable.
+        out.setdefault(t['name'], []).append(
+            (max(l for _s, l in team), team, t['team']))
     return out
 
 
-def rom_variant(rosters, who, top, pool, allow):
+def levelup_moves(entry, level):
+    """The four moves the game itself would give this Pokemon at this level.
+
+    A trainer record whose "custom moves" flag is CLEAR does not store moves at
+    all -- the engine builds the set from the species' own level-up learnset,
+    keeping the last four it would know by then. That is the case for most
+    early rival fights: Cheren 4 and Bianca 4 have no moves in Drayano's doc
+    AND none in the ROM, because in game they have none to store.
+
+    So this is the third source, and it is weaker than the other two: it is
+    engine behaviour applied to a ROM table rather than a value anybody wrote
+    down. It is marked separately in the record (`msrc = 'levelup'`) so the
+    page can say which fights are showing a derived set, and never presents
+    itself as documented.
+    """
+    known = [e['move'] for e in (entry.get('learnset') or [])
+             if e.get('level', 0) <= level and e.get('move')]
+    return known[-4:]
+
+
+def fill_from_rom(mon, rec):
+    """Copy the ROM's moves and held item onto a documented Pokemon.
+
+    ADDITIVE ONLY. Where Drayano documented a moveset it stays, because his
+    tables also carry natures and the Full-vs-Clean ability split that the ROM
+    does not express, and a half-replaced record would be worse than either
+    source alone. This only fills what the doc left blank.
+
+    Blank is common: eighteen story fights on a Snivy run arrive with no moves
+    at all, N 4 among them, and a battle board with no moves on one side has
+    no columns to solve. That is the whole reason this exists.
+    """
+    if not mon.get('m') and rec.get('moves'):
+        mon['m'] = list(rec['moves'])
+        mon['msrc'] = 'rom'
+    if not mon.get('i') and rec.get('item'):
+        mon['i'] = rec['item']
+    return mon
+
+
+def rom_variant(rosters, who, top, pool, allow=None):
     """The one ROM roster for this fight whose starter is the line he faces.
 
     Three filters, each of which must leave the answer unique:
@@ -1247,9 +1292,14 @@ def rom_variant(rosters, who, top, pool, allow):
     """
     if top is None:
         return None
-    cands = [team for lv, team in rosters.get(who, [])
+    cands = [(team, mons) for lv, team, mons in rosters.get(who, [])
              if lv == top and {s for s, _l in team} <= pool]
-    hit = [team for team in cands if {s for s, _l in team} & allow]
+    if allow is None:
+        # NO STARTER FORK TO RESOLVE -- N, the gym leaders, anyone whose fight
+        # has one roster. Uniqueness on (name, top level, pool) is the whole
+        # test, and it still refuses rather than guessing.
+        return cands[0] if len(cands) == 1 else None
+    hit = [c for c in cands if {s for s, _l in c[0]} & allow]
     return hit[0] if len(hit) == 1 else None
 
 
@@ -1361,6 +1411,7 @@ def parse_trainers(version=None, starter=None):
     lines = txt.split('\n')
     personal = json.loads((STATE / "personal.json").read_text())["species"]
     names = {v['name'] for v in personal.values()}
+    by_name = {v['name']: v for v in personal.values()}
 
     starter = starter or STARTER
     mine = STARTER_TYPE[starter]
@@ -1464,14 +1515,20 @@ def parse_trainers(version=None, starter=None):
                 romset = rom_variant(ROSTERS, who_r, max(doclv) if doclv else None,
                                      {m['n'] for m in team}, starters)
                 if romset:
+                    pairs, recs = romset
                     by = {m['n']: m for m in team}
                     team = []
-                    for sp, lvl in romset:
-                        m = by[sp]
+                    for (sp, lvl), rec in zip(pairs, recs):
+                        # COPY, because a roster may hold the same species
+                        # more than once and the doc's pool holds one dict per
+                        # NAME -- reusing it would append one object six times
+                        # and every entry would end up wearing the last one's
+                        # moves.
+                        m = dict(by[sp])
                         m['l'] = str(lvl)
                         if sp in fam:
                             m['variant'] = 'yes'
-                        team.append(m)
+                        team.append(fill_from_rom(m, rec))
                     approx = False
                     they = 'his' if who_r == 'Cheren' else 'her'
                     # "exact six" is only true late on -- the first rival
@@ -1491,6 +1548,36 @@ def parse_trainers(version=None, starter=None):
                             m['variant'] = 'yes'
                     note = (f"You picked {starter}, so {who_r} carries the {keep} line. "
                             f"The other starters' variants are not shown.")
+            # --- the doc left this fight without a single move -------------
+            # The rival branch above only runs for Cheren and Bianca, so every
+            # other under-documented fight fell through with an empty board:
+            # the matrix game needs moves on BOTH sides, and N 4 arrived as one
+            # Rotom with none. Matched the same way and refusing the same way --
+            # (name, top level, species pool) must be unique or nothing happens.
+            if team and not any(m.get('m') for m in team):
+                lv_ = [int(m['l']) for m in team if str(m.get('l', '')).isdigit()]
+                got = rom_variant(ROSTERS, who, max(lv_) if lv_ else None,
+                                  {m['n'] for m in team})
+                if got and any(r.get('moves') for r in got[1]):
+                    pairs, recs = got
+                    by = {m['n']: m for m in team}
+                    team = [fill_from_rom(dict(by[sp]) | {'l': str(lvl)}, rec)
+                            for (sp, lvl), rec in zip(pairs, recs)]
+                    approx = False
+                    note = ("Drayano's table gives this fight's species and levels but no "
+                            "movesets, so the moves and held items here are read from the "
+                            "ROM's own trainer table.")
+            # --- still nothing? derive what the engine itself would use ----
+            # Covers every fight the ROM does not store moves for, which is
+            # most of the early rival battles. Per Pokemon, not per fight, so a
+            # documented team with one blank row gets only that row filled.
+            for m in team:
+                if not m.get('m') and str(m.get('l', '')).isdigit():
+                    lvl_ = int(m['l'])
+                    mv = levelup_moves(by_name.get(m['n'], {}), lvl_)
+                    if mv:
+                        m['m'] = mv
+                        m['msrc'] = 'levelup'
             if approx and not note:
                 note = ('Drayano documents this table with per-starter variants across wrapped '
                         'rows, so this is the documented pool rather than an exact six.')
