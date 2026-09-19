@@ -163,6 +163,18 @@ edit.
 
 ## Requirements
 
+**This is a command-line tool, and it needs a Unix-ish shell.** In practice
+that means **Linux, macOS, or Windows with WSL** — `./setup` and `./serve` are
+a bash script and a Python script you run from a terminal, and there is no
+`.exe`, no installer and no double-clickable anything. If you are on Windows,
+install WSL (`wsl --install` in PowerShell, then reboot) and work inside it;
+your ROMs and save can stay on the Windows side, where setup already knows to
+look for them under `/mnt/c/Users/<you>/`.
+
+That is the whole difficulty curve. If you have patched a ROM and cloned a git
+repo, nothing here is a step up from that — but it is a terminal, and it is
+fair to know that before you start.
+
 - Python 3.10+ (standard library only — no pip install, no dependencies)
 - Node 18+ (for the test suite only; the app itself needs no build step)
 - `git` (setup clones a wiki for encounter tables and sprites)

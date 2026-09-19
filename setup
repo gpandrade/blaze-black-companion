@@ -83,12 +83,70 @@ fi
 # `|| true` swallowed the failure, so it was never fatal and never noticed --
 # it only meant save auto-detection silently never worked, on a clean clone,
 # which is the one machine nobody tests on.
-find_rom() {  # $1 = pattern, echoes the first match under common locations
-  for d in "$HOME" /mnt/c/Users/*/Saved\ Games /mnt/c/Users/*/Downloads .; do
-    [ -d "$d" ] || continue
-    f=$(find "$d" -maxdepth 2 -iname "$1" -print -quit 2>/dev/null || true)
-    [ -n "$f" ] && { echo "$f"; return; }
-  done
+# $1 = case-insensitive glob. Echoes the NEWEST match on stdout, and a note
+# about what else it saw on stderr.
+#
+# IT USED TO TAKE WHATEVER `find -print -quit` HANDED BACK FIRST, and that
+# silently configured a month-old save. `-maxdepth 2` descends one level, which
+# is exactly where people keep backups -- a `bk/` beside the live save -- and
+# find's traversal order is directory order, not something you can rely on. So
+# the same command returns a different save depending on the order entries
+# happen to sit in, and both answers look identical afterwards: the app loads,
+# every check passes, and the trainer card quietly shows a game you played in
+# August.
+#
+# A save is the file being WRITTEN, so newest-mtime is not a heuristic here,
+# it is the definition. It is also the right answer for a ROM, where every
+# candidate is equivalent anyway.
+#
+# Written in Python rather than find -printf / stat, both of which differ
+# between GNU and BSD: python3 is already a hard requirement, and this has to
+# work on macOS too.
+find_rom() {
+  python3 - "$1" "$PWD" <<'FIND'
+import fnmatch, glob, os, sys
+from pathlib import Path
+
+pattern, cwd = sys.argv[1].lower(), Path(sys.argv[2])
+roots = [Path.home(), cwd]
+roots += [Path(p) for p in glob.glob("/mnt/c/Users/*/Saved Games")]
+roots += [Path(p) for p in glob.glob("/mnt/c/Users/*/Downloads")]
+
+hits = {}
+for root in roots:
+    if not root.is_dir():
+        continue
+    base = len(root.parts)
+    for dirpath, dirnames, filenames in os.walk(root, followlinks=False):
+        here = Path(dirpath)
+        if len(here.parts) - base >= 2:          # the old -maxdepth 2
+            dirnames[:] = []
+        # OUR OWN backup directory is not a candidate source, by construction:
+        # everything in it is a copy of a save taken before a write.
+        if here.name == "save_backups":
+            dirnames[:] = []
+            continue
+        for name in filenames:
+            if fnmatch.fnmatch(name.lower(), pattern):
+                f = here / name
+                try:
+                    hits[f.resolve()] = f.stat().st_mtime
+                except OSError:
+                    pass
+
+if not hits:
+    sys.exit(0)
+ranked = sorted(hits.items(), key=lambda kv: kv[1], reverse=True)
+best = ranked[0][0]
+if len(ranked) > 1:
+    print(f"    {len(ranked)} files match {pattern}; using the most recently "
+          f"modified:", file=sys.stderr)
+    for f, mtime in ranked[:4]:
+        import datetime
+        when = datetime.datetime.fromtimestamp(mtime).strftime("%Y-%m-%d %H:%M")
+        print(f"      {'->' if f == best else '  '} {when}  {f}", file=sys.stderr)
+print(best)
+FIND
 }
 
 # ----------------------------------------------------------------------- ROM
