@@ -170,8 +170,16 @@ def read_trainer_names(rom: NDSRom) -> list[str]:
     return [clean(x) for x in decode_text_file(files[TEXT_FILE_TRAINER_NAMES])]
 
 
-def read_trainers(rom: NDSRom, species: dict[int, str]) -> list[dict]:
-    """One entry per trainer: name, class, and the team as species + level."""
+def read_trainers(rom: NDSRom, species: dict[int, str],
+                  moves: dict[int, str] | None = None,
+                  items: dict[int, str] | None = None) -> list[dict]:
+    """One entry per trainer: name, class, and the team with moves and items.
+
+    `moves` and `items` are name tables and are optional -- without them the
+    ids are still emitted, so this never depends on extraction order.
+    """
+    moves = moves or {}
+    items = items or {}
     names = read_trainer_names(rom)
     data = parse_narc(rom.file_data(TRAINER_DATA_NARC))
     mons = parse_narc(rom.file_data(TRAINER_MONS_NARC))
@@ -196,8 +204,53 @@ def read_trainers(rom: NDSRom, species: dict[int, str]) -> list[dict]:
             level = struct.unpack_from("<H", blob, o + 2)[0]
             # The high bits of the species word carry the alternate form.
             sp = struct.unpack_from("<H", blob, o + 4)[0] & 0x7FF
-            team.append({"species_id": sp, "species": species.get(sp, f"#{sp}"),
-                         "level": level})
+            mon = {"species_id": sp, "species": species.get(sp, f"#{sp}"),
+                   "level": level}
+            # THE MOVES AND THE ITEM WERE IN THE STRIDE ALL ALONG.
+            # `size` above has always accounted for both -- the record grows by
+            # 2 for a held item and 8 for four moves -- and then the loop read
+            # neither, so all 616 rosters came out as species and level. The
+            # cost showed up as an empty battle board: PKMN Trainer N 4 is six
+            # Rotom, Drayano's doc lists only their species and level, and with
+            # nothing on either side the matrix game has no columns to solve.
+            # The ROM has all four moves for each of the six.
+            #
+            # Layout after the 8-byte head, confirmed against Skyla's two teams
+            # move for move and item for item (18-byte stride, flags 0x03):
+            #     +6 u16 form   +8 u16 item   +10 u16 move x4
+            # Moves therefore sit at the END of the record, which is why they
+            # are read from `size - 8` rather than a fixed offset: without a
+            # held item the whole tail shifts down by two.
+            # THE FORME IS AT +6, not in the species word's high bits as the
+            # comment above assumed. N's six Rotom read species 479 forme 0..5,
+            # and their movesets prove the reading: Lava Plume on 1 (Heat),
+            # Scald on 2 (Wash), Glaciate on 3 (Frost), Hurricane on 4 (Fan),
+            # Leaf Storm on 5 (Mow).
+            #
+            # Emitted but NOT YET RESOLVED TO A TYPING. personal.json stops at
+            # 649 while the NARC holds 669 -- indices 657..661 are exactly
+            # those five Rotom formes, at Electric/Fire, /Water, /Ice, /Flying
+            # and /Grass. Until (species, forme) -> personal index is extracted
+            # properly, a consumer that renders a forme'd opponent would be
+            # computing damage against BASE Rotom's Electric/Ghost, which is
+            # wrong for five of the six. The id is recorded so that work has
+            # something to build on; nothing reads it yet.
+            forme = struct.unpack_from("<H", blob, o + 6)[0]
+            if forme:
+                mon["forme"] = forme
+            if flags & 2:
+                item = struct.unpack_from("<H", blob, o + 8)[0]
+                if item:
+                    mon["item_id"] = item
+                    if items.get(item):
+                        mon["item"] = items[item]
+            if flags & 1:
+                ids = [m for m in struct.unpack_from("<4H", blob, o + size - 8) if m]
+                if ids:
+                    mon["move_ids"] = ids
+                    if moves:
+                        mon["moves"] = [moves.get(m, f"#{m}") for m in ids]
+            team.append(mon)
         out.append({"id": i, "name": names[i], "class": cls, "team": team})
     return out
 
@@ -213,7 +266,20 @@ def build(rom_path: Path) -> dict:
     table, off = find_class_sprite_table(arm9, len(class_names))
     validate_class_table(table, len(class_names))
 
-    trainers = read_trainers(rom, species)
+    # Name tables for the moves and items the rosters carry. Both are written
+    # by earlier extractors and both are OPTIONAL here: ids are emitted either
+    # way, so this never becomes an ordering dependency -- the trap that once
+    # shipped empty wild_held_items on every clean setup.
+    def _names(fname, key):
+        path = STATE_DIR / fname
+        if not path.is_file():
+            return {}
+        return {int(k): v["name"] for k, v in
+                json.loads(path.read_text())[key].items()}
+
+    trainers = read_trainers(rom, species,
+                             _names("moves.json", "moves"),
+                             _names("items.json", "items"))
     for t in trainers:
         t["sprite"] = table[t["class"]] if t["class"] < len(table) else None
         t["class_name"] = class_names[t["class"]] if t["class"] < len(class_names) else ""

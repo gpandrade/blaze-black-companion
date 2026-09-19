@@ -132,6 +132,96 @@ $EDITOR companion.config.json          # your save path, your ROM path
 also point at things with `BLAZE_SAVE`, `BLAZE_ROM` and `BLAZE_VANILLA_ROM`, or
 drop a `.sav` onto the page — drag-and-drop always works and needs no config.
 
+**Check what setup actually found before you trust anything on screen:**
+
+```bash
+cat companion.config.json
+```
+
+Setup searches your home directory, `/mnt/c/Users/*/Saved Games`,
+`/mnt/c/Users/*/Downloads` and the current directory, and when several files
+match it takes the **most recently modified** one and prints the alternatives
+it passed over. That is usually right — a save is the file being written — but
+if you keep old copies around, read the line. Pointing at a month-old backup
+looks *exactly* like working: the app loads, every check passes, and the
+trainer card shows a game you played in August. Override it with:
+
+```bash
+./setup --save "/path/to/pokemon_blaze_black.sav"
+```
+
+### Two rules about your emulator
+
+Neither is optional, and the second one is how people lose work.
+
+**1. Close your emulator before writing to the save.** An emulator keeps its
+own copy of the cartridge RAM and rewrites the `.sav` when it exits, so an
+install performed while it is open gets silently undone the moment you close
+it. The server refuses to write while it detects one running.
+
+**That detection assumes melonDS**, because it looks for a process with
+"melon" in the name — the one emulator this has been used with. On DeSmuME,
+mGBA or anything else the check finds nothing and *allows* the write, which
+means **you are the check**. Close the emulator yourself. The rest of the
+write path — backup first, validate, atomic replace, re-read, restore on
+failure — does not depend on knowing which emulator you use.
+
+**2. After an install, load with Continue — never a savestate.** A savestate is
+a snapshot of the whole machine, including the cartridge RAM the `.sav` was
+written from. Loading one restores that snapshot over your edit and then writes
+it back out, so the change disappears and the file you carefully installed is
+overwritten by the old state. This is not recoverable except from the backup.
+
+Save in-game, exit to the title screen, and press **Continue**.
+
+Reading is different and needs no ceremony: the app reads your `.sav` whenever
+you press **Reload save**. Save in-game first, wait a couple of seconds for the
+emulator to flush, then reload — the parser refuses a file written less than
+two seconds ago, because it may still be a partial write.
+
+### Useful commands
+
+Everything you are likely to need, in one place.
+
+| | |
+|---|---|
+| `./setup` | First run, and safe to re-run — every step checks whether it is done |
+| `./setup --save PATH` | Point at a specific save when auto-detection picks wrong |
+| `./setup --rom PATH --vanilla PATH` | Point at specific ROMs |
+| `cat companion.config.json` | What it actually found — check this first when something looks stale |
+| `./serve` | Run the app on http://127.0.0.1:8080/app/ (this blocks; use another terminal) |
+| `./serve --port 9000` | Somewhere else |
+| `./serve --no-write` | Read-only: disables the install endpoint entirely |
+| `./test-all` | Every check in the repo. Needs `./setup` to have run |
+| `python3 tests/test_parse_save.py` | Just the save parser — runs on a bare clone, names what it skipped |
+| `python3 parse_save.py` | Dump your party and all 24 boxes to `state/party.json` |
+| `python3 parse_bag.py` | Dump bag, position and Pokédex to `state/bag.json` |
+| `python3 build_static.py` | Rebuild the app's data. Only needed if the ROM changes |
+| `python3 build_sheet.py` | Build the standalone team sheet at `state/team_sheet.html` |
+
+**When something looks wrong, in this order:**
+
+1. **Ctrl+Shift+R.** A stale cache presents as "half the UI is broken" and is
+   indistinguishable from a real bug. This has cost a whole day.
+2. **`cat companion.config.json`** — are you looking at the save you think?
+3. **Did you save in-game?** Savestates do not touch the `.sav`, so a game
+   saved only to a savestate is invisible here.
+4. **`./test-all`** — if this passes, the problem is display or configuration
+   rather than data.
+
+**Browser state is shared between installs.** Story progress, theme, tab order,
+your nuzlocke rules and the "tour already seen" flag live in `localStorage`,
+which the browser keys by *origin* — so every copy served from
+`127.0.0.1:8080` shares them, no matter which directory it was served from.
+To see a genuinely first-run experience, clear them in the DevTools console:
+
+```js
+Object.keys(localStorage)
+  .filter(k => k.startsWith('bb_') || k.startsWith('blazeblack.'))
+  .forEach(k => localStorage.removeItem(k));
+location.reload();
+```
+
 ### Why it wants a server
 
 `./serve` binds `127.0.0.1` and exists for three reasons, none of which involve
@@ -155,9 +245,9 @@ than optional, because a corrupt save is unrecoverable:
 
 Run `./serve --no-write` to disable the endpoint entirely.
 
-After an install, load your game with **Continue, not a savestate** —
-savestates carry their own copy of cartridge RAM and will silently undo the
-edit.
+After an install, load your game with **Continue, not a savestate** — see
+[Two rules about your emulator](#two-rules-about-your-emulator) above for why
+that one matters more than it sounds.
 
 ---
 
