@@ -163,13 +163,20 @@ edit.
 
 ## Requirements
 
-**This is a command-line tool, and it needs a Unix-ish shell.** In practice
-that means **Linux, macOS, or Windows with WSL** — `./setup` and `./serve` are
-a bash script and a Python script you run from a terminal, and there is no
-`.exe`, no installer and no double-clickable anything. If you are on Windows,
-install WSL (`wsl --install` in PowerShell, then reboot) and work inside it;
-your ROMs and save can stay on the Windows side, where setup already knows to
-look for them under `/mnt/c/Users/<you>/`.
+**This is a command-line tool, and it needs a Unix-ish shell.** `./setup` and
+`./serve` are a bash script and a Python script you run from a terminal — there
+is no `.exe`, no installer, and nothing to double-click.
+
+**Windows: use WSL.** `wsl --install` in PowerShell, reboot, and work inside
+it. This is the only combination that has actually been run. Your ROMs and save
+can stay on the Windows side; setup knows to look under `/mnt/c/Users/<you>/`.
+
+**Linux and macOS should work, but neither has ever been tried.** Nothing here
+is platform-specific on purpose — standard-library Python, bash, ES modules —
+so it ought to just run. Expect to smooth over the odd small thing rather than
+a port: a path guess that assumes `/mnt/c`, a BSD flag that differs from its
+GNU spelling. If you hit one, an issue is genuinely useful, and the fix is
+likely to be a line.
 
 That is the whole difficulty curve. If you have patched a ROM and cloned a git
 repo, nothing here is a step up from that — but it is a terminal, and it is
@@ -186,17 +193,21 @@ The JavaScript is dependency-free ES modules. There is no bundler, no
 ### Tested on exactly one setup
 
 This is one person's tool that got big enough to be worth sharing, and it has
-only ever run on the machine it was written on: **Windows 11 with WSL2
-(Ubuntu), Python 3.14, Node 22, melonDS, Firefox and Chrome, against a US
-Blaze Black v3.1 Full patch.** Everything above is what that machine happens to
-have, not a matrix anybody verified.
+only ever run on the machine it was written on:
 
-Nothing here is *meant* to be fussy — it is standard-library Python, ES
-modules, and a `.sav` whose format has not changed since 2010 — so a different
-distro, emulator or browser will very likely be fine. But "very likely" is the
-honest word. If you are the first person to run this on macOS, or against a
-European ROM, or under mGBA-for-DS, you are running it somewhere it has never
-been run, and an issue is genuinely useful.
+- **Windows 11 + WSL2**, Ubuntu 26.04
+- **Python 3.14**, **Node 24**
+- **melonDS** as the emulator
+- a **Blaze Black v3.1 Full patch** `.nds`, with an unmodified Pokémon Black
+  beside it
+- one desktop browser, at desktop window sizes
+
+That list is what one machine happens to have, not a matrix anybody tested.
+Nothing here is *meant* to be fussy — standard-library Python, ES modules, and
+a `.sav` format that has not changed since 2010 — so a different distro,
+emulator or browser will very likely be fine. "Very likely" is the honest word.
+If you are the first to run this on macOS, or against a European ROM, or under
+a different emulator, you are somewhere it has never been run.
 
 The two places that would break first, if anything does: `./setup` shells out
 to `find` and `curl` and guesses at Windows-side paths under `/mnt/c`, and
