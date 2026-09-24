@@ -1250,7 +1250,21 @@ const saveCalc=()=>{try{localStorage.setItem('bb_calc',JSON.stringify(calc));}ca
 /* A defender built the way every opponent on this page is built. */
 function calcDefender(name,lvl,ab){
   const d=DEX[name]; if(!d) return null;
-  return {name,lvl:Math.max(1,Math.min(100,lvl|0))||50,ab:ab||null,types:d.t,b:d.b};
+  /* NO ABILITY CHOSEN IS NOT THE SAME AS NO ABILITY, and defaulting to the
+     latter quietly produced the page's worst kind of answer. Pick Rotom, leave
+     the ability alone, and Earthquake read a confident ~50% against a Pokemon
+     whose every slot is Levitate -- there is no legal Rotom that Earthquake
+     touches. Where the species' slots are all the SAME ability the choice
+     cannot go the other way, so it is filled in rather than left blank. Where
+     they genuinely differ, blank still means blank: the control exists because
+     that is a real question, and guessing a slot would be inventing an
+     opponent. */
+  let use=ab||null;
+  if(!use){
+    const opts=[...new Set((d.a||[]).filter(Boolean))];
+    if(opts.length===1) use=opts[0];
+  }
+  return {name,lvl:Math.max(1,Math.min(100,lvl|0))||50,ab:use,types:d.t,b:d.b};
 }
 
 function calcPanel(mons){
@@ -1372,6 +1386,32 @@ let fmtFor=null;
 /* Which of the doubles pairings is on screen. Reset with the fight, like the
    fielded names, so a stale index cannot point at a matchup that is not here. */
 let pairIdx=0;
+/* OPPONENT IDENTITY IS THE ROSTER SLOT, NOT THE SPECIES NAME.
+   Their side was keyed by o.n throughout -- the fielded list, the buttons,
+   every lookup -- which is fine until a roster repeats a species. N 4 is SIX
+   Rotom: six buttons all reading data-fe="Rotom", a fielded list that can only
+   hold "Rotom" once, and every lookup resolving to team[0]. Five of the six
+   were unreachable and unviewable, which is what "they all appear as one" is.
+   Formes make it worse than cosmetic -- those six are formes 0..5 with
+   different movesets, so picking the second one has to give you the second
+   one's moves.
+   The key is species + slot index. eKey/eFind are the only two places that
+   know the shape, and a bare name still resolves (to the first match) so a
+   fielded list restored from an older bb_enc keeps working. */
+const eKey=(o,i)=>`${o.n}#${i}`;
+const eFind=(team,k)=>{
+  const i=team.findIndex((o,j)=>eKey(o,j)===k);
+  return i>=0?team[i]:(team.find(o=>o.n===k)||null);   // legacy bare name
+};
+/* What to call it when a species appears more than once on one roster. The
+   slot number is the honest answer: the forme id is known but its NAME is not
+   -- personal.json stops at 649 -- and inventing "Heat Rotom" here would be
+   the drawn-mascot mistake in a different costume. */
+const eLabel=(team,o,i)=>{
+  if(team.filter(x=>x.n===o.n).length<2) return o.n;
+  const n=team.slice(0,i+1).filter(x=>x.n===o.n).length;
+  return o.forme?`${o.n} · forme ${o.forme}`:`${o.n} · ${n}`;
+};
 /* HOW MANY TURNS THE BOARD LOOKS AHEAD. Persisted: it is a way of reading the
    board rather than a question you ask once. Two is the default because it is
    the shallowest depth at which a switch can be worth making -- at one turn a
@@ -2342,7 +2382,7 @@ function pairBoards(pool,e,mineNames,theirNames){
      driving the whole page: the check called it, got nothing back, and passed
      because the assertion allowed zero boards. Both halves of that were wrong. */
   const mine=(mineNames||fieldM).map(n=>pool.find(m=>m.name===n)).filter(Boolean);
-  const theirs=(theirNames||fieldE).map(n=>e.team.find(x=>x.n===n)).filter(Boolean);
+  const theirs=(theirNames||fieldE).map(k=>eFind(e.team,k)).filter(Boolean);
   if(!mine.length||!theirs.length) return '';
   const pairs=[];
   for(const me of mine) for(const o of theirs) pairs.push([me,o]);
@@ -2360,10 +2400,11 @@ function pairBoards(pool,e,mineNames,theirNames){
   const tabs=pairs.map(([me,o],i)=>`<button class="pairbtn${i===pairIdx?' on':''}"
       data-pair="${i}" type="button">
       ${spr(me.name)}<span class="pvs">vs</span>${spr(o.n)}
-      <span class="pnm">${esc(me.name)} <i>vs</i> ${esc(o.n)}</span></button>`).join('');
+      <span class="pnm">${esc(me.name)} <i>vs</i> ${
+        esc(eLabel(e.team,o,e.team.indexOf(o)))}</span></button>`).join('');
   const [pm,po]=pairs[pairIdx];
   const cards=`<div class="pairgrid" style="--pcols:${theirs.length}">${tabs}</div>
-    <div class="pairgame">${gamePanel(pm,po,pool,e.team.filter(x=>x.n!==po.n),false)}</div>`;
+    <div class="pairgame">${gamePanel(pm,po,pool,e.team.filter(x=>x!==po),false)}</div>`;
   return `<div class="gpair">
     ${depthPicker()}
     <p class="note"><b>${pairs.length} one-on-one boards, not a doubles solver.</b>
@@ -2393,7 +2434,7 @@ function encounterPanel(mons,team,idx){
   const active=mons.filter(m=>!benched[m.name]);
   const pool=active.length?active:mons;
   const cap=fmt==='doubles'?2:1;
-  fieldE=fieldE.filter(n=>e.team.some(o=>o.n===n)).slice(0,cap);
+  fieldE=fieldE.filter(k=>eFind(e.team,k)).slice(0,cap);
   fieldM=fieldM.filter(n=>pool.some(m=>m.name===n)).slice(0,cap);
 
   const chips=mons.map(m=>`<button class="pchip${benched[m.name]?' off':''}" data-bench="${esc(m.name)}">
@@ -2429,8 +2470,9 @@ function encounterPanel(mons,team,idx){
         ${rows.length?rankHTML(rows):'<p class="note">No typing data.</p>'}</div></details>`;
   }).join('');
 
-  const eBtns=e.team.map(o=>`<button class="fbtn${fieldE.includes(o.n)?' on':''}" data-fe="${esc(o.n)}">
-      ${spr(o.n)}<span>${esc(o.n)}</span></button>`).join('');
+  const eBtns=e.team.map((o,i)=>`<button class="fbtn${
+      fieldE.includes(eKey(o,i))?' on':''}" data-fe="${esc(eKey(o,i))}">
+      ${spr(o.n)}<span>${esc(eLabel(e.team,o,i))}</span></button>`).join('');
   const mBtns=pool.map(m=>`<button class="fbtn${fieldM.includes(m.name)?' on':''}" data-fm="${esc(m.name)}">
       ${spr(m.name)}<span>${esc(m.name)}</span></button>`).join('');
   const cards=fieldM.map(mn=>{const me=pool.find(x=>x.name===mn); if(!me) return '';
@@ -2444,7 +2486,7 @@ function encounterPanel(mons,team,idx){
         <div><div class="mname">${esc(me.name)}</div>
         <div class="lbl">spe ${spdOf(me)} · total ${tot}</div></div></div>
       ${boostRow(me)}
-      ${fieldE.map(en=>{const o=e.team.find(x=>x.n===en); return o?matchLine(me,o):'';}).join('')}
+      ${fieldE.map(k=>{const o=eFind(e.team,k); return o?matchLine(me,o):'';}).join('')}
     </div>`;}).join('');
 
   const lvTxt=e.lvmax?(e.lvmin&&e.lvmin!==e.lvmax?`L${e.lvmin}–${e.lvmax}`:`L${e.lvmax}`):'levels not documented';
@@ -2517,8 +2559,8 @@ function encounterPanel(mons,team,idx){
         this" as false — check the other two on their side before you commit to a
         lead, because they can answer you for free and you cannot.</p>`:''}
       ${(fmt==='singles'&&fieldM.length===1&&fieldE.length===1)
-        ? gamePanel(pool.find(m=>m.name===fieldM[0]), e.team.find(x=>x.n===fieldE[0]), pool,
-            e.team.filter(x=>x.n!==fieldE[0]))
+        ? gamePanel(pool.find(m=>m.name===fieldM[0]), eFind(e.team,fieldE[0]), pool,
+            e.team.filter(x=>x!==eFind(e.team,fieldE[0])))
         : (fmt==='doubles'&&fieldM.length&&fieldE.length)
         ? pairBoards(pool,e)
         : (fieldM.length&&fieldE.length)

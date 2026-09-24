@@ -129,7 +129,7 @@ fs.writeFileSync(tmp, script + "\n;module.exports={render,TEAMS,cur,monBlock,enc
   "levelCurve,speedLadder,threatBoard,bState,stagesOf,boostMoves,bMax,calcDamage,MOVES," +
   "OPPONENTS,boostBanner,bKey,stageMul,oppMon,boostRow,stageFx,battleIndex,TRFACE,D,abilMul,matchLine,mechOn,DEX,enemySpe," +
   "calcPanel,calcDefender,calc,turnGame,solveZeroSum,gameRead,gamePanel,calcIncoming,oppMon,spdOf,enemySpe,gDepth,stageMul,buildSim,stepTurn,leaf,applyStages,dmgMul,STAGE0,threatBoard," +
-  "pairBoards,fmtOf,isRotation,depthPicker,eff};");
+  "pairBoards,fmtOf,isRotation,depthPicker,eff,eKey,eFind,eLabel,calcDefender};");
 let M;
 try {
   M = require(tmp);
@@ -1092,6 +1092,55 @@ fs.unlinkSync(tmp);
           .filter((o) => /Berry$|Gem$|Balloon$|Orb$|Herb$|Sash$|Scarf$|Band$/.test(o.a || ''));
         ok('no opponent has an ITEM in its ability field', suspect.length === 0,
           suspect.length ? `${suspect[0].n}: ${suspect[0].a}` : 'the doc wraps its Full/Clean rows');
+      }
+
+      // ---- a repeated species is SIX Pokemon, not one ----------------------
+      // Their side was keyed by species name everywhere, so N 4's six Rotom
+      // were six buttons all reading data-fe="Rotom", a fielded list that could
+      // hold "Rotom" once, and every lookup resolving to team[0]. Five of six
+      // unreachable -- and they are formes with different movesets, so the
+      // second one has to give you the second one's moves.
+      {
+        const dup = M.OPPONENTS.find((f) => {
+          const n = f.team.map((o) => o.n);
+          return new Set(n).size < n.length;
+        });
+        if (dup) {
+          const keys = dup.team.map((o, i) => M.eKey(o, i));
+          ok('a roster that repeats a species gives each slot its own key',
+            new Set(keys).size === keys.length, `${keys.length} slots, ${new Set(keys).size} keys`);
+          const labels = dup.team.map((o, i) => M.eLabel(dup.team, o, i));
+          ok('...and each is labelled distinguishably',
+            new Set(labels).size === labels.length, labels.join(' / '));
+          // The point of all of it: the key must reach the RIGHT record.
+          const distinct = dup.team.filter((o, i) => {
+            const got = M.eFind(dup.team, M.eKey(o, i));
+            return got === o;
+          });
+          ok('...and a key resolves to that exact slot, not the first match',
+            distinct.length === dup.team.length,
+            `${distinct.length}/${dup.team.length}`);
+          const movesets = new Set(dup.team.map((o) => (o.m || []).join(',')));
+          ok('...which matters because their movesets differ',
+            movesets.size > 1, `${movesets.size} distinct movesets`);
+          // A fielded list saved before keys existed must still work.
+          ok('...while a bare species name still resolves, for an older saved state',
+            M.eFind(dup.team, dup.team[0].n) === dup.team[0]);
+        }
+      }
+
+      // ---- the calculator must not default a defender to "no ability" -------
+      // Pick Rotom, leave the ability alone, and Earthquake read a confident
+      // ~50% against a Pokemon with no legal ability that Ground can touch.
+      {
+        const one = M.calcDefender('Rotom', 50, '');
+        ok('an unambiguous species gets its ability by default',
+          one && one.ab === 'Levitate', one ? String(one.ab) : 'no DEX entry');
+        ok('...so the calculator agrees with the battle board',
+          one && M.eff('ground', one) === 0);
+        const two = M.calcDefender('Slowking', 50, '');
+        ok('...but a two-ability species is still left to you',
+          two && two.ab === null, two ? String(two.ab) : '-');
       }
 
       // ---- and the board admits the forme typing it does not model ---------
