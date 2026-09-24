@@ -129,7 +129,7 @@ fs.writeFileSync(tmp, script + "\n;module.exports={render,TEAMS,cur,monBlock,enc
   "levelCurve,speedLadder,threatBoard,bState,stagesOf,boostMoves,bMax,calcDamage,MOVES," +
   "OPPONENTS,boostBanner,bKey,stageMul,oppMon,boostRow,stageFx,battleIndex,TRFACE,D,abilMul,matchLine,mechOn,DEX,enemySpe," +
   "calcPanel,calcDefender,calc,turnGame,solveZeroSum,gameRead,gamePanel,calcIncoming,oppMon,spdOf,enemySpe,gDepth,stageMul,buildSim,stepTurn,leaf,applyStages,dmgMul,STAGE0,threatBoard," +
-  "pairBoards,fmtOf,isRotation,depthPicker,eff,eKey,eFind,eLabel,calcDefender};");
+  "pairBoards,fmtOf,isRotation,depthPicker,eff,eKey,eFind,eLabel,calcDefender,matchLine,ABS_IMMUNE};");
 let M;
 try {
   M = require(tmp);
@@ -1126,6 +1126,68 @@ fs.unlinkSync(tmp);
           // A fielded list saved before keys existed must still work.
           ok('...while a bare species name still resolves, for an older saved state',
             M.eFind(dup.team, dup.team[0].n) === dup.team[0]);
+        }
+      }
+
+      // ---- NO SURFACE MAY SHOW DAMAGE FOR AN IMMUNE PAIRING ----------------
+      // Spot-checking one panel at a time is how this took three rounds. This
+      // sweeps EVERY opponent on the page whose ability grants an immunity,
+      // against every move on the team, and then checks the two surfaces that
+      // print a per-opponent number as well as the raw maths. A new panel that
+      // forgets oppMon() fails here rather than in a fight.
+      {
+        const immune = M.ABS_IMMUNE || {};
+        let pairs = 0, wrong = [];
+        for (const f of M.OPPONENTS) {
+          for (const o of f.team) {
+            const t = immune[o.a];
+            if (!t) continue;
+            const om = M.oppMon(o);
+            if (M.eff(t, om) !== 0) { wrong.push(`eff(${t},${o.n}) = ${M.eff(t, om)}`); continue; }
+            for (const me of mons) {
+              for (const mv of me.moves || []) {
+                const md = M.MOVES[mv];
+                if (!md || md.t !== t || !md.p) continue;
+                pairs++;
+                const d = M.calcDamage(me, mv, om);
+                if (d && d.pctHi > 0) wrong.push(`${me.name} ${mv} -> ${o.n} (${o.a}): ${d.pctHi}%`);
+                // ...AND THE RENDERED LINE MUST NOT CLAIM OTHERWISE. Asked by
+                // handing matchLine an attacker whose ONLY damaging move is the
+                // immune one, then demanding every percentage it prints be zero.
+                // The first version searched for the move name followed by a
+                // percentage, which never matched: matchLine prints the damage
+                // BEFORE the move name, so the check passed while a mutant that
+                // stripped the ability out of matchLine went unnoticed.
+                const solo = { ...me, moves: [mv] };
+                const line = M.matchLine(solo, o, f.team);
+                const pcts = [...line.matchAll(/(\d+(?:\.\d+)?)%/g)].map((x) => +x[1]);
+                if (pcts.some((v) => v > 0))
+                  wrong.push(`matchLine shows ${mv} doing ${Math.max(...pcts)}% to ${o.n} (${o.a})`);
+              }
+            }
+          }
+        }
+        ok('an immunity ability zeroes damage on every surface, not just one',
+          wrong.length === 0,
+          wrong.length ? wrong.slice(0, 3).join(' | ') : `${pairs} immune pairings swept`);
+      }
+
+      // ---- a repeated species must be distinguishable WHEREVER it is named --
+      {
+        const dup2 = M.OPPONENTS.find((f) => {
+          const n = f.team.map((o) => o.n);
+          return new Set(n).size < n.length;
+        });
+        if (dup2) {
+          const tb = M.threatBoard(mons, dup2);
+          const printed = [...tb.matchAll(/class="mname">([^<]*)/g)].map((m) => m[1]);
+          ok('the threat board distinguishes a repeated species too',
+            printed.length > 1 && new Set(printed).size === printed.length,
+            printed.join(' / ') || 'no cards rendered');
+          const ml = M.matchLine(mons[0], dup2.team[1], dup2.team);
+          ok('...and so does the per-opponent match line',
+            !new RegExp(`class="mtarget">${dup2.team[1].n}<`).test(ml),
+            'it printed the bare species name');
         }
       }
 

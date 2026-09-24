@@ -1482,7 +1482,9 @@ const enemySpe=o=>{const d=DEX[o.n]; if(!d||!d.b) return null;
   // in sun, Sand Rush in sand, Slow Start on the way in.
   return Math.floor(estStat(d.b[5],enemyLvl(o),false)*abilMul(oppMon(o),'spe'));};
 
-function matchLine(me,o){
+function matchLine(me,o,team){
+  /* `team` is optional and only used for the LABEL: without it a repeated
+     species reads as six identical rows. See eLabel. */
   const om=oppMon(o), ot=om.types;
   let best={e:0,mv:null};
   me.moves.forEach(mv=>{const d=MOVES[mv]; if(!d||d.c==='status')return;
@@ -1496,7 +1498,7 @@ function matchLine(me,o){
   const fast = es==null?null:(trOn()?ms<es:ms>es);
   const verdict = worst.e>=2 && best.e<2 ? 'bad' : best.e>=2 && worst.e<1 ? 'good' : 'ok';
   return `<div class="mline ${verdict}">
-    ${spr(o.n)}<span class="mtarget">${esc(o.n)}</span>
+    ${spr(o.n)}<span class="mtarget">${esc(team?eLabel(team,o,team.indexOf(o)):o.n)}</span>
     <span class="lbl">you deal</span><span class="mult ${MCLASS(best.e)}">${MTXT(best.e)}</span>
     ${dmg?`${hpBar(dmg)}<span class="dmg">${dmgTxt(dmg)}</span>${dmg.ko?`<span class="ko ${
       dmg.ko.startsWith('1')?'k1':dmg.ko.startsWith('2')?'k2':'kx'}">${dmg.ko}</span>`:''}`:''}
@@ -2299,7 +2301,7 @@ function threatBoard(pool,e){
   const cols=n<=3?Math.max(1,n):(n%3===0?3:(n%2===0?2:3));
   return legend+`<div class="threats" style="--tcols:${cols}">${cards.map(c=>`<div class="tcard2 t-${c.state}">
       <div class="thead">${spr(c.o.n,'osp')}
-        <div class="tid"><div class="mname">${esc(c.o.n)}</div>
+        <div class="tid"><div class="mname">${esc(eLabel(e.team,c.o,e.team.indexOf(c.o)))}</div>
           <div class="tmeta">L${esc(c.o.l||'?')} · ${esc(c.o.a||'—')}${
             c.o.i&&c.o.i!=='-'?' · @'+esc(c.o.i):''}</div>
           <div class="ttypes">${c.ot.map(ico).join('')}</div></div></div>
@@ -2486,7 +2488,7 @@ function encounterPanel(mons,team,idx){
         <div><div class="mname">${esc(me.name)}</div>
         <div class="lbl">spe ${spdOf(me)} · total ${tot}</div></div></div>
       ${boostRow(me)}
-      ${fieldE.map(k=>{const o=eFind(e.team,k); return o?matchLine(me,o):'';}).join('')}
+      ${fieldE.map(k=>{const o=eFind(e.team,k); return o?matchLine(me,o,e.team):'';}).join('')}
     </div>`;}).join('');
 
   const lvTxt=e.lvmax?(e.lvmin&&e.lvmin!==e.lvmax?`L${e.lvmin}–${e.lvmax}`:`L${e.lvmax}`):'levels not documented';

@@ -202,7 +202,7 @@ def bag_tms(personal):
 
 def boxed_index():
     """Flat list of everything in the PC, for the search panel."""
-    party = json.loads((STATE / "party.json").read_text())
+    party = json.loads(need_save_derived("party.json").read_text())
     out = []
     for p in party.get("party", []):
         out.append(dict(n=p["species"], k=p.get("nickname") or "", b="Party",
@@ -1013,7 +1013,7 @@ def read_live():
     base = ps.SLOT_OFFSETS[slot]
     personal = json.loads((STATE / "personal.json").read_text())["species"]
     items = json.loads((STATE / "items.json").read_text())["items"]
-    bag = json.loads((STATE / "bag.json").read_text())
+    bag = json.loads(need_save_derived("bag.json").read_text())
     tid, sid = bag["trainer"]["trainer_id"], bag["trainer"]["secret_id"]
 
     def item_name(i):
@@ -1197,6 +1197,45 @@ def gates(version=None, starter=None):
          'is not part of your game. Pick your starter and your cartridge in the '
          'masthead \u2014 both are settings, and every count on this page follows them.'),
     ]
+
+
+# Which script produces each save-derived file. NOT the ROM tables -- those come
+# from ./setup and their absence is a different conversation.
+SAVE_DERIVED = {"party.json": "parse_save.py", "bag.json": "parse_bag.py"}
+
+
+def need_save_derived(name):
+    """Return STATE/<name>, generating it from the save if it is not there.
+
+    ./setup STOPS AT THE ROM TABLES. It never runs parse_save.py or
+    parse_bag.py, so a fresh clone that ran setup and then
+    `python3 build_sheet.py` died on a bare FileNotFoundError for
+    state/party.json -- which is "run ./refresh" wearing a stack trace. It cost
+    Gab several days of using ./setup as a substitute for a script that does
+    something else entirely.
+
+    Generating rather than demanding, because there is nothing to ask for: both
+    parsers read the same save this script is about to read, and ./refresh does
+    no more than run them in order. If generation fails, the error names the
+    file, the producer and ./refresh instead of a traceback.
+    """
+    import subprocess
+    path = STATE / name
+    if path.is_file():
+        return path
+    producer = SAVE_DERIVED[name]
+    print(f"build_sheet: state/{name} is missing; running {producer} first")
+    r = subprocess.run([sys.executable, str(ROOT / producer)],
+                       cwd=ROOT, capture_output=True, text=True)
+    if not path.is_file():
+        tail = r.stderr.strip().splitlines()[-1] if r.stderr.strip() else ""
+        raise SystemExit(
+            f"build_sheet: could not build state/{name}.\n"
+            f"  It comes from your SAVE, not your ROM, and ./setup does not\n"
+            f"  create it. Run ./refresh -- it does parse_save.py, parse_bag.py\n"
+            f"  and this script in the right order.\n"
+            + (f"  {producer} said: {tail}" if tail else ""))
+    return path
 
 
 def rom_rosters():
