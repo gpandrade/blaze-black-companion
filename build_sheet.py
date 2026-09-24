@@ -1274,6 +1274,22 @@ def fill_from_rom(mon, rec):
         mon['msrc'] = 'rom'
     if not mon.get('i') and rec.get('item'):
         mon['i'] = rec['item']
+    # THE ABILITY IS NOT COSMETIC ON THIS PAGE. oppMon() feeds `a` into eff(),
+    # and ABS_IMMUNE turns Levitate into a ground immunity -- so a blank here is
+    # not a missing label, it is a damage number that is wrong by a factor of
+    # infinity. N 4's six Rotom are all Levitate and all arrived blank, so the
+    # board offered Earthquake at ~50% against a Pokemon that cannot be hit.
+    if not mon.get('a') and rec.get('ability'):
+        mon['a'] = rec['ability']
+        mon['asrc'] = 'rom'
+    # CARRIED SO THE BOARD CAN ADMIT WHAT IT DOES NOT KNOW. A forme'd opponent
+    # is typed here as its BASE species, because personal.json stops at 649 and
+    # the forme rows (657..661 are Rotom's five) are not extracted yet. For N 4
+    # that means Ground is correctly x0 via Levitate but Water against Wash
+    # Rotom reads x1 where the real answer is x0.5. Flagged rather than left to
+    # look authoritative.
+    if rec.get('forme'):
+        mon['forme'] = rec['forme']
     return mon
 
 
@@ -1412,6 +1428,8 @@ def parse_trainers(version=None, starter=None):
     personal = json.loads((STATE / "personal.json").read_text())["species"]
     names = {v['name'] for v in personal.values()}
     by_name = {v['name']: v for v in personal.values()}
+    ABILITY_SET = {a for v in personal.values()
+                   for a in list(v.get('abilities') or []) + [v.get('hidden_ability')] if a}
 
     starter = starter or STARTER
     mine = STARTER_TYPE[starter]
@@ -1443,6 +1461,17 @@ def parse_trainers(version=None, starter=None):
             def add(nm, l, it, ab, mv):
                 if nm in names and nm not in seen:
                     seen.add(nm)
+                    # AN ABILITY THAT IS NOT AN ABILITY IS DISCARDED. The doc's
+                    # Full/Clean ability pair wraps across rows in the RTF
+                    # conversion, and on five rows the item column lands in the
+                    # ability column instead -- Skyla's Archeops reads ability
+                    # "Flying Gem", Shauntal's Chandelure "Air Balloon". That is
+                    # not a label problem: oppMon() feeds `a` to eff(), so a
+                    # bogus value silently means NO ability, and a real Levitate
+                    # or Flash Fire goes unapplied. Validated against the ROM's
+                    # own ability table, then handed to the ROM fill instead.
+                    if ab and ab not in ABILITY_SET:
+                        ab = ''
                     team.append(dict(n=nm, l=l, i=it, a=ab, m=[x for x in mv if x]))
 
             for c in range(len(rows.get('n', []))):

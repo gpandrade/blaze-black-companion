@@ -172,7 +172,8 @@ def read_trainer_names(rom: NDSRom) -> list[str]:
 
 def read_trainers(rom: NDSRom, species: dict[int, str],
                   moves: dict[int, str] | None = None,
-                  items: dict[int, str] | None = None) -> list[dict]:
+                  items: dict[int, str] | None = None,
+                  species_abilities: dict[int, list[str]] | None = None) -> list[dict]:
     """One entry per trainer: name, class, and the team with moves and items.
 
     `moves` and `items` are name tables and are optional -- without them the
@@ -180,6 +181,7 @@ def read_trainers(rom: NDSRom, species: dict[int, str],
     """
     moves = moves or {}
     items = items or {}
+    species_abilities = species_abilities or {}
     names = read_trainer_names(rom)
     data = parse_narc(rom.file_data(TRAINER_DATA_NARC))
     mons = parse_narc(rom.file_data(TRAINER_MONS_NARC))
@@ -238,6 +240,30 @@ def read_trainers(rom: NDSRom, species: dict[int, str],
             forme = struct.unpack_from("<H", blob, o + 6)[0]
             if forme:
                 mon["forme"] = forme
+            # THE ABILITY SLOT IS THE HIGH NIBBLE OF BYTE 1, AND IT IS 1-BASED.
+            # Not 0-based, which is the reading that looks right and is wrong:
+            # nibble 1 means the species' FIRST ability, 2 means the second, and
+            # 0 means the record does not specify one at all (1,498 of them --
+            # the game derives it from the generated PID, so nothing here can
+            # know it).
+            #
+            # Proven against every ability Drayano documents rather than assumed:
+            # 88 of 98 agree, and all ten disagreements are the DOC's own
+            # parsing, not this -- five have an item in the ability column
+            # ("Flying Gem", "Sitrus Berry", "Air Balloon"), one is a spelling
+            # variant ("Compoundeyes"), and the rest sit on rows where the
+            # Full/Clean ability pair wrapped. Skyla's two teams match 12 of 12.
+            slot = (blob[o + 1] >> 4) & 0x0F
+            opts = species_abilities.get(sp) or []
+            if 1 <= slot <= len(opts):
+                mon["ability"] = opts[slot - 1]
+                mon["ability_slot"] = slot
+            elif len({a for a in opts if a}) == 1:
+                # One distinct ability means the slot cannot change the answer.
+                # Rotom is the case that matters: both slots are Levitate, so a
+                # blank here was costing the battle board a GROUND IMMUNITY.
+                mon["ability"] = next(a for a in opts if a)
+                mon["ability_src"] = "only-one"
             if flags & 2:
                 item = struct.unpack_from("<H", blob, o + 8)[0]
                 if item:
@@ -279,7 +305,9 @@ def build(rom_path: Path) -> dict:
 
     trainers = read_trainers(rom, species,
                              _names("moves.json", "moves"),
-                             _names("items.json", "items"))
+                             _names("items.json", "items"),
+                             {int(k): list(v.get("abilities") or [])
+                              for k, v in personal.items()})
     for t in trainers:
         t["sprite"] = table[t["class"]] if t["class"] < len(table) else None
         t["class_name"] = class_names[t["class"]] if t["class"] < len(class_names) else ""

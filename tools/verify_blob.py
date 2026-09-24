@@ -135,8 +135,16 @@ def python_blob(save: Path, workdir: Path) -> dict:
     # half regenerated there from `save`.
     state = workdir / "state"
     state.mkdir(parents=True, exist_ok=True)
-    for name in ("personal.json", "items.json", "moves.json", "maps.json"):
-        shutil.copy2(ROOT / "state" / name, state / name)
+    for name in ("personal.json", "items.json", "moves.json", "maps.json",
+                 # trainers.json is a ROM table like the rest, and build_sheet
+                 # reads it for rom_rosters() -- the rival variants AND, now,
+                 # the moves, items and abilities the doc leaves blank. Absent
+                 # it the Python side silently degrades to the doc-only answer
+                 # while the browser side has the full one.
+                 "trainers.json"):
+        src = ROOT / "state" / name
+        if src.is_file():
+            shutil.copy2(src, state / name)
     # The team store is not save-derived -- it is the same file the app reads
     # through battleTeams() -- so it is carried across rather than rebuilt.
     # Without it the Python side sees no teams while the JS side sees them all,
@@ -431,6 +439,53 @@ def main() -> int:
             print(f"  ✗ {sec:6s} {n:4d} entries -- {len(d)} difference(s)")
         else:
             print(f"  ✓ {sec:6s} {n:4d} entries identical")
+
+    # ---------------------------------------------------------------- abilities
+    # THE ABILITY SLOT IS 1-BASED AND NOTHING ELSE PROVES IT. Every other check
+    # here survived reading it 0-based, because the fight that exposed the bug
+    # (N 4's six Rotom) has the same ability in both slots -- so an off-by-one
+    # is invisible exactly where it was found. The oracle is Drayano's own
+    # ability rows: where the doc states an ability AND the ROM record specifies
+    # a slot, the two must agree. They do, 88 of 98, and every exception is the
+    # doc's own Full/Clean rows wrapping an item into the ability column. Read
+    # 0-based that agreement collapses, which is the point of the threshold.
+    try:
+        import build_sheet as bs           # local, like python_blob's imports
+        # python_blob redirected bs.STATE at a temp dir that has since been
+        # cleaned up, so point it back at the real one before re-parsing.
+        bs.STATE = ROOT / "state"
+        rom_ab = {}
+        for t in json.loads((ROOT / "state" / "trainers.json").read_text())["trainers"]:
+            for m in t.get("team") or []:
+                if m.get("ability"):
+                    rom_ab.setdefault((t.get("name"), m["species"], m["level"]),
+                                      set()).add(m["ability"])
+        agree = clash = 0
+        for f in bs.parse_trainers(None, bs.STARTER):
+            for m in f["team"]:
+                if m.get("asrc") == "rom" or not m.get("a"):
+                    continue          # doc-sourced only: that is the oracle
+                lvl = int(m["l"]) if str(m.get("l", "")).isdigit() else None
+                got = rom_ab.get((f["who"], m["n"], lvl))
+                if not got:
+                    continue
+                if m["a"] in got:
+                    agree += 1
+                else:
+                    clash += 1
+        seen = agree + clash
+        if seen >= 40:
+            rate = agree / seen
+            if rate < 0.80:
+                problems.append(
+                    f"ability slot: ROM-derived abilities agree with Drayano's own rows "
+                    f"only {agree}/{seen} ({rate:.0%}) -- the slot is 1-based; a 0-based "
+                    f"read looks like this")
+            else:
+                print(f"  ability slot 1-based: {agree}/{seen} agree with the doc's "
+                      f"own ability rows")
+    except (OSError, ValueError, KeyError) as exc:
+        print(f"  ~ ability cross-check skipped ({exc.__class__.__name__}: {exc})")
 
     if problems:
         print(f"\nFAIL -- {len(problems)} difference(s):\n")

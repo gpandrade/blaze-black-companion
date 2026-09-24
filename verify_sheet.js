@@ -129,7 +129,7 @@ fs.writeFileSync(tmp, script + "\n;module.exports={render,TEAMS,cur,monBlock,enc
   "levelCurve,speedLadder,threatBoard,bState,stagesOf,boostMoves,bMax,calcDamage,MOVES," +
   "OPPONENTS,boostBanner,bKey,stageMul,oppMon,boostRow,stageFx,battleIndex,TRFACE,D,abilMul,matchLine,mechOn,DEX,enemySpe," +
   "calcPanel,calcDefender,calc,turnGame,solveZeroSum,gameRead,gamePanel,calcIncoming,oppMon,spdOf,enemySpe,gDepth,stageMul,buildSim,stepTurn,leaf,applyStages,dmgMul,STAGE0,threatBoard," +
-  "pairBoards,fmtOf,isRotation,depthPicker};");
+  "pairBoards,fmtOf,isRotation,depthPicker,eff};");
 let M;
 try {
   M = require(tmp);
@@ -1062,6 +1062,53 @@ fs.unlinkSync(tmp);
             /exactly right/i.test(panel));
         }
       }
+      // ---- THEIR ABILITY IS A DAMAGE NUMBER, NOT A LABEL --------------------
+      // N 4's six Rotom are all Levitate and all arrived with an empty ability,
+      // so the board offered Earthquake at ~50% against a Pokemon that cannot be
+      // hit by it at all. oppMon feeds `a` to eff(); blank means no ability.
+      {
+        const withAb = M.OPPONENTS.flatMap((f) => f.team).filter((o) => o.a);
+        ok('opponents carry abilities at all', withAb.length > 100, `${withAb.length}`);
+        const lev = M.OPPONENTS.flatMap((f) => f.team)
+          .filter((o) => (M.DEX[o.n] || {}).t && !o.forme
+            && ['Levitate'].includes(o.a));
+        if (lev.length) {
+          const bad = lev.filter((o) => M.eff('ground', M.oppMon(o)) !== 0);
+          ok('a Levitate opponent is ground-immune in the maths', bad.length === 0,
+            bad.length ? `${bad[0].n} reads x${M.eff('ground', M.oppMon(bad[0]))}` : `${lev.length} checked`);
+        }
+        // The species whose slots are identical cannot be ambiguous, and Rotom
+        // is the case that cost a real fight its board.
+        const rot = M.OPPONENTS.flatMap((f) => f.team).filter((o) => o.n === 'Rotom');
+        if (rot.length) {
+          ok('every Rotom on the page knows it has Levitate',
+            rot.every((o) => o.a === 'Levitate'), rot.map((o) => o.a || '(blank)').join(','));
+          ok('...so ground does nothing to it',
+            rot.every((o) => M.eff('ground', M.oppMon(o)) === 0));
+        }
+        // An ability field holding an ITEM name is worse than a blank one: it
+        // silently means "no ability" to eff(). Five doc rows did exactly that.
+        const suspect = M.OPPONENTS.flatMap((f) => f.team)
+          .filter((o) => /Berry$|Gem$|Balloon$|Orb$|Herb$|Sash$|Scarf$|Band$/.test(o.a || ''));
+        ok('no opponent has an ITEM in its ability field', suspect.length === 0,
+          suspect.length ? `${suspect[0].n}: ${suspect[0].a}` : 'the doc wraps its Full/Clean rows');
+      }
+
+      // ---- and the board admits the forme typing it does not model ---------
+      {
+        const f4 = M.OPPONENTS.find((x) => x.team.some((o) => o.forme));
+        if (f4) {
+          const o = f4.team.find((x) => x.forme);
+          const me = mons[0];
+          const panel = M.gamePanel(me, o, mons, f4.team.filter((x) => x !== o));
+          ok('a forme\'d opponent says its typing is not modelled',
+            /alternate\s+forme/i.test(panel), `${o.n} forme ${o.forme}`);
+          ok('...and says the moves and ability ARE real',
+            /real ones/i.test(panel) && /immunity/i.test(panel),
+            'half a caveat reads as "ignore this board"');
+        }
+      }
+
       ok('a double battle opens as doubles', M.fmtOf({ type: 'Double Battle' }) === 'doubles');
       ok('...a triple battle too', M.fmtOf({ type: 'Triple Battle' }) === 'doubles');
       ok('...but a rotation battle is singles',
