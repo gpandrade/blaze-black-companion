@@ -129,7 +129,8 @@ fs.writeFileSync(tmp, script + "\n;module.exports={render,TEAMS,cur,monBlock,enc
   "levelCurve,speedLadder,threatBoard,bState,stagesOf,boostMoves,bMax,calcDamage,MOVES," +
   "OPPONENTS,boostBanner,bKey,stageMul,oppMon,boostRow,stageFx,battleIndex,TRFACE,D,abilMul,matchLine,mechOn,DEX,enemySpe," +
   "calcPanel,calcDefender,calc,turnGame,solveZeroSum,gameRead,gamePanel,calcIncoming,oppMon,spdOf,enemySpe,gDepth,stageMul,buildSim,stepTurn,leaf,applyStages,dmgMul,STAGE0,threatBoard," +
-  "pairBoards,fmtOf,isRotation,depthPicker,eff,eKey,eFind,eLabel,calcDefender,matchLine,ABS_IMMUNE};");
+  "pairBoards,fmtOf,isRotation,depthPicker,eff,eKey,eFind,eLabel,calcDefender,matchLine,ABS_IMMUNE," +
+  "facing,breaksMold,MOLD_BREAKERS,statNote,calcIncoming};");
 let M;
 try {
   M = require(tmp);
@@ -1145,6 +1146,9 @@ fs.unlinkSync(tmp);
             const om = M.oppMon(o);
             if (M.eff(t, om) !== 0) { wrong.push(`eff(${t},${o.n}) = ${M.eff(t, om)}`); continue; }
             for (const me of mons) {
+              // A Mold Breaker SHOULD pierce the immunity, so it is not a
+              // counter-example here -- it gets its own assertions below.
+              if (M.breaksMold(me)) continue;
               for (const mv of me.moves || []) {
                 const md = M.MOVES[mv];
                 if (!md || md.t !== t || !md.p) continue;
@@ -1170,6 +1174,66 @@ fs.unlinkSync(tmp);
         ok('an immunity ability zeroes damage on every surface, not just one',
           wrong.length === 0,
           wrong.length ? wrong.slice(0, 3).join(' | ') : `${pairs} immune pairings swept`);
+      }
+
+      // ---- ...AND MOLD BREAKER MUST PIERCE IT ------------------------------
+      // The mirror of the sweep above, and the reason it needs one: an
+      // Excadrill with Mold Breaker really does hit Rotom with Earthquake, and
+      // saying 0 there is the same error as saying 50 the other way.
+      {
+        // SEARCH FOR A WORKING TRIPLE rather than fixing on the first immune
+        // opponent: the first one's immune type may be one nobody on the team
+        // carries, and then the whole block silently never runs. It did.
+        let imm = null, base = null, mv = null;
+        outer:
+        for (const o of M.OPPONENTS.flatMap((f) => f.team)) {
+          const ty = M.ABS_IMMUNE[o.a];
+          if (!ty) continue;
+          for (const m of mons) {
+            if (M.breaksMold(m)) continue;
+            const hit = (m.moves || []).find((x) => {
+              const d = M.MOVES[x];
+              return d && d.p > 1 && d.t === ty;
+            });
+            if (hit) { imm = o; base = m; mv = hit; break outer; }
+          }
+        }
+        ok('the page has an immune pairing to test Mold Breaker against',
+          !!(imm && base && mv), imm ? `${base.name} ${mv} -> ${imm.n} (${imm.a})` : 'none found');
+        if (imm && base) {
+          const om = M.oppMon(imm);
+          const blocked = M.calcDamage(base, mv, om);
+          ok('without it, the immunity holds',
+            !blocked || blocked.pctHi === 0, `${mv} -> ${imm.n} (${imm.a})`);
+          for (const ab of [...M.MOLD_BREAKERS]) {
+            const through = M.calcDamage({ ...base, ab }, mv, om);
+            ok(`...and ${ab} goes through it`,
+              !!through && through.pctHi > 0,
+              through ? `${through.pctHi.toFixed(0)}%` : 'still null');
+          }
+          // BOTH DIRECTIONS, and this one decides whether you survive. The
+          // first version of this check asserted `typeof calcIncoming ===
+          // "function"`, which is true of a completely unfixed page -- the
+          // mutant that stripped facing() out of calcIncoming sailed through it.
+          {
+            const myLev = { ...base, ab: 'Levitate' };
+            const gnd = Object.keys(M.MOVES).find((k) => M.MOVES[k].t === 'ground'
+              && M.MOVES[k].p > 1 && M.MOVES[k].c === 'physical');
+            const foe = (ab) => ({ n: imm.n, a: ab, l: '50', m: [gnd] });
+            const held = M.calcIncoming(foe('Levitate'), gnd, myLev);
+            const torn = M.calcIncoming(foe('Teravolt'), gnd, myLev);
+            ok('your own Levitate blocks their ground move',
+              held && held.pctHi === 0, held ? `${held.pctHi}%` : 'null');
+            ok('...but their Teravolt goes through it',
+              torn && torn.pctHi > 0, torn ? `${torn.pctHi.toFixed(0)}%` : 'null');
+          }
+          // And it must SAY so, or a correct number reads as the old bug.
+          const note = M.statNote({ ab: 'Mold Breaker' });
+          ok('...and the page says why the number is not zero',
+            !!note && /ignores the defender/i.test(note), String(note));
+          ok('...without claiming it for an ordinary ability',
+            M.statNote({ ab: 'Levitate' }) === null);
+        }
       }
 
       // ---- a repeated species must be distinguishable WHEREVER it is named --
