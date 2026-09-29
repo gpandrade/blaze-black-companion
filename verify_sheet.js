@@ -130,7 +130,7 @@ fs.writeFileSync(tmp, script + "\n;module.exports={render,TEAMS,cur,monBlock,enc
   "OPPONENTS,boostBanner,bKey,stageMul,oppMon,boostRow,stageFx,battleIndex,TRFACE,D,abilMul,matchLine,mechOn,DEX,enemySpe," +
   "calcPanel,calcDefender,calc,turnGame,solveZeroSum,gameRead,gamePanel,calcIncoming,oppMon,spdOf,enemySpe,gDepth,stageMul,buildSim,stepTurn,leaf,applyStages,dmgMul,STAGE0,threatBoard," +
   "pairBoards,fmtOf,isRotation,depthPicker,eff,eKey,eFind,eLabel,calcDefender,matchLine,ABS_IMMUNE," +
-  "facing,breaksMold,MOLD_BREAKERS,statNote,calcIncoming};");
+  "facing,breaksMold,MOLD_BREAKERS,statNote,calcIncoming,FORME,formeOf};");
 let M;
 try {
   M = require(tmp);
@@ -1269,6 +1269,40 @@ fs.unlinkSync(tmp);
           two && two.ab === null, two ? String(two.ab) : '-');
       }
 
+      // ---- A FORME IS A DIFFERENT POKEMON, so it gets its own typing -------
+      // All six of N 4's Rotom were typed base Electric/Ghost: right for Ground
+      // through Levitate, wrong for Water against the Wash forme. The formes
+      // come from the ROM's own personal rows, located by each species'
+      // BS_FORME_BASE field rather than by knowing the order.
+      {
+        ok('the blob carries the ROM\'s alternate formes',
+          Object.keys(M.FORME || {}).length >= 10, `${Object.keys(M.FORME || {}).length}`);
+        const f4 = M.OPPONENTS.find((x) => x.team.filter((o) => o.forme).length >= 2);
+        if (f4) {
+          const typings = new Set(f4.team.map((o) => M.oppMon(o).types.join('/')));
+          ok('...so a roster of formes is not all one typing',
+            typings.size > 1, [...typings].join(' · '));
+          // The specific thing that was wrong, asserted specifically.
+          const wash = f4.team.find((o) => (M.FORME[`${o.n}.${o.forme}`] || {}).t
+            && M.FORME[`${o.n}.${o.forme}`].t.includes('water'));
+          if (wash) {
+            ok('...and a Water forme resists Water', M.eff('water', M.oppMon(wash)) < 1,
+              `x${M.eff('water', M.oppMon(wash))}`);
+            ok('...while its base species does not',
+              M.eff('water', M.oppMon({ ...wash, forme: 0 })) === 1);
+          }
+          // Levitate still applies on top of the forme's own typing.
+          ok('...and the ability still applies over the forme typing',
+            f4.team.every((o) => !M.ABS_IMMUNE[o.a]
+              || M.eff(M.ABS_IMMUNE[o.a], M.oppMon(o)) === 0));
+          // The forme's own base stats, not the base species'.
+          const bst = new Set(f4.team.map((o) => {
+            const b = M.oppMon(o).b; return b ? b.reduce((x, y) => x + y, 0) : 0;
+          }));
+          ok('...and carries the forme\'s base stats too', bst.size >= 1 && !bst.has(0));
+        }
+      }
+
       // ---- and the board admits the forme typing it does not model ---------
       {
         const f4 = M.OPPONENTS.find((x) => x.team.some((o) => o.forme));
@@ -1276,11 +1310,17 @@ fs.unlinkSync(tmp);
           const o = f4.team.find((x) => x.forme);
           const me = mons[0];
           const panel = M.gamePanel(me, o, mons, f4.team.filter((x) => x !== o));
-          ok('a forme\'d opponent says its typing is not modelled',
-            /alternate\s+forme/i.test(panel), `${o.n} forme ${o.forme}`);
-          ok('...and says the moves and ability ARE real',
-            /real ones/i.test(panel) && /immunity/i.test(panel),
-            'half a caveat reads as "ignore this board"');
+          // THE WARNING IS NOW FOR THE UNRESOLVED CASE ONLY. It used to fire on
+          // every forme, which was right while nothing knew their typings and
+          // is noise now that the ROM's rows are extracted -- a caveat that is
+          // always on is one nobody reads.
+          ok('a RESOLVED forme carries no caveat, because there is nothing to warn about',
+            !!M.formeOf(o) && !/alternate\s+forme/i.test(panel),
+            `${o.n} forme ${o.forme} -> ${M.oppMon(o).types.join('/')}`);
+          const ghost = { ...o, forme: 99 };
+          ok('...but an unresolvable one still says so',
+            /alternate\s+forme/i.test(M.gamePanel(me, ghost, mons, [])),
+            'a forme with no row must not be typed as its base in silence');
         }
       }
 

@@ -1717,7 +1717,8 @@ def build_blob():
     live, info = read_live()
     sp, ti = sprites()
     import gen5
-    personal = json.loads((STATE / "personal.json").read_text())["species"]
+    PERSONAL_RAW = json.loads((STATE / "personal.json").read_text())
+    personal = PERSONAL_RAW["species"]
     items = json.loads((STATE / "items.json").read_text())["items"]
 
     # species -> every copy in the save.  Slots CLAIM a copy, so if you keep two
@@ -1887,6 +1888,14 @@ def build_blob():
         MOVES=moves, ABIL=abil,
         ITEMDESC={v['name']: v['description'] for v in items.values()
                   if v['name'] in HELD_ITEMS_OF_INTEREST and v['description']},
+        # Alternate formes, same key and shape as build_static.py's FORME --
+        # verify_blob.py diffs the two blobs, and the template reads whichever
+        # it is handed. See the note there for why a forme needs its own row.
+        FORME={f"{f['of_name']}.{f['forme']}": dict(
+            t=f['types'],
+            b=[f['base_stats'][k] for k in ('hp','atk','def','spa','spd','spe')],
+            bst=f['bst'], of=f['of_name'], n=f['forme'])
+            for f in (PERSONAL_RAW.get('formes') or {}).values()},
         DEX={v['name']: dict(
             t=v['types'],
             b=[v['base_stats'][k] for k in ('hp','atk','def','spa','spd','spe')],

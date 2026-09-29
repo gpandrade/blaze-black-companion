@@ -80,6 +80,19 @@ BS_TYPE1, BS_TYPE2 = 6, 7
 BS_CATCH_RATE = 8
 BS_GROWTH_CURVE = 21
 BS_ABILITY1, BS_ABILITY2, BS_ABILITY3 = 24, 25, 26
+# THE ROM SAYS WHERE A SPECIES' ALTERNATE FORMES LIVE, so nothing here has to
+# know that Rotom's are Heat/Wash/Frost/Fan/Mow in that order.
+#
+# The NARC holds 669 entries for 649 species: index 0 is a dummy and 650..668
+# are the alternate formes. u16 at 0x1C is the index of a species' FIRST forme
+# row, 0 when it has none -- Rotom reads 657, Deoxys 650, Castform 662, and
+# Bulbasaur 0. Forme n (n >= 1) is therefore at base + n - 1.
+#
+# This matters because a forme can RETYPE the Pokemon, and the battle board was
+# typing all six of N 4's Rotom as base Electric/Ghost -- right for Ground via
+# Levitate and wrong for Water against the Wash forme. The formes are the ROM's
+# own rows, read the same way as any species.
+BS_FORME_BASE = 0x1C
 BS_TMHM_COMPAT = 40            # bsTMHMCompatOffset
 
 # Wild held items.  Gen 5 stores three u16 item ids per species: the common
@@ -452,6 +465,55 @@ def verify_type_order(narc: list[bytes], label: str) -> list[str]:
     return problems
 
 
+def build_formes(tables: dict, species: dict, warnings: list[str]) -> dict:
+    """Alternate formes, keyed "<dex>.<forme>", with their own types and stats.
+
+    Derived, not listed: every base index comes from the species' own
+    BS_FORME_BASE field. A row is accepted only while it stays below the NEXT
+    species' base, which bounds each species to its own rows without needing a
+    count -- the byte at 0x1E is not one (it reads 40 for Rotom).
+    """
+    raw = tables["personal"]
+    bases = {}
+    for dex in range(1, POKEMON_COUNT + 1):
+        e = raw[dex] if dex < len(raw) else None
+        if not e or len(e) <= BS_FORME_BASE + 1:
+            continue
+        b = struct.unpack_from("<H", e, BS_FORME_BASE)[0]
+        if b > POKEMON_COUNT and b < len(raw):
+            bases[dex] = b
+    stops = sorted(set(bases.values())) + [len(raw)]
+    out = {}
+    for dex, base in sorted(bases.items()):
+        stop = next(x for x in stops if x > base)
+        for n in range(1, stop - base + 1):
+            idx = base + n - 1
+            try:
+                rec = parse_entry(raw[idx])
+            except (RomError, IndexError):
+                # parse_entry's type_name() refuses an id outside 0..16, which
+                # is what rejects the padding row at 668 -- every one of its
+                # fields reads 231, and it would otherwise have shipped as a
+                # Meloetta forme with a nonsense typing.
+                continue
+            if rec["bst"] > 800:
+                continue
+            out[f"{dex}.{n}"] = {
+                "of": dex,
+                "of_name": species.get(str(dex), {}).get("name") or f"#{dex}",
+                "forme": n,
+                "index": idx,
+                "types": rec["types"],
+                "type_ids": rec["type_ids"],
+                "base_stats": rec["base_stats"],
+                "bst": rec["bst"],
+                "ability_ids": rec["ability_ids"],
+            }
+    if not out:
+        warnings.append("no alternate formes decoded from the personal table")
+    return out
+
+
 def build_species(tables: dict, wiki: Wiki, warnings: list[str]) -> dict:
     species = {}
     for dex in range(1, POKEMON_COUNT + 1):
@@ -664,6 +726,7 @@ def main(argv=None) -> int:
 
     wiki = Wiki(args.wiki)
     species = build_species(tables, wiki, warnings)
+    formes = build_formes(tables, species, warnings)
     moves = build_moves(tables, warnings)
 
     fairy = [k for k, v in species.items() if "fairy" in v["types"]]
@@ -688,7 +751,8 @@ def main(argv=None) -> int:
     }
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(
-        json.dumps({"meta": meta, "species": species}, indent=2, ensure_ascii=False)
+        json.dumps({"meta": meta, "species": species, "formes": formes},
+                   indent=2, ensure_ascii=False)
         + "\n", encoding="utf-8")
     args.moves_out.write_text(
         json.dumps({"meta": meta, "moves": moves}, indent=2, ensure_ascii=False)

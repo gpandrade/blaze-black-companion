@@ -243,6 +243,11 @@ export function buildBlob(save, S, { ot = null, version = 'black', starter = nul
     blob: {
       TYPES: S.TYPES, CHART: S.CHART, MOVES: S.MOVES, ABIL: S.ABIL,
       ITEMDESC: S.ITEMDESC, DEX: S.DEX, SPRITE: S.SPRITE, TICON: S.TICON,
+      // ALTERNATE FORMES, and leaving this off is silent: oppMon falls back to
+      // the base species' typing, so N 4's six Rotom all read Electric/Ghost
+      // and only the Water and Ice columns are wrong. verify_app pins every
+      // D.FIELD the template reads for exactly this reason.
+      FORME: S.FORME,
       // Trainer portraits. PATHS here, where the app is served over HTTP;
       // build_sheet.py embeds the same images as base64 because a published
       // artifact cannot fetch anything. The template reads whichever it is

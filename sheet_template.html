@@ -819,6 +819,10 @@
 <script>
 const D=__DATA__;
 const {TYPES,CHART,MOVES,ABIL,ITEMDESC,DEX,SPRITE,TICON,TEAMS,OPPONENTS,STATUS,NOTES,META,HERE,BAGTM,BOXED,SPNAME}=D;
+/* Defaulted rather than destructured with the rest, because a sheet built by an
+   older build_static has no FORME key and every lookup would throw on a blob
+   this page is otherwise perfectly able to render. */
+const FORME=D.FORME||{};
 // Portraits arrived after the app started hosting this template, so an
 // older blob simply has no TRFACE. Defaulting keeps the battle tab alive
 // instead of throwing on the first encounter card.
@@ -1026,8 +1030,18 @@ function statNote(mon){
 // An opponent as a defender the shared eff() can read, so THEIR abilities
 // finally count.  Previously an enemy Levitate or Flash Fire was displayed and
 // then ignored by every calculation on the page.
-const oppMon=o=>({name:o.n,types:(DEX[o.n]||{t:[]}).t,ab:o.a||'',
-                  b:(DEX[o.n]||{}).b,lvl:parseInt(o.l,10)||50});
+/* A FORME IS A DIFFERENT POKEMON, so it gets the forme's own row. FORME is
+   keyed "<species>.<forme>" and carries types and base stats in the same shape
+   as a DEX entry, so this is a substitution rather than a special case.
+   N 4's six Rotom were all typed base Electric/Ghost, which is right for Ground
+   through Levitate and wrong for Water against the Wash forme -- a wrong number
+   on the one surface that exists to be trusted. The formes come from the ROM's
+   own personal rows; the species' BS_FORME_BASE field says where they are. */
+const formeOf=o=>(o&&o.forme&&typeof FORME!=='undefined'
+  ? FORME[`${o.n}.${o.forme}`] : null)||null;
+const oppMon=o=>{const f=formeOf(o), d=DEX[o.n]||{};
+  return {name:o.n,types:(f||d).t||[],ab:o.a||'',b:(f||d).b,
+          lvl:parseInt(o.l,10)||50,forme:o.forme||0};};
 const dealTo=(mvType,om)=>eff(mvType,om)*atkMul(mvType);
 const trOn=()=>Object.keys(mechOn).some(k=>mechOn[k]&&MECH[k].invert);
 const ABS_IMMUNE={'Levitate':'ground','Storm Drain':'water','Water Absorb':'water',
@@ -2009,12 +2023,15 @@ function gamePanel(me,o,pool,theirRest,withPicker=true){
      grid that depends on the defender's second type is therefore suspect for
      that Pokemon, and the grid has no way to know it. Saying so is the whole
      standard this page is held to. */
-  const formeWarn=o.forme?`<p class="note rotnote"><b>${esc(o.n)} is an alternate
-    forme (#${o.forme}) and is typed here as base ${esc(o.n)}.</b> Its moves are the
-    real ones, read from the cartridge, and an immunity from its ability still
-    applies — but its second TYPE is not modelled, so any column whose
-    effectiveness depends on it is unreliable. Check the move's type against the
-    forme yourself before trusting a number in this row.</p>`:'';
+  /* Only when the forme is one we could NOT resolve. The typings are extracted
+     now, so this stopped being the normal case and went back to being a real
+     warning -- which is the only state a warning is any use in. */
+  const formeWarn=(o.forme&&!formeOf(o))?`<p class="note rotnote"><b>${esc(o.n)} is
+    an alternate forme (#${o.forme}) whose typing this build could not resolve.</b>
+    Its moves are the real ones and its ability still applies, but it is typed
+    here as base ${esc(o.n)} — so any column whose effectiveness depends on the
+    second type is unreliable. Re-run extract_personal.py; if it persists, the
+    forme is not in the ROM's own forme rows.</p>`:'';
   const bestRow=A[R.best]||[];
   const jWorst=bestRow.indexOf(Math.min(...bestRow));
   const theirBest=cols[jWorst];

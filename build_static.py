@@ -798,7 +798,8 @@ def encounters_by_area() -> dict:
 
 
 def main() -> int:
-    personal = json.loads((bs.STATE / "personal.json").read_text())["species"]
+    personal_raw = json.loads((bs.STATE / "personal.json").read_text())
+    personal = personal_raw["species"]
     items = json.loads((bs.STATE / "items.json").read_text())["items"]
     maps = json.loads((bs.STATE / "maps.json").read_text())
 
@@ -842,6 +843,18 @@ def main() -> int:
         ABILBYID={str(k): v for k, v in abil_by_id.items()},
         ITEMDESC={v["name"]: v["description"] for v in items.values()
                   if v["name"] in bs.HELD_ITEMS_OF_INTEREST and v["description"]},
+        # ALTERNATE FORMES, keyed "<species name>.<forme id>" so the battle
+        # board can look one up straight from a trainer record's `forme`. Same
+        # shape as a DEX entry -- types and base stats in the same order -- so
+        # the consumer substitutes one for the other and nothing else changes.
+        # Without this, all six of N 4's Rotom typed as base Electric/Ghost:
+        # right for Ground via Levitate, wrong for Water against the Wash
+        # forme, and wrong in the direction that reads as a working tool.
+        FORME={f"{f['of_name']}.{f['forme']}": dict(
+            t=f["types"],
+            b=[f["base_stats"][k] for k in ("hp", "atk", "def", "spa", "spd", "spe")],
+            bst=f["bst"], of=f["of_name"], n=f["forme"])
+            for f in (personal_raw.get("formes") or {}).values()},
         DEX={v["name"]: dict(
             t=v["types"],
             b=[v["base_stats"][k] for k in ("hp", "atk", "def", "spa", "spd", "spe")],
