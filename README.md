@@ -94,6 +94,25 @@ now rather than a flat inventory.</td>
 </tr>
 </table>
 
+<table>
+<tr>
+<td width="50%"><a href="screenshots/theme-light.png"><img src="screenshots/theme-light.png" alt="The Adventure tab's region map in light mode"></a></td>
+<td width="50%"><a href="screenshots/theme-dark.png"><img src="screenshots/theme-dark.png" alt="The same screen in dark mode"></a></td>
+</tr>
+<tr>
+<td colspan="2"><b>The region map, and the same screen in both themes.</b> It knows
+where you are from the save — zone and tile — and every marker is a fraction of
+the image rather than a pixel, so a different scan of the same artwork does not
+break them. Corrections you drag are saved to a file you can commit, which is
+how one person's fix reaches everyone.<br><br>
+There are four palettes, not two: light and dark across both cartridges, one hue
+over a shared lightness ladder. Contrast is held by construction rather than
+checked afterwards — the generator moves only <code>a*</code> and
+<code>b*</code> and holds CIE <code>L*</code> exactly, and relative luminance is
+a function of <code>L*</code> alone.</td>
+</tr>
+</table>
+
 <a href="screenshots/battle-beside-the-game.png"><img src="screenshots/battle-beside-the-game.png" alt="The companion open beside melonDS during a triple battle"></a>
 
 *Which is how it is actually used — beside the emulator, mid-fight.*
