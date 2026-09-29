@@ -130,7 +130,7 @@ fs.writeFileSync(tmp, script + "\n;module.exports={render,TEAMS,cur,monBlock,enc
   "OPPONENTS,boostBanner,bKey,stageMul,oppMon,boostRow,stageFx,battleIndex,TRFACE,D,abilMul,matchLine,mechOn,DEX,enemySpe," +
   "calcPanel,calcDefender,calc,turnGame,solveZeroSum,gameRead,gamePanel,calcIncoming,oppMon,spdOf,enemySpe,gDepth,stageMul,buildSim,stepTurn,leaf,applyStages,dmgMul,STAGE0,threatBoard," +
   "pairBoards,fmtOf,isRotation,depthPicker,eff,eKey,eFind,eLabel,calcDefender,matchLine,ABS_IMMUNE," +
-  "facing,breaksMold,MOLD_BREAKERS,statNote,calcIncoming,FORME,formeOf};");
+  "facing,breaksMold,MOLD_BREAKERS,statNote,calcIncoming,FORME,formeOf,CAP};");
 let M;
 try {
   M = require(tmp);
@@ -1325,7 +1325,13 @@ fs.unlinkSync(tmp);
       }
 
       ok('a double battle opens as doubles', M.fmtOf({ type: 'Double Battle' }) === 'doubles');
-      ok('...a triple battle too', M.fmtOf({ type: 'Triple Battle' }) === 'doubles');
+      // A TRIPLE IS ITS OWN FORMAT NOW. It used to round down to doubles, which
+      // silently dropped a third of the fight -- two of theirs considered out of
+      // the three actually fielded.
+      ok('...and a triple battle opens as triples',
+        M.fmtOf({ type: 'Triple Battle' }) === 'triples');
+      ok('...with three on each side', M.CAP.triples === 3 && M.CAP.doubles === 2
+        && M.CAP.singles === 1);
       ok('...but a rotation battle is singles',
         M.fmtOf({ type: 'Rotation Battle' }) === 'singles', 'one active per side');
       ok('...and is flagged so it can say why', M.isRotation({ type: 'Rotation Battle' }) === true);
@@ -1349,6 +1355,19 @@ fs.unlinkSync(tmp);
         const btns = (made.match(/class="pairbtn/g) || []).length;
         const boards = (made.match(/class="pairgame"/g) || []).length;
         ok('doubles offers one button per pairing', btns === 4, `${btns} buttons`);
+        // NINE for a triple, from the same code path: pairBoards was always
+        // mine x theirs, so all a third format needed was a cap.
+        const tri = M.OPPONENTS.find((x) => M.fmtOf(x) === 'triples' && x.team.length >= 3);
+        if (tri && mons.length >= 3) {
+          const made3 = M.pairBoards(mons.slice(0, 3), tri,
+            mons.slice(0, 3).map((m) => m.name),
+            tri.team.slice(0, 3).map((x, i) => M.eKey(x, i)));
+          const b3 = (made3.match(/class="pairbtn/g) || []).length;
+          ok('...and a triple battle offers nine, on a 3x3', b3 === 9, `${b3} buttons`);
+          ok('...laid out three to a row', /--pcols:3/.test(made3));
+          ok('...still one board at a time',
+            (made3.match(/class="pairgame"/g) || []).length === 1);
+        }
         ok('...and renders exactly one board at a time', boards === 1, `${boards} boards`);
         ok('...with exactly one pairing selected',
           (made.match(/class="pairbtn on"/g) || []).length === 1);

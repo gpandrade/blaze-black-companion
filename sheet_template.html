@@ -1414,8 +1414,13 @@ let encIdx=0, benched={}, fmt='singles', fieldE=[], fieldM=[];
    is that rotating is cheaper than switching. Lumping it in with doubles cost
    four fights a usable board, Drayden and Cheren 4 among them, and replaced
    them with a note apologising for not modelling a game they are not playing. */
-const fmtOf=(e)=>/double|triple/i.test(String(e&&e.type||'').split('/')[0])
-  ? 'doubles' : 'singles';
+/* Three formats, because the game has three shapes and rounding a triple down
+   to "doubles" threw away a third of the fight. The pairing view generalises for
+   free -- it was already mine x theirs -- so a triple is nine boards on a 3x3
+   picker, which is the same idea at the size the fight actually is. */
+const CAP={singles:1,doubles:2,triples:3};
+const fmtOf=(e)=>{const t=String(e&&e.type||'').split('/')[0];
+  return /triple/i.test(t)?'triples':/double/i.test(t)?'doubles':'singles';};
 const isRotation=(e)=>/rotation/i.test(String(e&&e.type||'').split('/')[0]);
 /* Which fight `fmt` was last derived for. A manual toggle has to stick while
    you are on that fight -- otherwise the buttons do nothing and read as
@@ -1499,8 +1504,8 @@ try{const st=JSON.parse(localStorage.getItem('bb_enc')||'{}');
      is actually on this fight's roster is settled by encounterPanel, which
      already filters both lists against it every render -- so a stale name
      from another fight simply drops out rather than needing a guard here. */
-  if(Array.isArray(st.fe)) fieldE=st.fe.filter(x=>typeof x==='string').slice(0,2);
-  if(Array.isArray(st.fm)) fieldM=st.fm.filter(x=>typeof x==='string').slice(0,2);}catch(e){}
+  if(Array.isArray(st.fe)) fieldE=st.fe.filter(x=>typeof x==='string').slice(0,3);
+  if(Array.isArray(st.fm)) fieldM=st.fm.filter(x=>typeof x==='string').slice(0,3);}catch(e){}
 /* WHO IS ON THE FIELD SURVIVES A RELOAD. The fight was remembered and so was
    the look-ahead, but the pairing was not -- so every reload emptied the one
    thing you had to click twice to set, and the board you were reading vanished
@@ -2452,10 +2457,12 @@ function pairBoards(pool,e,mineNames,theirNames){
     <div class="pairgame">${gamePanel(pm,po,pool,e.team.filter(x=>x!==po),false)}</div>`;
   return `<div class="gpair">
     ${depthPicker()}
-    <p class="note"><b>${pairs.length} one-on-one boards, not a doubles solver.</b>
+    <p class="note"><b>${pairs.length} one-on-one boards, not a ${
+      fmt==='triples'?'triples':'doubles'} solver.</b>
       Each board below is the exact simultaneous game for that pairing, solved the
       same way as a singles turn. What this does <b>not</b> model is everything that
-      makes doubles its own game: spread moves hitting both your Pokémon at 75%,
+      makes ${fmt==='triples'?'a triple battle':'doubles'} its own game: spread moves
+      hitting your whole side at 75%,
       redirection (Follow Me, Lightning Rod, Storm Drain), ally-targeting support
       like Helping Hand, Wide Guard, and the fact that your two choices are made
       together rather than independently. Treat each board as "how does this one
@@ -2478,7 +2485,7 @@ function encounterPanel(mons,team,idx){
   if(fmtFor!==ekey){ fmt=fmtOf(e); fmtFor=ekey; fieldE=[]; fieldM=[]; pairIdx=0; }
   const active=mons.filter(m=>!benched[m.name]);
   const pool=active.length?active:mons;
-  const cap=fmt==='doubles'?2:1;
+  const cap=CAP[fmt]||1;
   fieldE=fieldE.filter(k=>eFind(e.team,k)).slice(0,cap);
   fieldM=fieldM.filter(n=>pool.some(m=>m.name===n)).slice(0,cap);
 
@@ -2588,6 +2595,7 @@ function encounterPanel(mons,team,idx){
         <span class="lbl">format</span>
         <button class="minibtn${fmt==='singles'?' on':''}" data-fmt="singles" type="button">Singles</button>
         <button class="minibtn${fmt==='doubles'?' on':''}" data-fmt="doubles" type="button">Doubles</button>
+        <button class="minibtn${fmt==='triples'?' on':''}" data-fmt="triples" type="button">Triples</button>
         <span class="lbl">pick ${cap} on each side</span>
         ${e.type?`<span class="lbl" style="margin-left:auto">this fight is a <b>${esc(e.type)}</b></span>`:''}
       </div>
@@ -2606,7 +2614,7 @@ function encounterPanel(mons,team,idx){
       ${(fmt==='singles'&&fieldM.length===1&&fieldE.length===1)
         ? gamePanel(pool.find(m=>m.name===fieldM[0]), eFind(e.team,fieldE[0]), pool,
             e.team.filter(x=>x!==eFind(e.team,fieldE[0])))
-        : (fmt==='doubles'&&fieldM.length&&fieldE.length)
+        : (fmt!=='singles'&&fieldM.length&&fieldE.length)
         ? pairBoards(pool,e)
         : (fieldM.length&&fieldE.length)
         ? '<p class="note">Exactly one on each side to see what is safe.</p>'
@@ -2911,12 +2919,12 @@ function render(team){
     try{localStorage.setItem('bb_gdepth',String(gDepth));}catch(e){}
     render(team);});
   document.querySelectorAll('[data-fmt]').forEach(b=>b.onclick=()=>{
-    fmt=b.dataset.fmt; fieldE=fieldE.slice(0,fmt==='doubles'?2:1);
-    fieldM=fieldM.slice(0,fmt==='doubles'?2:1); render(team);});
+    fmt=b.dataset.fmt; fieldE=fieldE.slice(0,CAP[fmt]||1);
+    fieldM=fieldM.slice(0,CAP[fmt]||1); pairIdx=0; render(team);});
   /* Switching pairing is a redraw, like every other control on this panel. */
   document.querySelectorAll('[data-pair]').forEach(b=>b.onclick=()=>{
     pairIdx=+b.dataset.pair; render(team);});
-  const toggleField=(arr,val)=>{const cap=fmt==='doubles'?2:1;
+  const toggleField=(arr,val)=>{const cap=CAP[fmt]||1;
     const i=arr.indexOf(val);
     if(i>=0) arr.splice(i,1); else {arr.push(val); while(arr.length>cap) arr.shift();}};
   document.querySelectorAll('[data-fe]').forEach(b=>b.onclick=()=>{
