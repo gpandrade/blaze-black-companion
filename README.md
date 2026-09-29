@@ -43,6 +43,63 @@ after setup.
 
 ---
 
+## What it looks like
+
+[![The battle tab solving a turn as a matrix game](screenshots/battle-matrix.png)](screenshots/battle-matrix.png)
+
+*Skyla's triple battle, two turns of look-ahead. Rows are what you could do,
+columns are what they could do, and each cell is where the fight stands if you
+both pick that — in whole Pokémon, so +100 means you come out one ahead. The
+`worst` column is what each choice guarantees you, and the ringed row is the
+one whose worst case is least bad. Here Dragon Claw has no punish and the turn
+has a settled answer.*
+
+<table>
+<tr>
+<td width="50%"><a href="screenshots/pokedex-farfetchd.png"><img src="screenshots/pokedex-farfetchd.png" alt="Pokédex entry for Farfetch'd showing what the hack changed"></a></td>
+<td width="50%"><a href="screenshots/team-builder-suggest.png"><img src="screenshots/team-builder-suggest.png" alt="Team Builder suggesting a slot under an inferred premise"></a></td>
+</tr>
+<tr>
+<td><b>The Pokédex, against both cartridges.</b> Farfetch'd is Normal/Flying
+everywhere else and <b>Fighting/Flying</b> here, +123 BST, 60 Speed become 110,
+Keen Eye and Inner Focus become Defiant and Super Luck. Every row is struck
+through with what it used to be.</td>
+<td><b>The Team Builder's slot suggester.</b> It infers what the team is
+<i>for</i> — here, that every member has Contrary — and filters to that before
+ranking, because there is no weight vector under which this team is optimal.
+The premise is a chip you can drop.</td>
+</tr>
+<tr>
+<td><a href="screenshots/adventure.png"><img src="screenshots/adventure.png" alt="Adventure tab showing encounters and trainers for the current area"></a></td>
+<td><a href="screenshots/run-nuzlocke.png"><img src="screenshots/run-nuzlocke.png" alt="Nuzlocke rule picker, where each rule closes named actions"></a></td>
+</tr>
+<tr>
+<td><b>Adventure</b> knows where you are from the save. Encounters by method
+and rate, what is worth farming, and who is waiting — with the fight's real
+format, down to "rotation battle".</td>
+<td><b>Nuzlocke mode is a set of switches, not a checklist.</b> Each rule names
+the buttons it closes, and closed buttons stay on screen struck through rather
+than vanishing — so you can see the constraint you chose.</td>
+</tr>
+<tr>
+<td><a href="screenshots/factory.png"><img src="screenshots/factory.png" alt="The Factory: party, boxes, and one Pokémon's full record"></a></td>
+<td><a href="screenshots/bag.png"><img src="screenshots/bag.png" alt="The Bag, with the game's own item descriptions"></a></td>
+</tr>
+<tr>
+<td><b>The Factory</b> reads and writes: party, all 24 boxes, every field of a
+record. It flags rather than blocks — that 1530 EV total is impossible in a
+real game, and it says so and writes it anyway.</td>
+<td><b>The Bag</b>, with the cartridge's own item text. Led by what is usable
+now rather than a flat inventory.</td>
+</tr>
+</table>
+
+<a href="screenshots/battle-beside-the-game.png"><img src="screenshots/battle-beside-the-game.png" alt="The companion open beside melonDS during a triple battle"></a>
+
+*Which is how it is actually used — beside the emulator, mid-fight.*
+
+---
+
 ## What it does
 
 Seven tabs, all reading the same save:
@@ -76,6 +133,10 @@ The Pokédex works with no save loaded at all.
 ## What this repository does not contain
 
 **No ROM. No save. No sprites. No game data of any kind.**
+
+(The screenshots above are the one place any game art appears, and they are
+pictures of this tool rather than anything extractable — no sprite file, table
+or encounter list ships in this repository.)
 
 That is deliberate and it is the reason setup has a step at all. The species
 tables, move tables, item and map tables, trainer rosters, 649 sprites, 649
